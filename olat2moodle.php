@@ -38,7 +38,7 @@
 				//$expath = getcwd() . "/tmp/";
 				$zip->extractTo($expath);
 				$zip->close();
-			        var_dump($expath);	
+			        	
 				// $olat will be the root for the XML file.
 				if($olat = simplexml_load_file($expath . "runstructure.xml")) {}
 				else {
