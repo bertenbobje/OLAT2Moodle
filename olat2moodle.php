@@ -35,6 +35,9 @@
 			$zip = new ZipArchive;
 			if ($zip->open($path)) {
 				$expath = getcwd() . "/tmp/" . $num . "/";
+				if (!file_exists($expath) and !is_dir($expath)) {
+					mkdir(getcwd() . "/tmp/" . $num . "/", 0777, true);
+				}
 				//$expath = getcwd() . "/tmp/";
 				$zip->extractTo($expath);
 				$zip->close();
