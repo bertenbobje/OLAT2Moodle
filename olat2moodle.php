@@ -160,6 +160,6 @@
 	var_dump($course);
 	
 	// Removes the temporary folder and all its contents.
-	//rrmdir($expath);
+	rrmdir($expath);
 	
 ?>
