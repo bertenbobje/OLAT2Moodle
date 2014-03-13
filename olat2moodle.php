@@ -1,26 +1,16 @@
 <?php
-  /**********************************************************
-  /* Stores the OLAT .zip that was uploaded previously, 
-	/* unzips it in a temporary folder with a random integer,
-	/* (so that there can't be any accidental overwrites).
-	/* Then it reads out runstructure.xml and gets out
-	/* the important parts and shows them on the page.
-	/**********************************************************
+
+	/*************************************************************
+	/* Converts an .OLAT backup to an object.
+	/*************************************************************
 	/* Bert Truyens
-	/*********************************************************/
+	/************************************************************/
 	
-	require_once("functions.php");
+	require("functions.php");
+	require("classes.php");
 	
 	if(isset($_FILES["file"])) {
 		if($_FILES["file"]) {
-		
-			// PHP has difficulties with .'s, so they're all put in their
-			// own variables.
-			$st = "org.olat.course.nodes.STCourseNode";				// Structure
-			$en = "org.olat.course.nodes.ENCourseNode";				// Enrollment
-			$sp = "org.olat.course.nodes.SPCourseNode";				// Course pages
-			$iq = "org.olat.course.nodes.IQTESTCourseNode";		// Tests
-			$fo = "org.olat.course.nodes.FOCourseNode";				// Forums
 			
 			// Random integer for storing unzips, so that there will be no overwrites.
 			$num = "";
@@ -28,22 +18,35 @@
 				$num .= strval(mt_rand(0, 9));
 			}
 			
+			// Path to the stored .zip on the server.
 			$path = $_FILES["file"]["tmp_name"];
 			
 			// Extracts the .zip and puts it in its own folder
 			// with randomly generated number for name.
 			$zip = new ZipArchive;
 			if ($zip->open($path)) {
-				$expath = getcwd() . "/tmp/" . $num . "/";
-				if (!file_exists($expath) and !is_dir($expath)) {
-					mkdir(getcwd() . "/tmp/" . $num . "/", 0777, true);
+				$expath = getcwd() . "/tmp/" . $num;
+				// Creates both the 'tmp' directory and the random number directory
+				// if they don't exist yet.
+				if (!file_exists(getcwd() . "/tmp") and !is_dir(getcwd() . "/tmp")) {
+					mkdir(getcwd() . "/tmp", 0777, true);
 				}
-				//$expath = getcwd() . "/tmp/";
+				if (!file_exists($expath) and !is_dir($expath)) {
+					mkdir($expath, 0777, true);
+				}
+				
+				// Extract the .zip to the path.
 				$zip->extractTo($expath);
 				$zip->close();
 			        	
-				// $olat will be the root for the XML file.
-				if($olat = simplexml_load_file($expath . "runstructure.xml")) {}
+				// $olat will be the root for the XML file
+				if (file_exists($expath . "/runstructure.xml")) {
+					$olat = file_get_contents($expath . "/runstructure.xml");
+					// xPath initialisation for easier access to xml nodes.
+					$doc = new DOMDocument();
+					$doc->loadXML($olat);
+					$xpath = simplexml_load_file($expath . "/runstructure.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
+				}
 				else {
 					echo "<p>Error reading XML.</p><br>";
 					echo "<a href='index.php'>Go back</a>";
@@ -60,59 +63,105 @@
 		echo "<a href='index.php'>Go back</a>";
 	}
 	
-?>
-<!DOCTYPE html>
-<html>
-<head>
-	<title>OLAT2Moodle</title>
-	<meta charset="utf-8">
-	<!--<link rel="stylesheet" type="text/css" href="css/reset.css">-->
-	<link rel="stylesheet" type="text/css" href="css/style.css">
-	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-    <script type="text/javascript">
-		$(function() {
-			$('img').each(function() {
-				var $img = $(this);
-				var oldimgsrc = $img.attr('src');
-				
-				var newimgsrc = "/olat2moodle/tmp/<?php echo $num ?>/coursefolder/" + oldimgsrc;
-				
-				$img.attr('src', newimgsrc);
-			});
-		});
-	</script>
-</head>
-<body>
-	<h1><?php echo $olat->rootNode->longTitle; ?></h1>
-	<h2><?php echo $olat->rootNode->shortTitle; ?></h2>
-	<h3>Type of course: <?php echo $olat->rootNode->attributes(); ?></h3>
-	<?php foreach ($olat->rootNode->children->children() as $child) { 				// Reads out all children, and the children's children. ?>
-		<div class="root">
-		<?php echo $child->getName() . "<br>"; ?>
-		</div>
-		<?php if ($child->children->count() > 0) {
-			foreach ($child->children->children() as $child2) { ?>
-				<div class="rootc1">
-				<?php echo "> " . $child2->getName() . "<br>";
-				echo $child2->shortTitle . "<br>"; ?>
-				</div>
-				<?php if ($child2->children->count() > 0) {
-					foreach ($child2->children->children() as $child3) { ?>
-						<div class="rootc2">
-						<?php echo ">> " . $child3->getName() . "<br>";
-						echo $child3->shortTitle . "<br>";
-						foreach ($child3->moduleConfiguration->config->entry as $strng) {
-							if($strng->string == "file") {
-								$url = $expath . "coursefolder" . $strng->string[1];
-								echo "<p>" . (file_get_contents($url)) . "</p>";
-							}
-						} ?>
-						</div>
-					<?php }
+	// Course
+	$start = $xpath->xpath("/org.olat.course.Structure");
+	$item = $start[0];
+	
+	$course = new Course(
+			isset($item->rootNode->ident) ? (string) $item->rootNode->ident : null,
+			isset($item->rootNode->type) ? (string) $item->rootNode->type : null,
+			isset($item->rootNode->shortTitle) ? (string) $item->rootNode->shortTitle : null,
+			isset($item->rootNode->longTitle) ? (string) $item->rootNode->longTitle : null);
+	
+	// Chapters
+	$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv']");
+	foreach ($chapters as $child) {
+		// If noPage still equals zero at the end, the type will be
+		// sp or st without a page inside of it.
+		$noPage = 0;
+		switch ($child->type) {
+			// Tests/Quizzes
+			case "iqtest":
+			case "iqself":
+			case "iqsurv":
+				$noPage++;
+				$chapterObject = new Chapter;
+				break;
+			
+			// Enrollment
+			case "en":
+				$noPage++;
+				$chapterLearningObject = $xpath->xpath("//*[ident = " . $child->ident . "]/learningObjectives");
+				foreach ($chapterLearningObject as $chapterLearningObjectItem) {
+					$chapterLearningObjectItems = (string) $chapterLearningObjectItem;
 				}
-			}
+				$chapterObject = new ChapterLearningObjectives((string) $chapterLearningObjectItems);
+				break;
+
+			// Directory
+			case "bc":
+				$noPage++;
+				$subjectObject = new SubjectDropFolder();
+				$course_map = getDirectoryList($expath . "export/" . $child->ident);
+				for ($i = 0; count($course_map) > $i; $i++) {
+					$location = $expath . "export/" . $child->ident . "/" . $course_map . "[" . $i . "]";
+					$folderObject = new Folder(
+								(string) $course_map[$i],
+								(string) $location,
+								(string) filesize($location),
+								(string) filetype($location),
+								(string) date("F d Y H:i:s.", filemtime($location)));
+					$subjectObject->setSubjectFolders($folderObject);
+				}
+				break;
+				
+			// Page
+			case "sp":
+				// Looks for the only <string> record that starts with a '/' (HTML-reference).
+				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
+				foreach ($chapterPagePath as $chapterPage) {
+					$noPage++;
+					$chapterPageItem = $chapterPage;
+				}
+				if (!empty($chapterPageItem)) {
+					$chapterObject = new ChapterPage ((string) file_get_contents($expath . "/coursefolder" . $chapterPageItem));
+				}
+				break;
+			
+			// Structure
+			case "st":
+				// Looks for the only <string> record that starts with a '/' (HTML-reference).
+				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
+				foreach ($chapterPagePath as $chapterPage) {
+					$noPage++;
+					$chapterPageItem = $chapterPage;
+				}
+				if (!empty($chapterPageItem)) {
+					$chapterObject = new ChapterPage((string) file_get_contents($expath . "/coursefolder" . $chapterPageItem));
+				}
+				else {
+					$noPage++;
+					$emptyHTML = "";
+					$chapterObject = new ChapterPage($emptyHTML);
+				}
+				break;
 		}
-		echo "<br>";
-	} ?>
-</body>
-</html>
+		
+		if ($noPage != 0) {
+			$chapterObject->setID(isset($child->ident) ? (string) $child->ident : null);
+			$chapterObject->setType(isset($child->type) ? (string) $child->type : null);
+			$chapterObject->setShortTitle(isset($child->shortTitle) ? (string) $child->shortTitle : null);
+			$chapterObject->setLongTitle(isset($child->longTitle) ? (string) $child->longTitle : null);
+			
+			getSubjects($chapterObject, $child->ident, $xpath, $expath);
+			$course->setChapter($chapterObject);
+		}
+	}
+
+	echo "<p>COURSE</p>";
+	var_dump($course);
+	
+	// Removes the temporary folder and all its contents.
+	rrmdir($expath);
+	
+?>
