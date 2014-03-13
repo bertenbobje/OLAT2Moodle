@@ -91,6 +91,7 @@
 			// Enrollment
 			case "en":
 				$noPage++;
+				$chapterLearningObjectItems = '';
 				$chapterLearningObject = $xpath->xpath("//*[ident = " . $child->ident . "]/learningObjectives");
 				foreach ($chapterLearningObject as $chapterLearningObjectItem) {
 					$chapterLearningObjectItems = (string) $chapterLearningObjectItem;
@@ -101,17 +102,17 @@
 			// Directory
 			case "bc":
 				$noPage++;
-				$subjectObject = new SubjectDropFolder();
-				$course_map = getDirectoryList($expath . "export/" . $child->ident);
-				for ($i = 0; count($course_map) > $i; $i++) {
-					$location = $expath . "export/" . $child->ident . "/" . $course_map . "[" . $i . "]";
+				$chapterObject = new ChapterDropFolder();
+				$course_map = getDirectoryList($expath . "/export/" . $child->ident);
+				for ($i = 0; $i < count($course_map); $i++) {
+					$location = $expath . "/export/" . $child->ident . "/" . $course_map[$i];
 					$folderObject = new Folder(
 								(string) $course_map[$i],
 								(string) $location,
 								(string) filesize($location),
 								(string) filetype($location),
 								(string) date("F d Y H:i:s.", filemtime($location)));
-					$subjectObject->setSubjectFolders($folderObject);
+					$chapterObject->setChapterFolders($folderObject);
 				}
 				break;
 				
@@ -123,8 +124,14 @@
 					$noPage++;
 					$chapterPageItem = $chapterPage;
 				}
-				if (!empty($chapterPageItem)) {
-					$chapterObject = new ChapterPage ((string) file_get_contents($expath . "/coursefolder" . $chapterPageItem));
+				if (isset($chapterPageItem)) {
+					// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
+					$chapterObject = new ChapterPage(utf8_encode(file_get_contents($expath . "/coursefolder" . $chapterPageItem)));
+				}
+				else {
+					$noPage++;
+					$emptyHTML = "xxx";
+					$chapterObject = new ChapterPage($emptyHTML);
 				}
 				break;
 			
@@ -136,12 +143,13 @@
 					$noPage++;
 					$chapterPageItem = $chapterPage;
 				}
-				if (!empty($chapterPageItem)) {
-					$chapterObject = new ChapterPage((string) file_get_contents($expath . "/coursefolder" . $chapterPageItem));
+				if (isset($chapterPageItem)) {
+					// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
+					$chapterObject = new ChapterPage(utf8_encode(file_get_contents($expath . "/coursefolder" . $chapterPageItem)));
 				}
 				else {
 					$noPage++;
-					$emptyHTML = "";
+					$emptyHTML = "xxx";
 					$chapterObject = new ChapterPage($emptyHTML);
 				}
 				break;
@@ -162,6 +170,6 @@
 	var_dump($course);
 	
 	// Removes the temporary folder and all its contents.
-	rrmdir($expath);
+	//rrmdir($expath);
 	
 ?>

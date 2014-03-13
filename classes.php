@@ -31,11 +31,7 @@
 			$this->id = $id;
 			$this->type = $type;
 			$this->shortTitle = $shortTitle;
-			if ($longTitle == "") {
-				$this->longTitle = $shortTitle;
-			} else {
-				$this->longTitle = $longTitle;
-			}
+			$this->longTitle = $longTitle;
 		}
 		
 		public function setID($id) {
@@ -63,7 +59,12 @@
 		}
 		
 		public function setLongTitle($longTitle) {
-			$this->longTitle = $longTitle;
+			if (empty($longtitle)) {
+				$this->longTitle = getShortTitle();
+			}
+			else {
+				$this->longTitle = $longTitle;
+			}
 		}
 		
 		public function getLongTitle() {
@@ -95,11 +96,7 @@
 			$this->id = $id;
 			$this->type = $type;
 			$this->shortTitle = $shortTitle;
-			if ($longTitle = '') {
-				$this->longTitle = $shortTitle;
-			} else {
-				$this->longTitle = $longTitle;
-			}
+			$this->longTitle = $longTitle;
 		}
 		
 		public function setID($id) {
@@ -127,7 +124,12 @@
 		}
 		
 		public function setLongTitle($longTitle) {
-			$this->longTitle = $longTitle;
+			if (empty($longtitle)) {
+				$this->longTitle = $this->shortTitle;
+			}
+			else {
+				$this->longTitle = $longTitle;
+			}
 		}
 		
 		public function getLongTitle() {
@@ -193,13 +195,13 @@
 	
 		protected $folders = array();
 		
-		public function __construct($htmlPage) {}
+		public function __construct() {}
 		
-		public function setChapterPage($htmlPage) {
+		public function setChapterFolders($folders) {
 			array_push($this->folders, $folders);
 		}
 		
-		public function getChapterPage() {
+		public function getChapterFolders() {
 			return $this->folders;
 		}
 		
@@ -252,7 +254,12 @@
 		}
 		
 		public function setSubjectLongTitle($longTitle) {
-			$this->longTitle = $longTitle;
+			if (empty($longtitle)) {
+				$this->longTitle = $this->shortTitle;
+			}
+			else {
+				$this->longTitle = $longTitle;
+			}
 		}
 		
 		public function getSubjectLongTitle() {
@@ -320,11 +327,11 @@
 		
 		public function __construct() {}
 		
-		public function setSubjectPage($htmlPage) {
+		public function setSubjectFolders($folders) {
 			array_push($this->folders, $folders);
 		}
 		
-		public function getSubjectPage() {
+		public function getSubjectFolders() {
 			return $this->folders;
 		}
 		
@@ -412,4 +419,3 @@
 		
 	}
 ?>
-

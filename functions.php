@@ -1,4 +1,5 @@
 <?php
+
   /**********************************************************
   /* Functions used in olat2moodle.php.
 	/**********************************************************
@@ -8,6 +9,7 @@
 	// Reads out all the subjects of a parent chapter.
 	// Recursion at the end to find subjects of subjects, until
 	// nothing remains.
+	mb_internal_encoding("UTF-8");
 	function getSubjects(&$object, $id, $xpath, $pathCourse) {
 		// If noPage still equals zero at the end, the type will be
 		// sp or st without a page inside of it.
@@ -36,20 +38,20 @@
 					
 					// Directory
 					case "bc":
-						$noPag++;
+						$noPage++;
 						$subjectObject = new SubjectDropFolder();
-						$course_map = getDirectoryList("$pathCourse" . "export/$child->ident");
-						for ($i = 0; count($course_map) > $i; $i++) {
-							$location = "$pathCourse" . "export/$item->ident/$course_map[$i]";
+						$course_map = getDirectoryList($pathCourse . "/export/" . $schild->ident);
+						for ($i = 0; $i < count($course_map); $i++) {
+							$location = $pathCourse . "/export/" . $schild->ident . "/" . $course_map[$i];
 							$folderObject = new Folder(
-                    (string) $course_map[$i],
-                    (string) $location,
-                    (string) filesize($location),
-                    (string) filetype($location),
-                    (string) date("F d Y H:i:s.", filemtime($location)));
+										(string) $course_map[$i],
+										(string) $location,
+										(string) filesize($location),
+										(string) filetype($location),
+										(string) date("F d Y H:i:s.", filemtime($location)));
 							$subjectObject->setSubjectFolders($folderObject);
-          }
-          break;
+						}
+						break;
 					
 					// Page
 					case "sp":
@@ -59,16 +61,17 @@
 							$noPag++;
 							$subjectPageItem = $subjectPage;
 						}
-						if (!empty($subjectPageItem)) {
-							$subjectObject = new SubjectPage((string) file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem));
+						if (isset($subjectPageItem)) {
+							// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
+							$subjectObject = new SubjectPage(utf8_encode(file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem)));
 						}
 						else {
 							$noPag++;
-							$emptyHTML = "";
+							$emptyHTML = "xxx";
 							$subjectObject = new SubjectPage($emptyHTML);
 						}
 						break;
-					
+
 					// Structure
 					case "st":
 						// Looks for the only <string> record that starts with a '/' (HTML-reference).
@@ -77,12 +80,13 @@
 							$noPag++;
 							$subjectPageItem = $subjectPage;
 						}
-						if (!empty($subjectPageItem)) {
-							$subjectObject = new SubjectPage((string) file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem));
+						if (isset($subjectPageItem)) {
+							// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
+							$subjectObject = new SubjectPage(utf8_encode(file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem)));
 						}
 						else {
 							$noPag++;
-							$emptyHTML = "";
+							$emptyHTML = "xxx";
 							$subjectObject = new SubjectPage($emptyHTML);
 						}
 						break;
@@ -98,11 +102,10 @@
 					getSubjects($subjectObject, $schild->ident, $xpath, $pathCourse);
 					$object->setSubject($subjectObject);
 				}
+				
+				var_dump($object);
 			}
 		}
-		
-		//echo "<p>SUBJECT</p>";
-		//var_dump($object);
 	}
 	
 	// Creates an array to hold the directory list.
