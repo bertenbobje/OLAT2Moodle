@@ -118,23 +118,6 @@
 				
 			// Page
 			case "sp":
-				// Looks for the only <string> record that starts with a '/' (HTML-reference).
-				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
-				foreach ($chapterPagePath as $chapterPage) {
-					$noPage++;
-					$chapterPageItem = $chapterPage;
-				}
-				if (isset($chapterPageItem)) {
-					// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
-					$chapterObject = new ChapterPage(utf8_encode(file_get_contents($expath . "/coursefolder" . $chapterPageItem)));
-				}
-				else {
-					$noPage++;
-					$emptyHTML = "xxx";
-					$chapterObject = new ChapterPage($emptyHTML);
-				}
-				break;
-			
 			// Structure
 			case "st":
 				// Looks for the only <string> record that starts with a '/' (HTML-reference).
@@ -145,7 +128,14 @@
 				}
 				if (isset($chapterPageItem)) {
 					// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
-					$chapterObject = new ChapterPage(utf8_encode(file_get_contents($expath . "/coursefolder" . $chapterPageItem)));
+					$page = file_get_contents($expath . "/coursefolder" . $chapterPageItem);
+					if (substr($chapterPageItem, -4) == "html") {
+						$chapterObject = new ChapterPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"));
+						// $chapterObject = new ChapterPage(iconv(mb_detect_encoding($page, mb_detect_order(), true), "UTF-8", $page));
+					}
+					else {
+						$chapterObject = new ChapterPage("PDF");
+					}
 				}
 				else {
 					$noPage++;

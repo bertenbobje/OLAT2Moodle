@@ -55,23 +55,6 @@
 					
 					// Page
 					case "sp":
-						// Looks for the only <string> record that starts with a '/' (HTML-reference).
-						$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
-						foreach ($subjectPagePath as $subjectPage) {
-							$noPag++;
-							$subjectPageItem = $subjectPage;
-						}
-						if (isset($subjectPageItem)) {
-							// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
-							$subjectObject = new SubjectPage(utf8_encode(file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem)));
-						}
-						else {
-							$noPag++;
-							$emptyHTML = "xxx";
-							$subjectObject = new SubjectPage($emptyHTML);
-						}
-						break;
-
 					// Structure
 					case "st":
 						// Looks for the only <string> record that starts with a '/' (HTML-reference).
@@ -82,7 +65,14 @@
 						}
 						if (isset($subjectPageItem)) {
 							// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
-							$subjectObject = new SubjectPage(utf8_encode(file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem)));
+							$page = file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem);
+							if (substr($subjectPageItem, -4) == "html") {
+								$subjectObject = new SubjectPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"));
+								// $subjectObject = new SubjectPage(iconv(mb_detect_encoding($page, mb_detect_order(), true), "UTF-8", $page));
+							}
+							else {
+								$subjectObject = new SubjectPage("PDF");
+							}
 						}
 						else {
 							$noPag++;
