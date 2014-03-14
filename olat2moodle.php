@@ -164,7 +164,7 @@ $moodleCourse = OLATObjectToMoodleObject($course);
 echo "<p>MOODLE COURSE</p>";
 var_dump($moodleCourse);
 
-//MoodleObjectToMoodleBackup($moodleCourse);
+//moodleObjectToMoodleBackup($moodleCourse);
 
 //echo "<p>COURSE</p>";
 //var_dump($course);
