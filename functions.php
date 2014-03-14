@@ -127,14 +127,14 @@ function OLATObjectToMoodleObject($olatobject) {
 }
 
 // Fixes the <img src=""> tags to be Moodle-specific.
-function FixHTML($html) {
+function fixHTML($html) {
 	
 }
 
 // Creates the backup file that Moodle can use to restore
 // a course.
 // -- $object - The Moodle object to make the backup file of.
-function MoodleObjectToMoodleBackup($object) {
+function moodleObjectToMoodleBackup($object) {
 	// Creates a temporary storage name made of random numbers.
 	$num = "";
 	for ($i = 0; $i < 9; $i++) {

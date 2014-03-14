@@ -224,11 +224,7 @@ class Subject {
 		$this->id = $id;
 		$this->type = $type;
 		$this->shortTitle = $shortTitle;
-		if ($longTitle = '') {
-			$this->longTitle = $shortTitle;
-		} else {
-			$this->longTitle = $longTitle;
-		}
+		$this->longTitle = $longTitle;
 	}
 	
 	public function setSubjectID($id) {
