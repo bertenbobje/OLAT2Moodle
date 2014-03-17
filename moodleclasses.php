@@ -32,7 +32,7 @@ class MoodleCourse {
   public $shortName;
   public $fullName;
 	public $categoryID;
-	public $chapters = array();
+	public $sections = array();
 	
 	public function __construct($id, $contextID, $shortName, $fullName, $categoryID) {
 		$this->id = $id;
@@ -82,12 +82,12 @@ class MoodleCourse {
 		return $this->categoryID;
 	}
 	
-	public function setChapter($chapters) {
-		array_push($this->chapters, $chapters);
+	public function setSection($sections) {
+		array_push($this->sections, $sections);
 	}
 	
-	public function getChapter() {
-		return $this->chapters;
+	public function getSection() {
+		return $this->sections;
 	}
 	
 }
@@ -102,9 +102,10 @@ class Section {
 	protected $number;
 	protected $activities = array();
 	
-	public function __construct($sectionID, $name) {
+	public function __construct($sectionID, $name, $number) {
 		$this->sectionID = $sectionID;
 		$this->name = $name;
+		$this->number = $number;
 	}
 	
 	public function setSectionID($sectionID) {

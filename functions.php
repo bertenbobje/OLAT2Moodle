@@ -55,9 +55,9 @@ function getSubjects(&$object, $id, $xpath, $pathCourse) {
 					}
 					break;
 				
-				// Page
-				case "sp":
-				// Structure
+				// Page        -----
+				case "sp": //       | --- Structures and pages pretty much match.
+				// Structure   -----
 				case "st":
 					// Looks for the only <string> record that starts with a '/' (HTML-reference).
 					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
@@ -94,8 +94,6 @@ function getSubjects(&$object, $id, $xpath, $pathCourse) {
 				getSubjects($subjectObject, $schild->ident, $xpath, $pathCourse);
 				$object->setSubject($subjectObject);
 			}
-			
-			//var_dump($object);
 		}
 	}
 }
@@ -103,32 +101,59 @@ function getSubjects(&$object, $id, $xpath, $pathCourse) {
 // Creates an as good as possible Moodle object from
 // the given object parameter (OLAT backup object).
 // -- $object - The OLAT object to get data of
-function OLATObjectToMoodleObject($olatobject) {
+function OLATObjectToMoodleObject($olatObject) {
 	// This needs to be different for every course that goes through here.
 	// Need to find a way to save this number somewhere safe.
-	$courseID = 12;
-	$contextID = 72;
+
+	$number = 1;
+	
+	$courseID = $olatObject->getID();
+	$courseContextID = (string) ($olatObject->getID() + 1);
 	
 	$moodleCourse = new MoodleCourse(
 							$courseID, 
-							$contextID,
-							$olatobject->getShortTitle(),
-							$olatobject->getLongTitle(),
+							$courseContextID,
+							$olatObject->getShortTitle(),
+							$olatObject->getLongTitle(),
 							1);
 	
-	$sectionID = 1;
-	foreach ($olatobject->getChapter() as $olatchapter) {
-		$moodleSection = new Section($sectionID, $olatchapter->getShortTitle());
-		$moodleCourse->setChapter($moodleSection);
-		$sectionID++;
+	foreach ($olatObject->getChapter() as $olatChapter) {
+		$moodleSection = new Section($olatChapter->getID(), $olatChapter->getShortTitle(), $number);
+		foreach ($olatChapter->getSubject() as $olatSubject) {
+			$type = $olatSubject->getSubjectType();
+			$activityID = $olatSubject->getSubjectID();
+			if ($type == "sp") {
+				$moodleActivity = new ActivityPage($activityID, $olatSubject->getSubjectPage());
+				$moodleActivity->setContent(fixHTML($moodleActivity->getContent()));
+				$moduleName = "page";
+			}
+			$moodleActivity->setActivityID($olatSubject->getSubjectID());
+			$moodleActivity->setModuleID($olatSubject->getSubjectID());
+			$moodleActivity->setModuleName($moduleName);
+			$moodleActivity->setContextID($olatSubject->getSubjectID());
+			$moodleActivity->setName($olatSubject->getSubjectShortTitle());
+		}
+		isset($moodleActivity) ? $moodleSection->setActivity($moodleActivity) : null;
+		$moodleCourse->setSection($moodleSection);
+		$number++;
 	}
-	
 	return $moodleCourse;
 }
 
-// Fixes the <img src=""> tags to be Moodle-specific.
+// Fixes the <img src=""> tags to be Moodle-specific and makes the
+// .mp3, .flv and .wav references Moodle-specific by turning them into <a> tags.
 function fixHTML($html) {
+	// Images
+	$patternImages = '/img src=&quot;(.+)&quot;/i';
+	$replaceImages = 'img src=&quot;@@PLUGINFILE@@/$1&quot;';
+	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $html);
 	
+	// Media files
+	$patternMedia = '/^&lt;object.*\n.*\n.*file\=(.*)\".*\n.*\n.*/mi';
+	$replaceMedia = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
+	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlImages);
+	
+	return $fixhtmlMedia;
 }
 
 // Creates the backup file that Moodle can use to restore
@@ -152,33 +177,74 @@ function moodleObjectToMoodleBackup($object) {
 	}
 	
 	// Header of every .xml file is always the same.
-	$header = "<?xml version=" . "\"1.0\"" . " encoding=" . "\"UTF-8\"" . "?>\n";
-	$headerXml = '<?xml version="1.0" encoding="UTF-8"?>';
+	$header = '<?xml version="1.0" encoding="UTF-8"?>';
 	
-	// Write all the Moodle files that will be the same
-	// in every Moodle backup (in the root directory).
+	////////////////////////////////////////////////////////////////////
+	// ROOT FILES
 	
+	// DEFAULT
 	// completion.xml
-	$completionXml = $header . "<course_completion>\n</course_completion>";
-	file_put_contents($path . "/completion.xml", $completionXml);
+	$completionXml = new SimpleXMLElement($header . "<course_completion></course_completion>");
+	file_put_contents($path . "/completion.xml", $completionXml->asXML());
 	// groups.xml
-	$groupsXml = $header . "<groups>\n  <groupings>\n  </groupings>\n</groups>";
-	file_put_contents($path . "/groups.xml", $groupsXml);
+	$groupsXml = new SimpleXMLElement($header . "<groups></groups>");
+	file_put_contents($path . "/groups.xml", $groupsXml->asXML());
 	// moodle_backup.log (it's empty)
 	file_put_contents($path . "/moodle_backup.log", "");
 	// outcomes.xml
-	$outcomesXml = $header . "<outcomes_definition>\n</outcomes_definition>";
-	file_put_contents($path . "/outcomes.xml", $outcomesXml);
+	$outcomesXml = new SimpleXMLElement($header . "<outcomes_definition></outcomes_definition>");
+	file_put_contents($path . "/outcomes.xml", $outcomesXml->asXML());
 	// questions.xml
-	$questionsXml = $header . "<question_categories>\n</question_categories>";
-	file_put_contents($path . "/questions.xml", $questionsXml);
+	$questionsXml = new SimpleXMLElement($header . "<question_categories></question_categories>");
+	file_put_contents($path . "/questions.xml", $questionsXml->asXML());
 	// roles.xml
-	$rolesXml = $header . "<roles_definition>\n</roles_definition>";
-	file_put_contents($path . "/roles.xml", $rolesXml);
+	$rolesXml = new SimpleXMLElement($header . "<roles_definition></roles_definition>");
+	file_put_contents($path . "/roles.xml", $rolesXml->asXML());
 	// scales.xml
-	$scalesXml = $header . "<scales_definition>\n</scales_definition>";
-	file_put_contents($path . "/scales.xml", $scalesXml);
+	$scalesXml = new SimpleXMLElement($header . "<scales_definition></scales_definition>");
+	file_put_contents($path . "/scales.xml", $scalesXml->asXML());
 	
+	// DIFFERENT
+	
+	
+	////////////////////////////////////////////////////////////////////
+	// COURSE FILES
+	
+	// course folder
+	if (!file_exists($path . "/course") and !is_dir($path . "course")) {
+		mkdir($path . "/course", 0777, true);
+	}
+	
+	// DEFAULT
+	// course/enrolments.xml
+	$enrolmentsXml = new SimpleXMLElement($header . "<enrolments></enrolments>");
+	$enrolmentsXml->addChild('enrols');
+	file_put_contents($path . "/course/enrolments.xml", $enrolmentsXml->asXML());
+	// course/roles.xml
+	$rolesXml = new SimpleXMLElement($header . "<roles></roles>");
+	$rolesXml->addChild('role_overrides');
+	$rolesXml->addChild('role_assignments');
+	file_put_contents($path . "/course/roles.xml", $rolesXml->asXML());
+	
+	// DIFFERENT
+	// course/inforef.xml
+	$courseInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
+	$courseInforefXml->addChild('roleref')->addChild('role')->addChild('id', $object->getID());
+	file_put_contents($path . "/course/inforef.xml", $courseInforefXml->asXML());
+	// course/course.xml
+	$courseXml = new SimpleXMLElement($header . "<course></course>");
+	$courseXml->addAttribute('id', $object->getID());
+	$courseXml->addAttribute('contextid', $object->getID());
+	$courseXml->addChild('shortname', $object->getShortName());
+	$courseXml->addChild('fullName', $object->getFullName());
+	$courseXml->addChild('summary', "&lt;p&gt;" . $object->getFullName() . "&lt;/p&gt;");
+	$courseXml->addChild('format', 'topics');
+	$courseXml->addChild('startdate', time());
+	$courseXml->addChild('visible', 1);
+	$courseXml->addChild('timecreated', time());
+	$courseXml->addChild('timemodified', time());
+	$courseXml->addChild('numsections', count($object->getSection()));
+	file_put_contents($path . "/course/course.xml", $courseXml->asXML());
 }
 
 ///////////////////////////////////////////////////////////
