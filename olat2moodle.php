@@ -3,7 +3,7 @@
 /*************************************************************
 /* Converts an .OLAT backup to an object, translates
 /* this to a Moodle object, then this object gets used to
-/* write the backup files.
+/* write the backup files to restore into Moodle.
 /*************************************************************
 /* Bert Truyens
 /************************************************************/
@@ -163,11 +163,12 @@ $moodleCourse = OLATObjectToMoodleObject($course);
 
 echo "<p>MOODLE COURSE</p>";
 var_dump($moodleCourse);
+var_dump($moodleCourse->getSection());
+foreach ($moodleCourse->getSection() as $sct) {
+	var_dump($sct->getActivity());
+}
 
-//moodleObjectToMoodleBackup($moodleCourse);
-
-//echo "<p>COURSE</p>";
-//var_dump($course);
+moodleObjectToMoodleBackup($moodleCourse);
 
 // Removes the temporary folder and all its contents.
 rrmdir($expath);
