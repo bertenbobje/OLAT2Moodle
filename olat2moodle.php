@@ -11,12 +11,12 @@
 require_once("functions.php");
 
 if(isset($_FILES["file"]) && $_FILES["file"]) {
-		// Creates an OLAT Object out of an exported OLAT course.
-		$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
+	// Creates an OLAT Object out of an exported OLAT course.
+	$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
 }
 else {
-		echo "<p>No file found, did you land on this page by accident?</p><br>";
-		echo "<a href='index.php'>Go back</a>";
+	echo "<p>No file found, did you land on this page by accident?</p><br>";
+	echo "<a href='index.php'>Go back</a>";
 }
 
 // Converts the OLAT Object to a Moodle object.
