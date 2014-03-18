@@ -6,16 +6,16 @@
 /* Bert Truyens
 /*********************************************************/
 
-//
-// MoodleCourse (1)
-//    |___> Section (1+)
-//               |_______________________> Activity (1+)
+//                                             ________________
+// MoodleCourse (1)                           |                |
+//    |___> Section (1+)                      v                | recursion
+//               |_______________________> Activity (1+) ______|
 //                      moduleID's            |
 // Folder                                     |
 //                                            - ActivityPage
 //                                            - ActivityQuiz
 //                                            - ActivityURL
-//                                            - ActivityBook (?)
+//                                            - ActivityBook
 //                                            - ActivityWiki
 //                                            - ActivityFolder
 //                                            - ActivityResource
@@ -34,9 +34,9 @@ class MoodleCourse {
 	public $categoryID;
 	public $sections = array();
 	
-	public function __construct($id, $contextID, $shortName, $fullName, $categoryID) {
+	public function __construct($id, $shortName, $fullName, $categoryID) {
 		$this->id = $id;
-		$this->contextID = $contextID;
+		$this->contextID = (string) ($id + 2);
 		$this->shortName = $shortName;
 		$this->fullName = $fullName;
 		$this->categoryID = $categoryID;
@@ -133,7 +133,7 @@ class Section {
 	}
 	
 	public function setActivity($activities) {
-		$this->activities = $activities;
+		array_push($this->activities, $activities);
 	}
 	
 	public function getActivity() {
@@ -153,16 +153,18 @@ class Activity {
 	protected $contextID;
 	protected $name;
 	
-	public function __construct($activityID, $moduleID,	$moduleName, $contextID, $name) {
+	public function __construct($activityID, $moduleName, $name) {
 		$this->activityID = $activityID;
-		$this->moduleID = $moduleID;
+		$this->moduleID = (string) ($activityID + 1);
 		$this->moduleName = $moduleName;
-		$this->contextID = $contextID;
+		$this->contextID = (string) ($activityID + 2);
 		$this->name = $name;
 	}
 	
 	public function setActivityID($activityID) {
 		$this->activityID = $activityID;
+		$this->moduleID = (string) ($activityID + 1);
+		$this->contextID = (string) ($activityID + 2);
 	}
 	
 	public function getActivityID() {
@@ -208,21 +210,10 @@ class Activity {
 ///////////////////////////////////////////////////////////
 class ActivityPage extends Activity {
 
-	protected $pageID;
 	protected $content;
 	
-	public function __construct($pageID, $content) {
-		$this->pageID = $pageID;
+	public function __construct($content) {
 		$this->content = $content;
-	}
-	
-	public function setPageID($pageID, $content) {
-		$this->pageID = $pageID;
-		$this->content = $content;
-	}
-	
-	public function getPageID() {
-		return $this->pageID;
 	}
 	
 	public function setContent($content) {

@@ -6,11 +6,11 @@
 /* Bert Truyens
 /*********************************************************/
 
-//                                                ___________
-// Course (1)                                    |           |
-//    |___> Chapter (1+)										     v           | recursion
-//             | |_______________________> Subject (1+)      |
-//             |                              |  |___________|
+//                                             ________________
+// Course (1)                                 |                |
+//    |___> Chapter (1+)										  v                | recursion
+//             | |_______________________> Subject (1+) _______|
+//             |                              |
 // Folder      |                              |
 //             - ChapterPage                  - SubjectPage
 //             - ChapterLearningObject        - SubjectLearningObject
