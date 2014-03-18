@@ -16,7 +16,7 @@
 //             - ChapterLearningObject        - SubjectLearningObject
 //             - ChapterDropFolder            - SubjectDropFolder
 //                                            - SubjectTest
-//
+//						 - ChapterURL										- SubjectURL
 
 ///////////////////////////////////////////////////////////
 // COURSE /////////////////////////////////////////////////
@@ -210,6 +210,27 @@ class ChapterDropFolder extends Chapter {
 }
 
 ///////////////////////////////////////////////////////////
+// CHAPTER URL ////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ChapterURL extends Subject {
+
+	protected $url;
+	
+	public function __construct($url) {
+		$this->url = $url;
+	}
+	
+	public function setURL($url) {
+		$this->url = $url;
+	}
+	
+	public function getURL() {
+		return $this->url;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
 // SUBJECT ////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 class Subject {
@@ -354,6 +375,27 @@ class SubjectTest extends Subject {
 		return $this->test;
 	}
 
+}
+
+///////////////////////////////////////////////////////////
+// SUBJECT URL ////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class SubjectURL extends Subject {
+
+	protected $url;
+	
+	public function __construct($url) {
+		$this->url = $url;
+	}
+	
+	public function setSubjectURL($url) {
+		$this->url = $url;
+	}
+	
+	public function getSubjectURL() {
+		return $this->url;
+	}
+	
 }
 
 ///////////////////////////////////////////////////////////

@@ -68,7 +68,7 @@ function olatBackupToOlatObject($path) {
 			isset($item->rootNode->longTitle) ? (string) $item->rootNode->longTitle : null);
 
 	// Chapters
-	$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv']");
+	$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu']");
 	foreach ($chapters as $child) {
 		// If noPage still equals zero at the end, the type will be
 		// sp or st without a page inside of it.
@@ -112,8 +112,6 @@ function olatBackupToOlatObject($path) {
 				
 			// Page
 			case "sp":
-			// Structure
-			case "st":
 				// Looks for the only <string> record that starts with a '/' (HTML-reference).
 				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
 				foreach ($chapterPagePath as $chapterPage) {
@@ -137,6 +135,30 @@ function olatBackupToOlatObject($path) {
 					$chapterObject = new ChapterPage($emptyHTML);
 				}
 				break;
+				
+			// Structure
+			case "st":
+				$noPage++;
+				$chapterObject = new Chapter();
+				break;
+				
+			// URL
+			case "tu":
+				$noPage++;
+				$urlPart1Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., 'www')]");
+				foreach ($urlPart1Path as $up1p) {
+					$urlPart1 = $up1p;
+				}		
+				$urlPart2Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
+				foreach ($urlPart2Path as $up2p) {
+					$urlPart2 = $up2p;
+				}
+				if (isset($urlPart1) && isset($urlPart2)) {
+					$url = $urlPart1 . $urlPart2;
+					$chapterObject = new ChapterURL($url);
+				}
+				break;
+				
 		}
 		
 		if ($noPage != 0) {
@@ -165,10 +187,10 @@ function olatBackupToOlatObject($path) {
 //         $xpath = runstructure.xml, loaded as a SimpleXMLElement
 //    $pathCourse = Path to the exported OLAT .zip file
 function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
-	// If noPage still equals zero at the end, the type will be
+	// If noPag still equals zero at the end, the type will be
 	// sp or st without a page inside of it.
 	$noPag = 0;
-	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv']");
+	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu']");
 	if ($subjects != null) {
 		foreach ($subjects as $schild) {
 			switch ($schild->type) {
@@ -192,7 +214,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 				
 				// Directory
 				case "bc":
-					$noPage++;
+					$noPag++;
 					$subjectObject = new SubjectDropFolder();
 					$course_map = getDirectoryList($pathCourse . "/export/" . $schild->ident);
 					for ($i = 0; $i < count($course_map); $i++) {
@@ -207,10 +229,8 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 					}
 					break;
 				
-				// Page        -----
-				case "sp": //       | --- Structures and pages pretty much match.
-				// Structure   -----
-				case "st":
+				// Page
+				case "sp":
 					// Looks for the only <string> record that starts with a '/' (HTML-reference).
 					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
 					foreach ($subjectPagePath as $subjectPage) {
@@ -234,8 +254,31 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 						$subjectObject = new SubjectPage($emptyHTML);
 					}
 					break;
+
+				// Structure
+				case "st":
+					$noPag++;
+					$chapterObject = new Chapter();
+					break;
+					
+				// URL
+				case "tu":
+					$noPag++;
+					$urlPart1Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., 'www')]");
+					foreach ($urlPart1Path as $up1p) {
+						$urlPart1 = $up1p;
+					}		
+					$urlPart2Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
+					foreach ($urlPart2Path as $up2p) {
+						$urlPart2 = $up2p;
+					}
+					if (isset($urlPart1) && isset($urlPart2)) {
+						$url = $urlPart1 . $urlPart2;
+						$subjectObject = new SubjectURL($url);
+					}
+					break;
 			}
-			
+
 			if ($noPag != 0) {
 				$subjectObject->setSubjectID(isset($schild->ident) ? (string) $schild->ident : null);
 				$subjectObject->setSubjectType(isset($schild->type) ? (string) $schild->type : null);
@@ -330,7 +373,8 @@ function moodleFixHTML($html) {
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlRemoveEnd);
 	
 	// Media files
-	$patternMedia = '/^&lt;object.*\n.*\n.*file\=(.*)\".*\n.*\n.*/mi';
+	//$patternMedia = '/^&lt;object.*&#13;.*&#13;.*file\=(.*)\".*&#13;.*&#13;.*&lt;\/object&gt;/ism';
+	$patternMedia = '/^&lt;object.*file\=(.*)&quot;.*&lt;\/object&gt;/ism';
 	$replaceMedia = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlImages);
 	

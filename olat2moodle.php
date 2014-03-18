@@ -19,6 +19,8 @@ else {
 	echo "<a href='index.php'>Go back</a>";
 }
 
+var_dump($olatObject);
+
 // Converts the OLAT Object to a Moodle object.
 $moodleObject = olatObjectToMoodleObject($olatObject);
 
