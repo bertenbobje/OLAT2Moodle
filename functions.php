@@ -6,8 +6,8 @@
 /* Bert Truyens
 /*********************************************************/
 
-require_once("olatclasses.php");
-require_once("moodleclasses.php");
+require_once("classes/olatclasses.php");
+require_once("classes/moodleclasses.php");
 
 // Creates an OLAT Object out of an exported OLAT course
 // backup file.
@@ -140,7 +140,7 @@ function olatBackupToOlatObject($path) {
 		}
 		
 		if ($noPage != 0) {
-			$chapterObject->setID(isset($child->ident) ? (string) $child->ident : null);
+			$chapterObject->setChapterID(isset($child->ident) ? (string) $child->ident : null);
 			$chapterObject->setType(isset($child->type) ? (string) $child->type : null);
 			$chapterObject->setShortTitle(isset($child->shortTitle) ? (string) $child->shortTitle : null);
 			$chapterObject->setLongTitle(isset($child->longTitle) ? (string) $child->longTitle : null);
@@ -265,23 +265,26 @@ function olatObjectToMoodleObject($olatObject) {
 	
 	foreach ($olatObject->getChapter() as $olatChapter) {
 		$noStruct = false;
-		$moodleSection = new Section($olatChapter->getID(), $olatChapter->getShortTitle(), $number);
-		if ($olatChapter->getType() != "st") {
-			$noStruct = true;
-		}
-		foreach ($olatChapter->getSubject() as $olatSubject) {
-			if ($noStruct) {
-				$type = $olatChapter->getChapterType();
-				$activityID = $olatChapter->getID() + 1;
-				switch ($olatChapter->getType()) {
+		$moodleSection = new Section($olatChapter->getChapterID(), $olatChapter->getShortTitle(), $number);
+		$type = $olatChapter->getType();
+		if ($type != "st") {
+			$activityID = $olatChapter->getChapterID();
+			switch ($type) {
 				case "sp":
-					$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
+					$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
 					$moduleName = "page";
 					break;
-				}
-				$noStruct = false;
+				default:
+					$moodleActivity = new Activity();
+					$moduleName = "def";
 			}
-			else {
+			$moodleActivity->setActivityID($olatChapter->getChapterID());
+			$moodleActivity->setModuleName($moduleName);
+			$moodleActivity->setName($olatChapter->getShortTitle());
+			$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
+		}
+		foreach ($olatChapter->getSubject() as $olatSubject) {
+			//while (isset($olatSubject)) {
 				$type = $olatSubject->getSubjectType();
 				$activityID = $olatSubject->getSubjectID();
 				switch ($type) {
@@ -289,26 +292,22 @@ function olatObjectToMoodleObject($olatObject) {
 					$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
 					$moduleName = "page";
 					break;
+				default:
+					$moodleActivity = new Activity();
+					$moduleName = "def";
 				}
-			}
-			$moodleActivity->setActivityID($olatSubject->getSubjectID());
-			$moodleActivity->setModuleName($moduleName);
-			$moodleActivity->setName($olatSubject->getSubjectShortTitle());
-			$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
+				$moodleActivity->setActivityID($olatSubject->getSubjectID());
+				$moodleActivity->setModuleName($moduleName);
+				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
+				$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
+				
+				//$olatSubject = $olatSubject->getSubject();
+			//}
 		}
 		$moodleCourse->setSection($moodleSection);
 		$number++;
 	}
 	return $moodleCourse;
-}
-
-// Makes sure that every child of every OLAT subject
-// is put inthe Moodle Object using recursion.
-//
-// PARAMETERS
-// -> &$object = The Moodle Section Object
-function moodleGetActivities(&$object) {
-	
 }
 
 // Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
@@ -374,7 +373,7 @@ function moodleFixHTML($html) {
  |   |_ [ ] section_25 -----}
  |   |   |_ ||| inforef.xml - Contains references (E)
  |   |   |_ ||| section.xml - Contains IDs, names, and sequences of sections
- |	 |_ ...                                                      --> moduleIDs
+ |   |_ ...                                                      --> moduleIDs
  |_ ||| completion.xml ------ (E)
  |_ ||| files.xml ----------- Contains information about the SHA-1 hashed files
  |_ ||| gradebook.xml ------- (E)
@@ -454,24 +453,26 @@ function moodleObjectToMoodleBackup($moodleObject) {
 			file_put_contents($activityPath . "/module.xml", $activityModuleXml->asXML());
 			
 			// activities/[activity]_[x]/[activity].xml
-			$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
-			$activityActivityXml->addAttribute('id', $activity->getActivityID());
-			$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
-			$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
-			$activityActivityXml->addAttribute('contextid', $activity->getContextID());
-			$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
-			$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
-			$activityActivityChildXml->addChild('name', $activity->getName());
-			$activityActivityChildXml->addChild('intro', "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;");
-			$activityActivityChildXml->addChild('content', $activity->getContent());
-			$activityActivityChildXml->addChild('contentformat', 1);
-			$activityActivityChildXml->addChild('legacyfiles', 0);
-			$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
-			$activityActivityChildXml->addChild('display', 5);
-			$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
-			$activityActivityChildXml->addChild('revision', 1);
-			$activityActivityChildXml->addChild('timemodified', time());
-			file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $activityActivityXml->asXML());
+			if ($activity->getModuleName() == "page") {
+				$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
+				$activityActivityXml->addAttribute('id', $activity->getActivityID());
+				$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
+				$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
+				$activityActivityXml->addAttribute('contextid', $activity->getContextID());
+				$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
+				$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
+				$activityActivityChildXml->addChild('name', $activity->getName());
+				$activityActivityChildXml->addChild('intro', "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;");
+				$activityActivityChildXml->addChild('content', $activity->getContent());
+				$activityActivityChildXml->addChild('contentformat', 1);
+				$activityActivityChildXml->addChild('legacyfiles', 0);
+				$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+				$activityActivityChildXml->addChild('display', 5);
+				$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
+				$activityActivityChildXml->addChild('revision', 1);
+				$activityActivityChildXml->addChild('timemodified', time());
+				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $activityActivityXml->asXML());
+			}
 		}
 	}
 	
