@@ -271,7 +271,7 @@ function olatObjectToMoodleObject($olatObject) {
 			$activityID = $olatChapter->getChapterID();
 			switch ($type) {
 				case "sp":
-					$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+					$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
 					$moduleName = "page";
 					break;
 				default:
@@ -300,7 +300,6 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
 				$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
-				
 				//$olatSubject = $olatSubject->getSubject();
 			//}
 		}
@@ -317,14 +316,14 @@ function olatObjectToMoodleObject($olatObject) {
 // PARAMETERS
 // -> $html = The HTML file (as string)
 function moodleFixHTML($html) {
-	$patternRemoveStart = '/.+&lt;body&gt;/ism';
+	$patternRemoveStart = '/^.+&lt;body&gt;/ism';
 	$replaceRemoveStart = '';
 	$fixhtmlRemoveStart = preg_replace($patternRemoveStart, $replaceRemoveStart, $html);
 	
-	$patternRemoveEnd = '/&lt;\/body&gt;.+/ism';
+	$patternRemoveEnd = '/&lt;\/body&gt;.+$/ism';
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
-	
+
 	// Images
 	$patternImages = '/img src=&quot;(.+)&quot;/i';
 	$replaceImages = 'img src=&quot;@@PLUGINFILE@@/$1&quot;';

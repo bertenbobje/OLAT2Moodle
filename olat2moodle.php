@@ -1,7 +1,7 @@
 <?php
 
 /*************************************************************
-/* Converts an .OLAT backup to an object, translates
+/* Converts an .OLAT backup to an object, converts
 /* this to a Moodle object, then this object gets used to
 /* write the backup files to restore into Moodle.
 /*************************************************************
@@ -26,6 +26,5 @@ $moodleObject = olatObjectToMoodleObject($olatObject);
 moodleObjectToMoodleBackup($moodleObject);
 
 echo "OK";
-var_dump($moodleObject);
 	
 ?>
