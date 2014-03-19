@@ -46,15 +46,14 @@ function olatBackupToOlatObject($path) {
 			$doc = new DOMDocument();
 			$doc->loadXML($olat);
 			$xpath = simplexml_load_file($expath . "/runstructure.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
+			echo "<p>OLAT backup file opened successfully</p>";
 		}
 		else {
-			echo "<p>Error reading XML.</p><br>";
-			echo "<a href='index.php'>Go back</a>";
+			echo "<p>Error reading XML</p>";
 		}
 	}
 	else {
-		echo "<p>Error parsing file.</p><br>";
-		echo "<a href='index.php'>Go back</a>";
+		echo "<p>Error parsing file</p>";
 	}
 
 	// Course
@@ -66,7 +65,10 @@ function olatBackupToOlatObject($path) {
 			isset($item->rootNode->type) ? (string) $item->rootNode->type : null,
 			isset($item->rootNode->shortTitle) ? (string) $item->rootNode->shortTitle : null,
 			isset($item->rootNode->longTitle) ? (string) $item->rootNode->longTitle : null);
-
+	
+	// Saving the rootdir so we can get files out of it later and remove it.
+	$course->setRootdir($expath);
+	
 	// Chapters
 	$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu']");
 	foreach ($chapters as $child) {
@@ -171,15 +173,13 @@ function olatBackupToOlatObject($path) {
 			$course->setChapter($chapterObject);
 		}
 	}
-	// Removes the temporary folder and all its contents.
-	rrmdir($expath);
 	
 	return $course;
 }
 
 // Reads out all the subjects of a parent chapter.
-// Recursion at the end to find subjects of subjects, until
-// nothing remains.
+// Recursion at the end to find subjects of subjects,
+// until nothing remains.
 //
 // PARAMETERS
 // ->    &$object = The OLAT Chapter object
@@ -316,41 +316,36 @@ function olatObjectToMoodleObject($olatObject) {
 				case "sp":
 					$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
 					$moduleName = "page";
+					$moodleActivity->setActivityID($olatChapter->getChapterID());
+					$moodleActivity->setModuleName($moduleName);
+					$moodleActivity->setName($olatChapter->getShortTitle());
+					$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
 					break;
-				default:
-					$moodleActivity = new Activity();
-					$moduleName = "def";
 			}
-			$moodleActivity->setActivityID($olatChapter->getChapterID());
-			$moodleActivity->setModuleName($moduleName);
-			$moodleActivity->setName($olatChapter->getShortTitle());
-			$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
 		}
 		foreach ($olatChapter->getSubject() as $olatSubject) {
-			//while (isset($olatSubject)) {
+			while (is_object($olatSubject)) {
 				$type = $olatSubject->getSubjectType();
 				$activityID = $olatSubject->getSubjectID();
 				switch ($type) {
-				case "sp":
-					$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
-					$moduleName = "page";
-					break;
-				default:
-					$moodleActivity = new Activity();
-					$moduleName = "def";
+					case "sp":
+						$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+						$moduleName = "page";
+						break;
 				}
 				$moodleActivity->setActivityID($olatSubject->getSubjectID());
+				$moodleActivity->setSectionID($olatChapter->getChapterID());
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
 				$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
-				//$olatSubject = $olatSubject->getSubject();
-			//}
+				$olatTemp = $olatSubject->getSubject();
+				$olatSubject = $olatTemp;
+			}
+			$moodleCourse->setSection($moodleSection);
+			$number++;
 		}
-		$moodleCourse->setSection($moodleSection);
-		$number++;
-	}
 	return $moodleCourse;
-}
+	}
 
 // Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
 // Also fixes the <img src=""> tags to be Moodle-specific and makes the
@@ -367,18 +362,17 @@ function moodleFixHTML($html) {
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
 
-	// Images
-	$patternImages = '/img src=&quot;(.+)&quot;/i';
-	$replaceImages = 'img src=&quot;@@PLUGINFILE@@/$1&quot;';
-	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlRemoveEnd);
-	
 	// Media files
-	//$patternMedia = '/^&lt;object.*&#13;.*&#13;.*file\=(.*)\".*&#13;.*&#13;.*&lt;\/object&gt;/ism';
-	$patternMedia = '/^&lt;object.*file\=(.*)&quot;.*&lt;\/object&gt;/ism';
+	$patternMedia = '/^&lt;object.*file\=(.+?)&quot;.*&lt;\/object&gt;/ism';
 	$replaceMedia = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
-	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlImages);
+	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
-	return $fixhtmlMedia;
+	// Images
+	$patternImages = '/src=&quot;(.+?)&quot;/i';
+	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
+	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia);
+	
+	return $fixhtmlImages;
 }
 
 // Creates the backup file that Moodle can use to restore a course.
@@ -431,7 +425,8 @@ function moodleFixHTML($html) {
 //
 // PARAMETERS
 // -> $moodleObject = Moodle Object
-function moodleObjectToMoodleBackup($moodleObject) {
+//        $olatPath = OLAT Object (for the files)
+function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	// Creates a temporary storage name made of random numbers.
 	$num = "moodle";
 	for ($i = 0; $i < 9; $i++) {
@@ -448,11 +443,307 @@ function moodleObjectToMoodleBackup($moodleObject) {
 		mkdir($path, 0777, true);
 	}
 	
+	// This formats the xml files so it's not all on one line.
+	$dom = new DOMDocument('1.0');
+	$dom->preserveWhiteSpace = false;
+	$dom->formatOutput = true;
+	
 	// The header of every .xml file is always the same.
 	$header = '<?xml version="1.0" encoding="UTF-8"?>';
 
+	// moodle_backup.xml, the general backup .xml file containing everything
+	// This will get added to a lot through the process.
+	$moodleBackupXmlStart = new SimpleXMLElement($header . "<moodle_backup></moodle_backup>");
+	$moodleBackupXml = $moodleBackupXmlStart->addChild('information');
+	$moodleBackupXml->addChild('name', 'OLAT2Moodle.mbz');
+	$moodleBackupXml->addChild('moodle_version', 2013111802);
+	$moodleBackupXml->addChild('moodle_release', '==OLAT2Moodle==');
+	$moodleBackupXml->addChild('backup_version', 2013111800);
+	$moodleBackupXml->addChild('backup_release', '==OLAT2Moodle==');
+	$moodleBackupXml->addChild('backup_date', time());
+	$moodleBackupXml->addChild('mnet_remoteusers', 0);
+	$moodleBackupXml->addChild('include_files', 1);
+	$moodleBackupXml->addChild('include_file_references_to_external_content', 0);
+	$moodleBackupXml->addChild('original_wwwroot', '==OLAT2Moodle==');
+	$moodleBackupXml->addChild('original_site_identifier_hash', "36492b9f86ba50b90b65082da25006e96b348e1d");
+	$moodleBackupXml->addChild('original_course_id', $moodleObject->getID());
+	$moodleBackupXml->addChild('original_course_fullname', $moodleObject->getFullName());
+	$moodleBackupXml->addChild('original_course_shortname', $moodleObject->getShortName());
+	$moodleBackupXml->addChild('original_course_startdate', time());
+	$moodleBackupXml->addChild('original_course_contextid', $moodleObject->getContextID());
+	$moodleBackupXml->addChild('original_system_contextid', 1);
+	$moodleBackupXmlDetails = $moodleBackupXml->addChild('details');
+	$moodleBackupXmlDetailsDetail = $moodleBackupXmlDetails->addChild('detail');
+	$moodleBackupXmlDetailsDetail->addAttribute('backup_id', sha1($moodleObject->getID()));
+	$moodleBackupXmlDetailsDetail->addChild('type', 'course');
+	$moodleBackupXmlDetailsDetail->addChild('format', 'moodle2');
+	$moodleBackupXmlDetailsDetail->addChild('interactive', 1);
+	$moodleBackupXmlDetailsDetail->addChild('mode', 10);
+	$moodleBackupXmlDetailsDetail->addChild('execution', 1);
+	$moodleBackupXmlDetailsDetail->addChild('executiontime', 1);
+	$moodleBackupXmlContents = $moodleBackupXml->addChild('contents');
+	$moodleBackupXmlContentsActivities = $moodleBackupXmlContents->addChild('activities');
+	$moodleBackupXmlContentsSections = $moodleBackupXmlContents->addChild('sections');
+	$moodleBackupXmlContentsCourse = $moodleBackupXmlContents->addChild('course');
+	$moodleBackupXmlSettings = $moodleBackupXml->addChild('settings');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'filename');
+	$moodleBackupXmlSettingsSetting->addChild('value', 'OLAT2Moodle.mbz');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'imscc11');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'users');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'anonymize');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'role_assignments');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'activities');
+	$moodleBackupXmlSettingsSetting->addChild('value', '1');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'blocks');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'filters');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'comments');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'badges');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'calendarevents');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'usercompletion');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'logs');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'grade_histories');
+	$moodleBackupXmlSettingsSetting->addChild('value', '0');
+	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'questionbank');
+	$moodleBackupXmlSettingsSetting->addChild('value', '1');
+	
 	
 	////////////////////////////////////////////////////////////////////
+	// COURSE
+	
+	// course folder
+	
+	$coursePath = $path . "/course";
+	
+	if (!file_exists($coursePath) and !is_dir($coursePath)) {
+		mkdir($coursePath, 0777, true);
+	}
+	
+	// "EMPTY"
+	// course/enrolments.xml
+	$courseEnrolmentsXml = new SimpleXMLElement($header . "<enrolments></enrolments>");
+	$courseEnrolmentsXml->addChild('enrols');
+	
+	$dom->loadXML($courseEnrolmentsXml->asXML());
+	file_put_contents($coursePath . "/enrolments.xml", $dom->saveXML());
+	// course/roles.xml
+	$courseRolesXml = new SimpleXMLElement($header . "<roles></roles>");
+	$courseRolesXml->addChild('role_overrides');
+	$courseRolesXml->addChild('role_assignments');
+	
+	$dom->loadXML($courseRolesXml->asXML());
+	file_put_contents($coursePath . "/roles.xml", $dom->saveXML());
+	
+	// NOT "EMPTY"
+	// course/inforef.xml
+	$courseInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
+	$courseInforefXml->addChild('roleref')->addChild('role')->addChild('id', $moodleObject->getID());
+	
+	$dom->loadXML($courseInforefXml->asXML());
+	file_put_contents($coursePath . "/inforef.xml", $dom->saveXML());
+	// course/course.xml
+	$courseCourseXml = new SimpleXMLElement($header . "<course></course>");
+	$courseCourseXml->addAttribute('id', $moodleObject->getID());
+	$courseCourseXml->addAttribute('contextid', $moodleObject->getID());
+	$courseCourseXml->addChild('shortname', $moodleObject->getShortName());
+	$courseCourseXml->addChild('fullName', $moodleObject->getFullName());
+	$courseCourseXml->addChild('summary', "&lt;p&gt;" . $moodleObject->getFullName() . "&lt;/p&gt;");
+	$courseCourseXml->addChild('format', 'topics');
+	$courseCourseXml->addChild('startdate', time());
+	$courseCourseXml->addChild('visible', 1);
+	$courseCourseXml->addChild('defaultgroupingid', 0);
+	$courseCourseXml->addChild('lang');
+	$courseCourseXml->addChild('timecreated', time());
+	$courseCourseXml->addChild('timemodified', time());
+	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()));
+	
+	$dom->loadXML($courseCourseXml->asXML());
+	file_put_contents($coursePath . "/course.xml", $dom->saveXML());
+	
+	// moodle_backup.xml
+	$moodleBackupXmlContentsCourse->addChild('courseid', $moodleObject->getID());
+	$moodleBackupXmlContentsCourse->addChild('title', $moodleObject->getShortName());
+	$moodleBackupXmlContentsCourse->addchild('directory', "course");
+	
+	////////////////////////////////////////////////////////////////////
+	// FILES + files.xml
+	
+	// files path
+	$filesPath = $path . "/files";
+	
+	// files.xml
+	$filesXml = new SimpleXMLElement($header . "<files></files>");
+	$fileID = 10;
+	
+	if (!file_exists($filesPath) and !is_dir($filesPath)) {
+		mkdir($filesPath, 0777, true);
+	}
+	
+	// OLAT files
+	$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";
+	$olatFiles = getDirectoryList($olatObject->getRootdir() . "/coursefolder");
+	$fileError = 0;
+	foreach ($olatFiles as $olatFile) {
+		// Ignore the .html files, they're stored in the .xml itself
+		$olatFilePath = $olatFilesPath . "/" . $olatFile;
+		if (substr($olatFile, -4) != "html") {
+			$fileSHA1 = sha1($olatFile);
+			$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
+			if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+				mkdir($fileSHA1Dir, 0777, true);
+			}
+			if (copy($olatFilesPath . "/" . $olatFile, $fileSHA1Dir . "/" . $fileSHA1)) {
+				$filesXmlChild = $filesXml->addChild('file');
+				$filesXmlChild->addAttribute('id', $fileID);
+				$filesXmlChild->addChild('contenthash', $fileSHA1);
+				foreach ($moodleObject->getSection() as $section) {
+					foreach ($section->getActivity() as $activity) {
+						if(method_exists($activity, 'getContent')) {
+							if (strpos($activity->getContent(), $olatFile) !== false) {
+								$filesXmlChild->addChild('contextid', $activity->getContextID());
+								$activity->setFile($fileID);
+							} 
+						}
+					}
+				}
+				$filesXmlChild->addChild('component', "mod_page");
+				$filesXmlChild->addChild('filearea', "content");
+				$filesXmlChild->addChild('itemid', 0);
+				$filesXmlChild->addChild('filepath', "/");
+				$filesXmlChild->addChild('filename', $olatFile);
+				$filesXmlChild->addChild('filesize', filesize($olatFilePath));
+				$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
+				$filesXmlChild->addChild('source', $olatFile);
+				
+				$dom->loadXml($filesXml->asXML());
+				file_put_contents($path . "/files.xml", $dom->saveXML());
+				$fileID++;
+			}
+			else {
+				echo "<p>ERROR COPYING FILE: " . $olatFile . "</p><br>";
+				$fileError++;
+			}
+		}
+	}
+	if ($fileError == 0) {
+		echo "<p>Files copied</p>";
+	}
+	else {
+		echo "<p>NOK - " . $fileError . " files failed to copy</p>";
+	}
+	
+	////////////////////////////////////////////////////////////////////
+	// SECTIONS
+	
+	// sections folder
+	if (!file_exists($path . "/sections") and !is_dir($path . "/sections")) {
+		mkdir($path . "/sections", 0777, true);
+	}
+	
+	// This number is for ordening the sections.
+	$sectionNumber = 1;
+	
+	foreach ($moodleObject->getSection() as $section) {
+		// Create the folder
+		$sectionPath = $path . "/sections/section_" . $section->getSectionID();
+		if (!file_exists($sectionPath) and !is_dir($sectionPath)) {
+			mkdir($sectionPath, 0777, true);
+		}
+		
+		// "EMPTY"
+		// sections/section_[x]/inforef.xml
+		$sectionInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
+		
+		$dom->loadXML($sectionInforefXml->asXML());
+		file_put_contents($sectionPath . "/inforef.xml", $dom->saveXML());
+		
+		// NOT "EMPTY"
+		// sections/section_[x]/section.xml
+		$sectionSectionXml = new SimpleXMLElement($header . "<section></section>");
+		$sectionSectionXml->addAttribute('id', $section->getSectionID());
+		$sectionSectionXml->addChild('number', $section->getNumber());
+		$sectionSectionXml->addChild('name', $section->getName());
+		$sectionSectionXml->addChild('summary');
+		$sectionSectionXml->addChild('summaryformat', 1);
+		
+		$sectionSequence = "";
+		foreach($section->getActivity() as $activity) {
+			if ($activity->getSectionID() == $section->getSectionID()) {
+				$sectionSequence .= $activity->getModuleID() . ",";
+			}
+		}
+		
+		$sectionSectionXml->addChild('sequence', substr($sectionSequence, 0, -1));
+		$sectionSectionXml->addChild('visible', 1);
+		$sectionSectionXml->addChild('availablefrom', 0);
+		$sectionSectionXml->addChild('availableuntil', 0);
+		$sectionSectionXml->addChild('showavailability', 0);
+		$sectionSectionXml->addChild('groupingid', 0);
+		
+		$dom->loadXML($sectionSectionXml->asXML());
+		file_put_contents($sectionPath . "/section.xml", $dom->saveXML());
+		
+		// moodle_backup.xml
+		$moodleBackupXmlContentsSectionsSection = $moodleBackupXmlContentsSections->addChild('section');
+		$moodleBackupXmlContentsSectionsSection->addChild('sectionid', $section->getSectionID());
+		$moodleBackupXmlContentsSectionsSection->addChild('title', $section->getName());
+		$moodleBackupXmlContentsSectionsSection->addChild('directory', "sections/section_" . $section->getSectionID());
+	
+		$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+		$moodleBackupXmlSettingsSetting->addChild('level', 'section');
+		$moodleBackupXmlSettingsSetting->addChild('section', "section_" . $section->getSectionID());
+		$moodleBackupXmlSettingsSetting->addChild('name', "section_" . $section->getSectionID() . "_included");
+		$moodleBackupXmlSettingsSetting->addChild('value', 1);
+		$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+		$moodleBackupXmlSettingsSetting->addChild('level', 'section');
+		$moodleBackupXmlSettingsSetting->addChild('section', "section_" . $section->getSectionID());
+		$moodleBackupXmlSettingsSetting->addChild('name', "section_" . $section->getSectionID() . "_userinfo");
+		$moodleBackupXmlSettingsSetting->addChild('value', 0);
+		
+		$sectionNumber++;
+	}
+	
+////////////////////////////////////////////////////////////////////
 	// ACTIVITIES
 	
 	// activities folder
@@ -473,15 +764,30 @@ function moodleObjectToMoodleBackup($moodleObject) {
 			$activityGradesXml = new SimpleXMLElement($header . "<activity_gradebook></activity_gradebook>");
 			$activityGradesXml->addChild('grade_items');
 			$activityGradesXml->addChild('grade_letters');
-			file_put_contents($activityPath . "/grades.xml", $activityGradesXml->asXML());
+			
+			$dom->loadXML($activityGradesXml->asXML());
+			file_put_contents($activityPath . "/grades.xml", $dom->saveXML());
 			// activities/[activity]_[x]/roles.xml
 			$activityRolesXml = new SimpleXMLElement($header . "<roles></roles>");
 			$activityRolesXml->addChild('role_overrides');
 			$activityRolesXml->addChild('role_assignments');
-			file_put_contents($activityPath . "/roles.xml", $activityRolesXml->asXML());
+			
+			$dom->loadXML($activityRolesXml->asXML());
+			file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
 			
 			// NOT "EMPTY"
 			// activities/[activity]_[x]/inforef.xml
+			$activityInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
+			if ($activity->getFile()) {
+				$activityInforefXmlFileRef = $activityInforefXml->addChild('fileref');
+				foreach ($activity->getFile() as $aFile) {
+					$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
+					$activityInforefXmlFileRefFile->addChild('id', $aFile);
+				}
+			}
+			$dom->loadXML($activityInforefXml->asXML());
+			file_put_contents($activityPath . "/inforef.xml", $dom->saveXML());
+			
 			
 			// activities/[activity]_[x]/module.xml
 			$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
@@ -493,7 +799,9 @@ function moodleObjectToMoodleBackup($moodleObject) {
 			$activityModuleXml->addChild('added', time());
 			$activityModuleXml->addChild('visible', 1);
 			$activityModuleXml->addChild('visibleold', 1);
-			file_put_contents($activityPath . "/module.xml", $activityModuleXml->asXML());
+			
+			$dom->loadXML($activityModuleXml->asXML());
+			file_put_contents($activityPath . "/module.xml", $dom->saveXML());
 			
 			// activities/[activity]_[x]/[activity].xml
 			if ($activity->getModuleName() == "page") {
@@ -506,6 +814,7 @@ function moodleObjectToMoodleBackup($moodleObject) {
 				$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
 				$activityActivityChildXml->addChild('name', $activity->getName());
 				$activityActivityChildXml->addChild('intro', "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;");
+				$activityActivityChildXml->addChild('introformat', 1);
 				$activityActivityChildXml->addChild('content', $activity->getContent());
 				$activityActivityChildXml->addChild('contentformat', 1);
 				$activityActivityChildXml->addChild('legacyfiles', 0);
@@ -514,101 +823,30 @@ function moodleObjectToMoodleBackup($moodleObject) {
 				$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 				$activityActivityChildXml->addChild('revision', 1);
 				$activityActivityChildXml->addChild('timemodified', time());
-				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $activityActivityXml->asXML());
+				
+				$dom->loadXML($activityActivityXml->asXML());
+				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
 			}
+			
+			// moodle_backup.xml
+			$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
+			$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
+			$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
+			$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $activity->getModuleName());
+			$moodleBackupXmlContentsActivitiesActivity->addChild('title', $activity->getName());
+			$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $activity->getModuleName() . "_" . $activity->getModuleID());
+		
+			$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+			$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+			$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
+			$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_included");
+			$moodleBackupXmlSettingsSetting->addChild('value', 1);
+			$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+			$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+			$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
+			$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_userinfo");
+			$moodleBackupXmlSettingsSetting->addChild('value', 0);
 		}
-	}
-	
-	////////////////////////////////////////////////////////////////////
-	// COURSE
-	
-	// course folder
-	
-	$coursePath = $path . "/course";
-	
-	if (!file_exists($coursePath) and !is_dir($coursePath)) {
-		mkdir($coursePath, 0777, true);
-	}
-	
-	// "EMPTY"
-	// course/enrolments.xml
-	$courseEnrolmentsXml = new SimpleXMLElement($header . "<enrolments></enrolments>");
-	$courseEnrolmentsXml->addChild('enrols');
-	file_put_contents($coursePath . "/enrolments.xml", $courseEnrolmentsXml->asXML());
-	// course/roles.xml
-	$courseRolesXml = new SimpleXMLElement($header . "<roles></roles>");
-	$courseRolesXml->addChild('role_overrides');
-	$courseRolesXml->addChild('role_assignments');
-	file_put_contents($coursePath . "/roles.xml", $courseRolesXml->asXML());
-	
-	// NOT "EMPTY"
-	// course/inforef.xml
-	$courseInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
-	$courseInforefXml->addChild('roleref')->addChild('role')->addChild('id', $moodleObject->getID());
-	file_put_contents($coursePath . "/inforef.xml", $courseInforefXml->asXML());
-	// course/course.xml
-	$courseCourseXml = new SimpleXMLElement($header . "<course></course>");
-	$courseCourseXml->addAttribute('id', $moodleObject->getID());
-	$courseCourseXml->addAttribute('contextid', $moodleObject->getID());
-	$courseCourseXml->addChild('shortname', $moodleObject->getShortName());
-	$courseCourseXml->addChild('fullName', $moodleObject->getFullName());
-	$courseCourseXml->addChild('summary', "&lt;p&gt;" . $moodleObject->getFullName() . "&lt;/p&gt;");
-	$courseCourseXml->addChild('format', 'topics');
-	$courseCourseXml->addChild('startdate', time());
-	$courseCourseXml->addChild('visible', 1);
-	$courseCourseXml->addChild('defaultgroupingid', 0);
-	$courseCourseXml->addChild('lang');
-	$courseCourseXml->addChild('timecreated', time());
-	$courseCourseXml->addChild('timemodified', time());
-	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()));
-	file_put_contents($coursePath . "/course.xml", $courseCourseXml->asXML());
-	
-	
-	////////////////////////////////////////////////////////////////////
-	// FILES
-
-	
-	////////////////////////////////////////////////////////////////////
-	// SECTIONS
-
-	// sections folder
-	if (!file_exists($path . "/sections") and !is_dir($path . "/sections")) {
-		mkdir($path . "/sections", 0777, true);
-	}
-	
-	foreach ($moodleObject->getSection() as $section) {
-		// Create the folder
-		$sectionPath = $path . "/sections/section_" . $section->getSectionID();
-		if (!file_exists($sectionPath) and !is_dir($sectionPath)) {
-			mkdir($sectionPath, 0777, true);
-		}
-		
-		// "EMPTY"
-		// sections/section_[x]/inforef.xml
-		$sectionInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
-		file_put_contents($sectionPath . "/inforef.xml", $sectionInforefXml->asXML());
-		
-		// NOT "EMPTY"
-		// sections/section_[x]/section.xml
-		$sectionSectionXml = new SimpleXMLElement($header . "<section></section>");
-		$sectionSectionXml->addAttribute('id', $section->getSectionID());
-		$sectionSectionXml->addChild('number', $section->getNumber());
-		$sectionSectionXml->addChild('name', $section->getName());
-		$sectionSectionXml->addChild('summary');
-		$sectionSectionXml->addChild('summaryformat', 1);
-		
-		$sectionSequence = "";
-		
-		foreach ($section->getActivity() as $activity) {
-			$sectionSequence += $activity->getActivityID() . ",";
-		}
-		
-		$sectionSectionXml->addChild('sequence', substr($sectionSequence, 0, -1));
-		$sectionSectionXml->addChild('visible', 1);
-		$sectionSectionXml->addChild('availablefrom', 0);
-		$sectionSectionXml->addChild('availableuntil', 0);
-		$sectionSectionXml->addChild('showavailability', 0);
-		$sectionSectionXml->addChild('groupingid', 0);
 	}
 	
 	////////////////////////////////////////////////////////////////////
@@ -617,33 +855,51 @@ function moodleObjectToMoodleBackup($moodleObject) {
 	// "EMPTY"
 	// completion.xml
 	$completionXml = new SimpleXMLElement($header . "<course_completion></course_completion>");
-	file_put_contents($path . "/completion.xml", $completionXml->asXML());
+	
+	$dom->loadXML($completionXml->asXML());
+	file_put_contents($path . "/completion.xml", $dom->saveXML());
 	// gradebook.xml
 	$gradebookXml = new SimpleXMLElement($header . "<gradebook></gradebook>");
 	$gradebookXml->addChild('grade_categories');
 	$gradebookXml->addChild('grade_items');
 	$gradebookXml->addChild('grade_letters');
 	$gradebookXml->addChild('grade_settings');
-	file_put_contents($path . "/gradebook.xml", $gradebookXml->asXML());
+	
+	$dom->loadXML($gradebookXml->asXML());
+	file_put_contents($path . "/gradebook.xml", $dom->saveXML());
 	// groups.xml
 	$groupsXml = new SimpleXMLElement($header . "<groups></groups>");
-	file_put_contents($path . "/groups.xml", $groupsXml->asXML());
+	
+	$dom->loadXML($groupsXml->asXML());
+	file_put_contents($path . "/groups.xml", $dom->saveXML());
 	// moodle_backup.log
 	file_put_contents($path . "/moodle_backup.log", "");
 	// outcomes.xml
 	$outcomesXml = new SimpleXMLElement($header . "<outcomes_definition></outcomes_definition>");
-	file_put_contents($path . "/outcomes.xml", $outcomesXml->asXML());
+	
+	$dom->loadXML($outcomesXml->asXML());
+	file_put_contents($path . "/outcomes.xml", $dom->saveXML());
 	// questions.xml
 	$questionsXml = new SimpleXMLElement($header . "<question_categories></question_categories>");
-	file_put_contents($path . "/questions.xml", $questionsXml->asXML());
+	
+	$dom->loadXML($questionsXml->asXML());
+	file_put_contents($path . "/questions.xml", $dom->saveXML());
 	// roles.xml
 	$rolesXml = new SimpleXMLElement($header . "<roles_definition></roles_definition>");
-	file_put_contents($path . "/roles.xml", $rolesXml->asXML());
+	
+	$dom->loadXML($rolesXml->asXML());
+	file_put_contents($path . "/roles.xml", $dom->saveXML());
 	// scales.xml
 	$scalesXml = new SimpleXMLElement($header . "<scales_definition></scales_definition>");
-	file_put_contents($path . "/scales.xml", $scalesXml->asXML());
+	
+	$dom->loadXML($scalesXml->asXML());
+	file_put_contents($path . "/scales.xml", $dom->saveXML());
 	
 	// NOT "EMPTY"
+	// moodle_backup.xml
+	$dom->loadXML($moodleBackupXmlStart->asXML());
+	file_put_contents($path . "/moodle_backup.xml", $dom->saveXML());
+	//file_put_contents($path . "/moodle_backup.xml", $moodleBackupXmlStart->asXML());
 }
 
 ///////////////////////////////////////////////////////////

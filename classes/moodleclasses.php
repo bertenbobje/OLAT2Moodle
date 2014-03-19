@@ -12,7 +12,7 @@
 //               |_______________________> Activity (1+) ______|
 //                      moduleID's            |
 // Folder                                     |
-//                                            - ActivityPage
+// Files                                      - ActivityPage
 //                                            - ActivityQuiz
 //                                            - ActivityURL
 //                                            - ActivityBook
@@ -151,7 +151,9 @@ class Activity {
 	protected $moduleID;
 	protected $moduleName;
 	protected $contextID;
+	protected $sectionID;
 	protected $name;
+	protected $files = array();
 	
 	public function __construct($activityID = "", $moduleName = "", $name = "") {
 		$this->activityID = $activityID;
@@ -195,12 +197,28 @@ class Activity {
 		return $this->contextID;
 	}
 	
+	public function setSectionID($sectionID) {
+		$this->sectionID = $sectionID;
+	}
+	
+	public function getSectionID() {
+		return $this->sectionID;
+	}
+	
 	public function setName($name) {
 		$this->name = $name;
 	}
 	
 	public function getName() {
 		return $this->name;
+	}
+	
+	public function setFile($files) {
+		array_push($this->files, $files);
+	}
+	
+	public function getFile() {
+		return $this->files;
 	}
 	
 }
