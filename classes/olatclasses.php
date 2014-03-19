@@ -27,6 +27,7 @@ class Course {
 	protected $type;
 	protected $shortTitle;
 	protected $longTitle;
+	protected $rootDir;
 	protected $chapters = array();
 	
 	public function __construct($id, $type, $shortTitle, $longTitle) {
@@ -71,6 +72,14 @@ class Course {
 	
 	public function getLongTitle() {
 		return $this->longTitle;
+	}
+	
+	public function setRootDir($rootDir) {
+		$this->rootDir = $rootDir;
+	}
+	
+	public function getRootDir() {
+		return $this->rootDir;
 	}
 	
 	public function setChapter($chapters) {

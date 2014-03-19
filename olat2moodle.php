@@ -10,23 +10,24 @@
 
 require_once("functions.php");
 
+echo "<p>===OLAT OBJECT===</p>";
 if(isset($_FILES["file"]) && $_FILES["file"]) {
 	// Creates an OLAT Object out of an exported OLAT course.
 	$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
+	echo "<p>OK - OLAT Object created</p><br>";
 }
 else {
-	echo "<p>No file found, did you land on this page by accident?</p><br>";
-	echo "<a href='index.php'>Go back</a>";
+	echo "<p>No file found, did you land on this page by accident?</p><br><a href='index.php'>Go back</a>";
 }
 
-var_dump($olatObject);
-
+echo "<p>===MOODLE OBJECT===</p>";
 // Converts the OLAT Object to a Moodle object.
 $moodleObject = olatObjectToMoodleObject($olatObject);
+echo "<p>OK - Moodle Object created</p><br>";
 
+echo "<p>===MOODLE BACKUP===</p>";
 // Uses the Moodle Object to make a Moodle backup .mbz file.
-moodleObjectToMoodleBackup($moodleObject);
+moodleObjectToMoodleBackup($moodleObject, $olatObject);
+echo "<p>OK - Moodle backup .mbz created</p><br>";
 
-echo "OK";
-	
 ?>

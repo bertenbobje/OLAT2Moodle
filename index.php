@@ -1,9 +1,13 @@
-<?php
-	
-?>
 <html>
 <head>
 	<title>OLAT2Moodle</title>
+	<style>
+	body {
+		background-color: #FFFFAA;
+		font-family: "Tahoma", Tahoma, sans-serif;
+		font-size: 90%;
+	}
+	</style>
 </head>
 <body>
 	<h1>OLAT2Moodle</h1>
