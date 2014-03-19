@@ -27,7 +27,9 @@ echo "<p>OK - Moodle Object created</p><br>";
 
 echo "<p>===MOODLE BACKUP===</p>";
 // Uses the Moodle Object to make a Moodle backup .mbz file.
-moodleObjectToMoodleBackup($moodleObject, $olatObject);
+$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject);
 echo "<p>OK - Moodle backup .mbz created</p><br>";
+
+echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";
 
 ?>
