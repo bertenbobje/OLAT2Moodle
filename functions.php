@@ -325,28 +325,28 @@ function olatObjectToMoodleObject($olatObject) {
 			}
 		}
 		foreach ($olatChapter->getSubject() as $olatSubject) {
-			while (is_object($olatSubject)) {
+			//while (is_object($olatSubject)) {
 				$type = $olatSubject->getSubjectType();
 				$activityID = $olatSubject->getSubjectID();
 				switch ($type) {
 					case "sp":
 						$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
 						$moduleName = "page";
+						$moodleActivity->setActivityID($olatSubject->getSubjectID());
+						$moodleActivity->setSectionID($olatChapter->getChapterID());
+						$moodleActivity->setModuleName($moduleName);
+						$moodleActivity->setName($olatSubject->getSubjectShortTitle());
+						$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
+						$olatTemp = $olatSubject->getSubject();
+						$olatSubject = $olatTemp;
 						break;
 				}
-				$moodleActivity->setActivityID($olatSubject->getSubjectID());
-				$moodleActivity->setSectionID($olatChapter->getChapterID());
-				$moodleActivity->setModuleName($moduleName);
-				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
-				$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
-				$olatTemp = $olatSubject->getSubject();
-				$olatSubject = $olatTemp;
-			}
+			//}
 			$moodleCourse->setSection($moodleSection);
 			$number++;
 		}
-	return $moodleCourse;
 	}
+	return $moodleCourse;
 }
 
 // Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
@@ -671,7 +671,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 		echo "<p>Files copied</p>";
 	}
 	else {
-		echo "<p>NOK - " . $fileError . " files failed to copy</p>";
+		echo "<p>ERROR - " . $fileError . " files failed to copy</p>";
 	}
 	
 	////////////////////////////////////////////////////////////////////
@@ -745,7 +745,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 		$sectionNumber++;
 	}
 	
-////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
 	// ACTIVITIES
 	
 	// activities folder
@@ -909,25 +909,25 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	try {
 		$zipPath = $path . ".zip";
 		App_File_Zip::CreateFromFilesystem($path, $zipPath);
-		echo "<p>OK - .zip created</p>";
+		echo "<p>.zip created</p>";
 	}
 	catch (App_File_Zip_Exception $e) {
-		echo "<p>NOK - .zip failed to create: " . $e . "</p>";
+		echo "<p>ERROR - .zip failed to create: " . $e . "</p>";
 	}
 	
 	// Renames the .zip to .mbz (.mbz is just a renamed .zip anyway)
 	if(rename($zipPath, $path . ".mbz")) {
-		echo "<p>OK - .zip renamed to .mbz</p>";
+		echo "<p>.zip renamed to .mbz</p>";
 	}
 	else {
-		echo "<p>NOK - .zip failed to rename</p>";
+		echo "<p>ERROR - .zip failed to rename</p>";
 	}
 	
 	// Remove both the OLAT and Moodle temporary directory
 	rrmdir($path);
-	echo "<p>OK - OLAT temp folder removed</p>";
+	echo "<p>OLAT temp folder removed</p>";
 	rrmdir($olatObject->getRootDir());
-	echo "<p>OK - Moodle temp folder removed</p>";
+	echo "<p>Moodle temp folder removed</p>";
 	
 	return "/tmp/" . $num . ".mbz";
 }
