@@ -8,6 +8,7 @@
 
 require_once("classes/olatclasses.php");
 require_once("classes/moodleclasses.php");
+require_once("classes/generalclasses.php");
 
 // Creates an OLAT Object out of an exported OLAT course
 // backup file.
@@ -346,6 +347,7 @@ function olatObjectToMoodleObject($olatObject) {
 		}
 	return $moodleCourse;
 	}
+}
 
 // Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
 // Also fixes the <img src=""> tags to be Moodle-specific and makes the
@@ -638,7 +640,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 				$filesXmlChild->addChild('contenthash', $fileSHA1);
 				foreach ($moodleObject->getSection() as $section) {
 					foreach ($section->getActivity() as $activity) {
-						if(method_exists($activity, 'getContent')) {
+						if (method_exists($activity, 'getContent')) {
 							if (strpos($activity->getContent(), $olatFile) !== false) {
 								$filesXmlChild->addChild('contextid', $activity->getContextID());
 								$activity->setFile($fileID);
@@ -900,6 +902,34 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	$dom->loadXML($moodleBackupXmlStart->asXML());
 	file_put_contents($path . "/moodle_backup.xml", $dom->saveXML());
 	//file_put_contents($path . "/moodle_backup.xml", $moodleBackupXmlStart->asXML());
+	
+	// .MBZ
+	// Creates the .zip file with all the Moodle backup contents
+	
+	try {
+		$zipPath = $path . ".zip";
+		App_File_Zip::CreateFromFilesystem($path, $zipPath);
+		echo "<p>OK - .zip created</p>";
+	}
+	catch (App_File_Zip_Exception $e) {
+		echo "<p>NOK - .zip failed to create: " . $e . "</p>";
+	}
+	
+	// Renames the .zip to .mbz (.mbz is just a renamed .zip anyway)
+	if(rename($zipPath, $path . ".mbz")) {
+		echo "<p>OK - .zip renamed to .mbz</p>";
+	}
+	else {
+		echo "<p>NOK - .zip failed to rename</p>";
+	}
+	
+	// Remove both the OLAT and Moodle temporary directory
+	rrmdir($path);
+	echo "<p>OK - OLAT temp folder removed</p>";
+	rrmdir($olatObject->getRootDir());
+	echo "<p>OK - Moodle temp folder removed</p>";
+	
+	return "/tmp/" . $num . ".mbz";
 }
 
 ///////////////////////////////////////////////////////////

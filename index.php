@@ -11,7 +11,7 @@
 </head>
 <body>
 	<h1>OLAT2Moodle</h1>
-	<p>Welcome to OLAT2Moodle, please upload your download.zip export from OLAT below.</p>
+	<p>Welcome to OLAT2Moodle, please upload your OLAT export .zip file below.</p>
 	<form action="olat2moodle.php" method="post" enctype="multipart/form-data">
 		<label for="file">Filename:</label><br>
 		<input type="file" name="file" id="file"><br><br>
