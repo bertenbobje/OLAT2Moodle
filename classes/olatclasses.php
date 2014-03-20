@@ -17,6 +17,8 @@
 //             - ChapterDropFolder            - SubjectDropFolder
 //                                            - SubjectTest
 //						 - ChapterURL										- SubjectURL
+//             - ChapterResource              - SubjectResource
+//
 
 ///////////////////////////////////////////////////////////
 // COURSE /////////////////////////////////////////////////
@@ -99,6 +101,7 @@ class Chapter {
 
 	protected $chapterID;
 	protected $type;
+	protected $subtype;
 	protected $shortTitle;
 	protected $longTitle;
 	protected $subjects = array();
@@ -124,6 +127,14 @@ class Chapter {
 	
 	public function getType() {
 		return $this->type;
+	}
+	
+	public function setSubType($subtype) {
+		$this->subtype = $subtype;
+	}
+	
+	public function getSubType() {
+		return $this->subtype;
 	}
 	
 	public function setShortTitle($shortTitle) {
@@ -174,6 +185,27 @@ class ChapterPage extends Chapter {
 	
 	public function getChapterPage() {
 		return $this->htmlPage;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// CHAPTER RESOURCE ///////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ChapterResource extends Chapter {
+	
+	protected $resource;
+	
+	public function __construct($resource) {
+		$this->resource = $resource;
+	}
+	
+	public function setChapterResource($resource) {
+		$this->resource = $resource;
+	}
+	
+	public function getChapterResource() {
+		return $this->resource;
 	}
 	
 }
@@ -246,6 +278,7 @@ class Subject {
 
 	protected $id;
 	protected $type;
+	protected $subtype;
 	protected $shortTitle;
 	protected $longTitle;
 	protected $subjects = array();
@@ -271,6 +304,14 @@ class Subject {
 	
 	public function getSubjectType() {
 		return $this->type;
+	}
+	
+	public function setSubjectSubType($subtype) {
+		$this->subtype = $subtype;
+	}
+	
+	public function getSubjectSubType() {
+		return $this->subtype;
 	}
 	
 	public function setSubjectShortTitle($shortTitle) {
@@ -403,6 +444,27 @@ class SubjectURL extends Subject {
 	
 	public function getSubjectURL() {
 		return $this->url;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// SUBJECT RESOURCE ///////////////////////////////////////
+///////////////////////////////////////////////////////////
+class SubjectResource extends Subject {
+	
+	protected $resource;
+	
+	public function __construct($resource) {
+		$this->resource = $resource;
+	}
+	
+	public function setSubjectResource($resource) {
+		$this->resource = $resource;
+	}
+	
+	public function getSubjectResource() {
+		return $this->resource;
 	}
 	
 }
