@@ -12,13 +12,13 @@
 //               |_______________________> Activity (1+) ______|
 //                      moduleID's            |
 // Folder                                     |
-// Files                                      - ActivityPage
-//                                            - ActivityQuiz
-//                                            - ActivityURL
-//                                            - ActivityBook
-//                                            - ActivityWiki
+//                                            - ActivityPage
 //                                            - ActivityFolder
+//                                            - ActivityURL
 //                                            - ActivityResource
+//                                            - ActivityBook
+//                                            - ActivityQuiz
+//                                            - ActivityWiki
 //
 
 ///////////////////////////////////////////////////////////
@@ -153,6 +153,7 @@ class Activity {
 	protected $contextID;
 	protected $sectionID;
 	protected $name;
+	protected $indent;
 	protected $files = array();
 	
 	public function __construct($activityID = "", $moduleName = "", $name = "") {
@@ -213,6 +214,14 @@ class Activity {
 		return $this->name;
 	}
 	
+	public function setIndent($indent) {
+		$this->indent = $indent;
+	}
+	
+	public function getIndent() {
+		return $this->indent;
+	}
+	
 	public function setFile($files) {
 		array_push($this->files, $files);
 	}
@@ -241,6 +250,57 @@ class ActivityPage extends Activity {
 	public function getContent() {
 		return $this->content;
 	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// ACTIVITY FOLDER ////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ActivityFolder extends Activity {
+
+	protected $folderFiles = array();
+
+	public function __construct($folderFiles) {
+		$this->folderFiles = $folderFiles;
+	}
+	
+	public function setFolderFile($folderFiles) {
+		array_push($this->folderFiles, $folderFiles);
+	}
+	
+	public function getFolderFile() {
+		return $this->folderFiles;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// ACTIVITY URL ///////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ActivityURL extends Activity {
+
+	protected $url;
+	
+	public function __construct($url) {
+		$this->url = $url;
+	}
+	
+	public function setURL($url) {
+		$this->url = $url;
+	}
+	
+	public function getURL() {
+		return $this->url;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// ACTIVITY RESOURCE //////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ActivityResource extends Activity {
+
+	public function __construct() {}
 	
 }
 
