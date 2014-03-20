@@ -8,7 +8,9 @@
 /* Bert Truyens
 /************************************************************/
 
-require_once("functions.php");
+require_once("functions/olatBackupToOlatObject.php");
+require_once("functions/olatObjectToMoodleObject.php");
+require_once("functions/moodleObjectToMoodleBackup.php");
 
 echo "<p>===OLAT OBJECT===</p>";
 if(isset($_FILES["file"]) && $_FILES["file"]) {
