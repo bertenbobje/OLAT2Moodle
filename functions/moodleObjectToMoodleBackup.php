@@ -273,31 +273,20 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 							if (strpos($activity->getContent(), $olatFile) !== false) {
 								$filesXmlChild->addChild('contextid', $activity->getContextID());
 								$activity->setFile($fileID);
-							} 
-						}
-						else if (method_exists($activity, 'getFolderFiles')) {
-							foreach ($activity->getFolderFile()->getFileName() as $folderFile) {
-								echo $folderFile . "<br>";
-								if ($folderFile == $olatFile) {
-									$filesXmlChild->addChild('contextid', $activity->getContextID());
-									$activity->setFile($fileID);
-								}
+								$filesXmlChild->addChild('component', "mod_page");
 							}
 						}
+						// else if (method_exists($activity, 'getFolderFiles')) {
+							// foreach ($activity->getFolderFile()->getFileName() as $folderFile) {
+								// echo $folderFile . "<br>";
+								// if ($folderFile == $olatFile) {
+									// $filesXmlChild->addChild('contextid', $activity->getContextID());
+									// $activity->setFile($fileID);
+									// $filesXmlChild->addChild('component', "mod_folder");
+								// }
+							// }
+						// }
 					}
-				}
-				switch ($activity->getModuleName()) {
-					case "page":
-						$filesXmlChild->addChild('component', "mod_page");
-						break;
-					
-					case "resource":
-						$filesXmlChild->addChild('component', "mod_resource");
-						break;
-					
-					case "folder":
-						$filesXmlChild->addChild('component', "mod_folder");
-						break;
 				}
 				$filesXmlChild->addChild('filearea', "content");
 				$filesXmlChild->addChild('itemid', 0);
