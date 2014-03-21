@@ -1,9 +1,5 @@
 <?php
 
-require_once("classes/olatclasses.php");
-require_once("classes/moodleclasses.php");
-require_once("classes/generalclasses.php");
-
 // Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
 // Also fixes the <img src=""> tags to be Moodle-specific and makes the
 // .mp3, .flv and .wav references Moodle-specific by turning them into <a> tags.
