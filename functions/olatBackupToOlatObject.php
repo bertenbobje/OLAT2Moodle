@@ -107,8 +107,9 @@ function olatBackupToOlatObject($path) {
 				}
 				break;
 				
-			// Page
+			// Page & Structure
 			case "sp":
+			case "st":
 				// Looks for the only <string> record that starts with a '/' (HTML-reference).
 				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
 				foreach ($chapterPagePath as $chapterPage) {
@@ -120,11 +121,11 @@ function olatBackupToOlatObject($path) {
 					if (substr($chapterPageItem, -4) == "html") {
 						$page = file_get_contents($expath . "/coursefolder" . $chapterPageItem);
 						$chapterObject = new ChapterPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"));
-						$chapterObject->setSubType = "page";
+						$chapterObject->setSubType("page");
 					}
 					else {
 						$chapterObject = new ChapterResource($chapterPagePath);
-						$chapterObject->setSubType = "resource";
+						$chapterObject->setSubType("resource");
 					}
 				}
 				else {
@@ -133,13 +134,7 @@ function olatBackupToOlatObject($path) {
 					$chapterObject = new ChapterPage($emptyHTML);
 				}
 				break;
-				
-			// Structure
-			case "st":
-				$noPage++;
-				$chapterObject = new Chapter();
-				break;
-				
+
 			// URL
 			case "tu":
 				$noPage++;
@@ -164,7 +159,6 @@ function olatBackupToOlatObject($path) {
 			$chapterObject->setType(isset($child->type) ? (string) $child->type : null);
 			$chapterObject->setShortTitle(isset($child->shortTitle) ? (string) $child->shortTitle : null);
 			$chapterObject->setLongTitle(isset($child->longTitle) ? (string) $child->longTitle : null);
-			
 			olatGetSubjects($chapterObject, $child->ident, $xpath, $expath);
 			$course->setChapter($chapterObject);
 		}
@@ -227,6 +221,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 				
 				// Page
 				case "sp":
+				case "st":
 					// Looks for the only <string> record that starts with a '/' (HTML-reference).
 					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
 					foreach ($subjectPagePath as $subjectPage) {
@@ -238,11 +233,14 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 						if (substr($subjectPageItem, -4) == "html") {
 							$page = file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem);
 							$subjectObject = new SubjectPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"));
-							$subjectObject->setSubjectSubType = "page";
+							$subjectObject->setSubjectSubType("page");
 						}
 						else {
-							$subjectObject = new SubjectResource($subjectPagePath);
-							$subjectObject->setSubjectSubType = "resource";
+							foreach ($subjectPagePath as $sppath) {
+								$spp = $sppath;
+							}
+							$subjectObject = new SubjectResource(substr($spp, 1));
+							$subjectObject->setSubjectSubType("resource");
 						}
 					}
 					else {
@@ -253,10 +251,6 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 					break;
 
 				// Structure
-				case "st":
-					$noPag++;
-					$chapterObject = new Chapter();
-					break;
 					
 				// URL
 				case "tu":

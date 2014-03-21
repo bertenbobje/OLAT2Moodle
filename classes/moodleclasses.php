@@ -300,7 +300,19 @@ class ActivityURL extends Activity {
 ///////////////////////////////////////////////////////////
 class ActivityResource extends Activity {
 
-	public function __construct() {}
+	protected $aResource;
+
+	public function __construct($aResource) {
+		$this->aResource = $aResource;
+	}
+	
+	public function setResource($aResource) {
+		$this->aResource = $aResource;
+	}
+	
+	public function getResource() {
+		return $this->aResource;
+	}
 	
 }
 

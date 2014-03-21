@@ -19,14 +19,18 @@ function olatObjectToMoodleObject($olatObject) {
 	foreach ($olatObject->getChapter() as $olatChapter) {
 		$indent = 0;
 		$moodleSection = new Section($olatChapter->getChapterID(), $olatChapter->getShortTitle(), $number);
-		$type = $olatChapter->getType();
-		if ($type != "st") {
+		$ctype = $olatChapter->getType();
+		if ($ctype != "st") {
 			$ok = 0;
-			switch ($type) {
+			switch ($ctype) {
 				case "sp":
-					$ok = 1;
-					$moduleName = "page";
-					$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
+					switch ($olatChapter->getSubType()) {
+						case "page":
+							$ok = 1;
+							$moduleName = "page";
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
+							break;
+					}
 					break;
 				case "bc":
 					$ok = 1;
@@ -45,18 +49,22 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatChapter->getShortTitle());
 				$moodleActivity->setIndent($indent);
-				$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
+				$moodleSection->setActivity($moodleActivity);
 			}
 			$indent++;
 		}
 		foreach ($olatChapter->getSubject() as $olatSubject) {
-			$type = $olatSubject->getSubjectType();
+			$stype = $olatSubject->getSubjectType();
 			$ok = 0;
-			switch ($type) {
+			switch ($stype) {
 				case "sp":
-					$ok = 1;
-					$moduleName = "page";
-					$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+					switch ($olatSubject->getSubjectSubType()) {
+						case "page":
+							$ok = 1;
+							$moduleName = "page";
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+							break;
+					}
 					break;
 				case "bc":
 					$ok = 1;
@@ -68,6 +76,10 @@ function olatObjectToMoodleObject($olatObject) {
 					$moduleName = "url";
 					$moodleActivity = new ActivityURL($olatSubject->getSubjectURL());
 					break;
+				case "st":
+					$ok = 0;
+					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
+					break;
 			}
 			if ($ok == 1) {
 				$moodleActivity->setActivityID($olatSubject->getSubjectID());
@@ -75,13 +87,68 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
 				$moodleActivity->setIndent($indent);
-				$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
+				$moodleSection->setActivity($moodleActivity);
+				
+				moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
 			}
-		}	
+		}
 		$moodleCourse->setSection($moodleSection);
 		$number++;
 	}
 	return $moodleCourse;
+}
+
+// Reads out every deep OLAT child and saves it as an Activity in
+// Moodle with the correct indentation.
+//
+// PARAMETERS
+// ->       &$mSec : The Moodle Section
+//           $oSub : The OLAT Subject
+//    $olatChapter : The OLAT Chapter (for the ID)
+//              $i : The current indentation.
+function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
+	foreach ($oSub as $sub) {
+		$type = $sub->getSubjectType();
+		$ok = 0;
+		switch ($type) {
+			case "sp":
+				switch ($sub->getSubjectSubType()) {
+					case "page":
+						$ok = 1;
+						$moduleName = "page";
+						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()));
+						break;
+				}
+				break;
+			case "bc":
+				$ok = 1;
+				$moduleName = "folder";
+				$moodleActivity = new ActivityFolder($sub->getSubjectFolders());
+				break;
+			case "tu":
+				$ok = 1;
+				$moduleName = "url";
+				$moodleActivity = new ActivityURL($sub->getSubjectURL());
+				break;
+			case "st":
+				$ok = 0;
+				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $i);
+				break;
+		}
+		if ($ok == 1) {
+			$moodleActivity->setActivityID($sub->getSubjectID());
+			$moodleActivity->setSectionID($olatChapter->getChapterID());
+			$moodleActivity->setModuleName($moduleName);
+			$moodleActivity->setName($sub->getSubjectShortTitle());
+			$moodleActivity->setIndent($i);
+			
+			$mSec->setActivity($moodleActivity);
+			
+			if(is_object($sub)) {
+				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $i);
+			}
+		}
+	}
 }
 
 // Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
