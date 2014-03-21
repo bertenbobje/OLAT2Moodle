@@ -2,7 +2,6 @@
 
 require_once("classes/olatclasses.php");
 require_once("classes/moodleclasses.php");
-require_once("classes/generalclasses.php");
 
 require_once("functions/moodleFixHTML.php");
 
@@ -35,23 +34,11 @@ function olatObjectToMoodleObject($olatObject) {
 					$ok = 1;
 					$moduleName = "folder";
 					$moodleActivity = new ActivityFolder($olatChapter->getChapterFolders());
-					$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() / 2));
-					$moodleActivity->setSectionID($olatChapter->getChapterID());
-					$moodleActivity->setModuleName($moduleName);
-					$moodleActivity->setName($olatChapter->getShortTitle());
-					$moodleActivity->setIndent($indent);
-					$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
 					break;
 				case "tu":
 					$ok = 1;
 					$moduleName = "url";
 					$moodleActivity = new ActivityURL($olatChapter->getURL());
-					$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() / 2));
-					$moodleActivity->setSectionID($olatChapter->getChapterID());
-					$moodleActivity->setModuleName($moduleName);
-					$moodleActivity->setName($olatChapter->getShortTitle());
-					$moodleActivity->setIndent($indent);
-					$moodleSection->setActivity(isset($moodleActivity) ? $moodleActivity : null);
 					break;
 			}
 			if ($ok == 1) {
