@@ -6,6 +6,8 @@ require_once("classes/generalclasses.php");
 
 require_once("functions/general.php");
 
+ini_set('max_execution_time', 300);
+
 // Creates the backup file that Moodle can use to restore a course.
 /*************************************************************************************
  _________________________
