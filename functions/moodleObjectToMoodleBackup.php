@@ -163,7 +163,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	$moodleBackupXmlSettingsSetting->addChild('value', '0');
 	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
 	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'usercompletion');
+	$moodleBackupXmlSettingsSetting->addChild('name', 'userscompletion');
 	$moodleBackupXmlSettingsSetting->addChild('value', '0');
 	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
 	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
@@ -251,8 +251,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	}
 	
 	// OLAT files
-	$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";
-	$olatFiles = getDirectoryList($olatObject->getRootdir() . "/coursefolder");
+	$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
+	$olatFiles = getDirectoryList($olatFilesPath);
 	$fileError = 0;
 	foreach ($olatFiles as $olatFile) {
 		// Ignore the .html files, they're stored in the .xml itself
@@ -269,23 +269,34 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 				$filesXmlChild->addChild('contenthash', $fileSHA1);
 				foreach ($moodleObject->getSection() as $section) {
 					foreach ($section->getActivity() as $activity) {
-						if (method_exists($activity, 'getContent')) {
-							if (strpos($activity->getContent(), $olatFile) !== false) {
-								$filesXmlChild->addChild('contextid', $activity->getContextID());
-								$activity->setFile($fileID);
-								$filesXmlChild->addChild('component', "mod_page");
-							}
+						$activityModuleName = $activity->getModuleName();
+						switch ($activityModuleName) {
+							case "page":
+								if (strpos($activity->getContent(), $olatFile) !== false) {
+									$filesXmlChild->addChild('contextid', $activity->getContextID());
+									$activity->setFile($fileID);
+									$filesXmlChild->addChild('component', "mod_page");
+								}
+								break;
+							
+							case "folder":
+								foreach ($activity->getFolderFile() as $folderFile) {
+									if ($folderFile->getFileName() == $olatFile) {
+										$filesXmlChild->addChild('contextid', $activity->getContextID());
+										$activity->setFile($fileID);
+										$filesXmlChild->addChild('component', "mod_folder");
+									}
+								}
+								break;
+								
+							case "resource":
+								if ($activity->getResource() == $olatFile) {
+									$filesXmlChild->addChild('contextid', $activity->getContextID());
+									$activity->setFile($fileID);
+									$filesXmlChild->addChild('component', "mod_resource");
+								}
+								break;
 						}
-						// else if (method_exists($activity, 'getFolderFiles')) {
-							// foreach ($activity->getFolderFile()->getFileName() as $folderFile) {
-								// echo $folderFile . "<br>";
-								// if ($folderFile == $olatFile) {
-									// $filesXmlChild->addChild('contextid', $activity->getContextID());
-									// $activity->setFile($fileID);
-									// $filesXmlChild->addChild('component', "mod_folder");
-								// }
-							// }
-						// }
 					}
 				}
 				$filesXmlChild->addChild('filearea', "content");
@@ -296,8 +307,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 				$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
 				$filesXmlChild->addChild('source', $olatFile);
 				
-				$dom->loadXml($filesXml->asXML());
-				file_put_contents($path . "/files.xml", $dom->saveXML());
 				$fileID++;
 			}
 			else {
@@ -306,6 +315,61 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			}
 		}
 	}
+	
+	// Migrates the files to put in the folders.
+	$olatExportPathRoot = $olatObject->getRootdir() . "/export";
+	$olatExportRootFiles = getDirectoryList($olatExportPathRoot);
+	foreach ($olatExportRootFiles as $olatExportRootFile) {
+		$olatExportFiles = getDirectoryList($olatExportPathRoot . "/" . $olatExportRootFile);
+		foreach ($olatExportFiles as $olatExportFile) {
+			// Ignore the .html, .xml and .zip files
+			if (substr($olatExportFile, -4) != "html" && substr($olatExportFile, -3) != "xml" && substr($olatExportFile, -3) != "zip") {
+				$fileSHA1 = sha1($olatExportFile);
+				$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
+				if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+					mkdir($fileSHA1Dir, 0777, true);
+				}		
+				foreach ($moodleObject->getSection() as $section) {
+					foreach ($section->getActivity() as $activity) {
+						$activityModuleName = $activity->getModuleName();
+						if ($activityModuleName == "folder") {
+							if ($activity->getActivityID() == (string) ($activity->getSectionID() - 50000000000000)) {
+								$olatExportFilePath = $olatExportPathRoot . "/" . (string) ($activity->getActivityID() + 50000000000000) . "/" . $olatExportFile;
+							}
+							else {
+								$olatExportFilePath = $olatExportPathRoot . "/" . $activity->getActivityID() . "/" . $olatExportFile;
+							}
+							if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
+								$filesXmlChild = $filesXml->addChild('file');
+								$filesXmlChild->addAttribute('id', $fileID);
+								$filesXmlChild->addChild('contenthash', $fileSHA1);
+								foreach ($activity->getFolderFile() as $folderFile) {
+									echo $folderFile->getFileName();
+									if ($folderFile->getFileName() == $olatExportFile) {
+										echo "ahahahahh";
+										$filesXmlChild->addChild('contextid', $activity->getContextID());
+										$activity->setFile($fileID);
+										$filesXmlChild->addChild('component', "mod_folder");
+										$filesXmlChild->addChild('filearea', "content");
+										$filesXmlChild->addChild('itemid', 0);
+										$filesXmlChild->addChild('filepath', "/");
+										$filesXmlChild->addChild('filename', $olatExportFile);
+										$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
+										$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
+										$filesXmlChild->addChild('source', $olatExportFile);
+										
+										$fileID++;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	$dom->loadXml($filesXml->asXML());
+	file_put_contents($path . "/files.xml", $dom->saveXML());
 	if ($fileError == 0) {
 		echo "<p>Files copied</p>";
 	}
@@ -598,6 +662,5 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	
 	return "/tmp/" . $num . ".mbz";
 }
-
 
 ?>

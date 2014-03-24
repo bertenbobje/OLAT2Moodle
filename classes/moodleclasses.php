@@ -6,12 +6,12 @@
 /* Bert Truyens
 /*********************************************************/
 
-//                                             ________________
-// MoodleCourse (1)                           |                |
-//    |___> Section (1+)                      v                | recursion
-//               |_______________________> Activity (1+) ______|
+//
+// MoodleCourse (1)
+//    |___> Section (1+)
+//               |_______________________> Activity (1+)
 //                      moduleID's            |
-// Folder                                     |
+//                                            |
 //                                            - ActivityPage
 //                                            - ActivityFolder
 //                                            - ActivityURL

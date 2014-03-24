@@ -17,6 +17,7 @@ if(isset($_FILES["file"]) && $_FILES["file"]) {
 	// Creates an OLAT Object out of an exported OLAT course.
 	$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
 	echo "<p>OK - OLAT Object created</p><br>";
+	var_dump($olatObject);
 }
 else {
 	echo "<p>No file found, did you land on this page by accident?</p><br><a href='index.php'>Go back</a>";

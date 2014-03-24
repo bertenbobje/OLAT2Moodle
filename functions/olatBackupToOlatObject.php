@@ -219,7 +219,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 					}
 					break;
 				
-				// Page
+				// Page & Structure
 				case "sp":
 				case "st":
 					// Looks for the only <string> record that starts with a '/' (HTML-reference).
@@ -249,8 +249,6 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 						$subjectObject = new SubjectPage($emptyHTML);
 					}
 					break;
-
-				// Structure
 					
 				// URL
 				case "tu":

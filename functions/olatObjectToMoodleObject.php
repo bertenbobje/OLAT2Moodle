@@ -30,6 +30,11 @@ function olatObjectToMoodleObject($olatObject) {
 							$moduleName = "page";
 							$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
 							break;
+						case "resource":
+							$ok = 1;
+							$moduleName = "resource";
+							$moodleActivity = new ActivityResource($olatChapter->getChapterResource());
+							break;
 					}
 					break;
 				case "bc":
@@ -44,7 +49,7 @@ function olatObjectToMoodleObject($olatObject) {
 					break;
 			}
 			if ($ok == 1) {
-				$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() / 2));
+				$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() - 50000000000000));
 				$moodleActivity->setSectionID($olatChapter->getChapterID());
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatChapter->getShortTitle());
@@ -63,6 +68,11 @@ function olatObjectToMoodleObject($olatObject) {
 							$ok = 1;
 							$moduleName = "page";
 							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+							break;
+						case "resource":
+							$ok = 1;
+							$moduleName = "resource";
+							$moodleActivity = new ActivityResource($olatSubject->getSubjectResource());
 							break;
 					}
 					break;
@@ -117,6 +127,11 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
 						$ok = 1;
 						$moduleName = "page";
 						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()));
+						break;
+					case "resource":
+						$ok = 1;
+						$moduleName = "resource";
+						$moodleActivity = new ActivityResource($sub->getSubjectResource());
 						break;
 				}
 				break;
