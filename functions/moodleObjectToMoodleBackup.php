@@ -507,6 +507,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			$activityModuleXml->addChild('indent', $activity->getIndent());
 			$activityModuleXml->addChild('visible', 1);
 			$activityModuleXml->addChild('visibleold', 1);
+			$activityModuleXml->addChild('completionexpected', 0);
 			
 			$dom->loadXML($activityModuleXml->asXML());
 			file_put_contents($activityPath . "/module.xml", $dom->saveXML());
