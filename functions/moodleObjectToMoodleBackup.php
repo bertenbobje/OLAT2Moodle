@@ -320,8 +320,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	$olatExportPathRoot = $olatObject->getRootdir() . "/export";
 	$olatExportRootFiles = getDirectoryList($olatExportPathRoot);
 	foreach ($olatExportRootFiles as $olatExportRootFile) {
-		$olatExportFiles = getDirectoryList($olatExportPathRoot . "/" . $olatExportRootFile);
-		foreach ($olatExportFiles as $olatExportFile) {
+		if (is_dir($olatExportRootFile)) {
+			$olatExportFiles = getDirectoryList($olatExportPathRoot . "/" . $olatExportRootFile);
+			foreach ($olatExportFiles as $olatExportFile) {
 			// Ignore the .html, .xml and .zip files
 			if (substr($olatExportFile, -4) != "html" && substr($olatExportFile, -3) != "xml" && substr($olatExportFile, -3) != "zip") {
 				$fileSHA1 = sha1($olatExportFile);
@@ -366,6 +367,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 					}
 				}
 			}
+		}
 		}
 	}
 	$dom->loadXml($filesXml->asXML());

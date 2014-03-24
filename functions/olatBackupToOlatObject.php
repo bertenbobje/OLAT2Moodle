@@ -154,14 +154,14 @@ function olatBackupToOlatObject($path) {
 				
 		}
 		
-		if ($noPage != 0) {
+		//if ($noPage != 0) {
 			$chapterObject->setChapterID(isset($child->ident) ? (string) $child->ident : null);
 			$chapterObject->setType(isset($child->type) ? (string) $child->type : null);
 			$chapterObject->setShortTitle(isset($child->shortTitle) ? (string) $child->shortTitle : null);
 			$chapterObject->setLongTitle(isset($child->longTitle) ? (string) $child->longTitle : null);
 			olatGetSubjects($chapterObject, $child->ident, $xpath, $expath);
 			$course->setChapter($chapterObject);
-		}
+		//}
 	}
 	
 	return $course;
@@ -177,12 +177,12 @@ function olatBackupToOlatObject($path) {
 //         $xpath = runstructure.xml, loaded as a SimpleXMLElement
 //    $pathCourse = Path to the exported OLAT .zip file
 function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
-	// If noPag still equals zero at the end, the type will be
-	// sp or st without a page inside of it.
-	$noPag = 0;
 	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu']");
 	if ($subjects != null) {
 		foreach ($subjects as $schild) {
+			// If noPag still equals zero at the end, the type will be
+			// sp or st without a page inside of it.
+			$noPag = 0;
 			switch ($schild->type) {
 				// Tests/Quizzes
 				case "iqtest":
