@@ -65,23 +65,21 @@ function olatBackupToOlatObject($path) {
 	$course->setRootdir($expath);
 	
 	// Chapters
-	$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu']");
+	$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
 	foreach ($chapters as $child) {
-		// If noPage still equals zero at the end, the type will be
-		// sp or st without a page inside of it.
 		$ok = 0;
 		switch ($child->type) {
 			// Tests/Quizzes
 			case "iqtest":
 			case "iqself":
 			case "iqsurv":
-				$ok++;
+				$ok = 1;
 				$chapterObject = new Chapter;
 				break;
 			
 			// Enrollment
 			case "en":
-				$ok++;
+				$ok = 1;
 				$chapterLearningObjectItems = '';
 				$chapterLearningObject = $xpath->xpath("//*[ident = " . $child->ident . "]/learningObjectives");
 				foreach ($chapterLearningObject as $chapterLearningObjectItem) {
@@ -92,7 +90,7 @@ function olatBackupToOlatObject($path) {
 
 			// Directory
 			case "bc":
-				$ok++;
+				$ok = 1;
 				$chapterObject = new ChapterDropFolder();
 				$course_map = getDirectoryList($expath . "/export/" . $child->ident);
 				for ($i = 0; $i < count($course_map); $i++) {
@@ -110,7 +108,7 @@ function olatBackupToOlatObject($path) {
 			// Page & Structure
 			case "sp":
 			case "st":
-				$ok++;
+				$ok = 1;
 				// Looks for the only <string> record that starts with a '/' (HTML-reference).
 				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
 				foreach ($chapterPagePath as $chapterPage) {
@@ -136,7 +134,7 @@ function olatBackupToOlatObject($path) {
 
 			// URL
 			case "tu":
-				$ok++;
+				$ok = 1;
 				$urlPart1Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., 'www')]");
 				foreach ($urlPart1Path as $up1p) {
 					$urlPart1 = $up1p;
@@ -150,7 +148,12 @@ function olatBackupToOlatObject($path) {
 					$chapterObject = new ChapterURL($url);
 				}
 				break;
-				
+			
+			// Wiki
+			case "wiki":
+				$ok = 1;
+				$chapterObject = new ChapterWiki();
+				break;
 		}
 		
 		if ($ok != 0) {
@@ -176,24 +179,22 @@ function olatBackupToOlatObject($path) {
 //         $xpath = runstructure.xml, loaded as a SimpleXMLElement
 //    $pathCourse = Path to the exported OLAT .zip file
 function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
-	$ok = 0;
-	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu']");
+	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
 	if ($subjects != null) {
 		foreach ($subjects as $schild) {
-			// If noPag still equals zero at the end, the type will be
-			// sp or st without a page inside of it.
+			$ok = 0;
 			switch ($schild->type) {
 				// Tests/Quizzes
 				case "iqtest":
 				case "iqself":
 				case "iqsurv":
-					$ok++;
+					$ok = 1;
 					$subjectObject = new Subject;
 					break;
 				
 				// Enrollment
 				case "en":
-					$ok++;
+					$ok = 1;
 					$subjectLearningObject = $xpath->xpath("//*[ident = " . $schild->ident . "]/learningObjectives");
 					foreach ($subjectLearningObject as $subjectLearningObjectItem) {
 						$subjectLearningObjectItems = (string) $subjectLearningObjectItem;
@@ -203,7 +204,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 				
 				// Directory
 				case "bc":
-					$ok++;
+					$ok = 1;
 					$subjectObject = new SubjectDropFolder();
 					$course_map = getDirectoryList($pathCourse . "/export/" . $schild->ident);
 					for ($i = 0; $i < count($course_map); $i++) {
@@ -221,7 +222,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 				// Page & Structure
 				case "sp":
 				case "st":
-					$ok++;
+					$ok = 1;
 					// Looks for the only <string> record that starts with a '/' (HTML-reference).
 					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
 					foreach ($subjectPagePath as $subjectPage) {
@@ -250,7 +251,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 					
 				// URL
 				case "tu":
-					$ok++;
+					$ok = 1;
 					$urlPart1Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., 'www')]");
 					foreach ($urlPart1Path as $up1p) {
 						$urlPart1 = $up1p;
@@ -263,6 +264,12 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 						$url = "http://" . $urlPart1 . $urlPart2;
 						$subjectObject = new SubjectURL($url);
 					}
+					break;
+					
+				// Wiki
+				case "wiki":
+					$ok = 1;
+					$subjectObject = new SubjectWiki();
 					break;
 			}
 
