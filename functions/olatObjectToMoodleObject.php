@@ -59,6 +59,7 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatChapter->getShortTitle());
 				$moodleActivity->setIndent($indent);
+				$moodleActivity->setBook(false);
 				$moodleSection->setActivity($moodleActivity);
 			}
 			$indent++;
@@ -107,6 +108,7 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
 				$moodleActivity->setIndent($indent);
+				$moodleActivity->setBook(false);
 				$moodleSection->setActivity($moodleActivity);
 				
 				moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
@@ -171,6 +173,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
 			$moodleActivity->setModuleName($moduleName);
 			$moodleActivity->setName($sub->getSubjectShortTitle());
 			$moodleActivity->setIndent($i);
+			$moodleActivity->setBook(false);
 			
 			$mSec->setActivity($moodleActivity);
 			
@@ -207,6 +210,37 @@ function moodleFixHTML($html) {
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia);
 	
 	return $fixhtmlImages;
+}
+
+// Checks if there are scenarios with two or more pages in a row,
+// and adds a 'books' boolean (T/F) to it in the object for said page.
+// NOTE: This only happens if the books checkbox was checked at the start.
+//
+// PARAMETERS
+// -> $moodleObject = the Moodle object
+function checkForBooks($moodleObject) {
+	$object = $moodleObject;
+	foreach($object->getSection() as $section) {
+		$pageSequence = 0;
+		$previousActivity = null;
+		foreach($section->getActivity() as $activity) {
+			$moduleName = $activity->getModuleName();
+			if ($moduleName == "page") {
+				$pageSequence++;
+				if ($pageSequence >= 2) {
+					if($pageSequence == 2) {
+						$previousActivity->setBook(true);
+					}
+					$activity->setBook(true);
+				}
+			}
+			else {
+				$pageSequence = 0;
+			}
+			$previousActivity = $activity;
+		}
+	}
+	return $object;
 }
 
 ?>

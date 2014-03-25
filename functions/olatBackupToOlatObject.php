@@ -116,7 +116,7 @@ function olatBackupToOlatObject($path) {
 				}
 				if (isset($chapterPageItem)) {
 					// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
-					if (substr($chapterPageItem, -4) == "html") {
+					if (substr($chapterPageItem, -4) == "html" || substr($subjectPageItem, -3) == "htm") {
 						$page = file_get_contents($expath . "/coursefolder" . $chapterPageItem);
 						$chapterObject = new ChapterPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"));
 						$chapterObject->setSubType("page");
@@ -230,7 +230,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 					}
 					if (isset($subjectPageItem)) {
 						// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
-						if (substr($subjectPageItem, -4) == "html") {
+						if (substr($subjectPageItem, -4) == "html" || substr($subjectPageItem, -3) == "htm") {
 							$page = file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem);
 							$subjectObject = new SubjectPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"));
 							$subjectObject->setSubjectSubType("page");
