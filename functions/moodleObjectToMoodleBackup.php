@@ -348,24 +348,26 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 								else {
 									$olatExportFilePath = $olatExportPathRoot . "/" . $activity->getActivityID() . "/" . $olatExportFile;
 								}
-								if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
-									$filesXmlChild = $filesXml->addChild('file');
-									$filesXmlChild->addAttribute('id', $fileID);
-									$filesXmlChild->addChild('contenthash', $fileSHA1);
-									foreach ($activity->getFolderFile() as $folderFile) {
-										if ($folderFile->getFileName() == $olatExportFile) {
-											$filesXmlChild->addChild('contextid', $activity->getContextID());
-											$activity->setFile($fileID);
-											$filesXmlChild->addChild('component', "mod_folder");
-											$filesXmlChild->addChild('filearea', "content");
-											$filesXmlChild->addChild('itemid', 0);
-											$filesXmlChild->addChild('filepath', "/");
-											$filesXmlChild->addChild('filename', $olatExportFile);
-											$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
-											$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
-											$filesXmlChild->addChild('source', $olatExportFile);
-											
-											$fileID++;
+								if (file_exists($olatExportFilePath)) {
+									if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
+										$filesXmlChild = $filesXml->addChild('file');
+										$filesXmlChild->addAttribute('id', $fileID);
+										$filesXmlChild->addChild('contenthash', $fileSHA1);
+										foreach ($activity->getFolderFile() as $folderFile) {
+											if ($folderFile->getFileName() == $olatExportFile) {
+												$filesXmlChild->addChild('contextid', $activity->getContextID());
+												$activity->setFile($fileID);
+												$filesXmlChild->addChild('component', "mod_folder");
+												$filesXmlChild->addChild('filearea', "content");
+												$filesXmlChild->addChild('itemid', 0);
+												$filesXmlChild->addChild('filepath', "/");
+												$filesXmlChild->addChild('filename', $olatExportFile);
+												$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
+												$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
+												$filesXmlChild->addChild('source', $olatExportFile);
+												
+												$fileID++;
+											}
 										}
 									}
 								}

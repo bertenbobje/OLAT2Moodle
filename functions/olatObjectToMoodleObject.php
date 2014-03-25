@@ -199,15 +199,20 @@ function moodleFixHTML($html) {
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
 
-	// Media files
+	// Media files (Object)
 	$patternMedia = '/^&lt;object.*file\=(.+?)&quot;.*&lt;\/object&gt;/ism';
 	$replaceMedia = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
+	// Media files (BPlayer)
+	$patternMedia2 = '/^&lt;script.+Bplayer.insertPlayer\(&quot;(.+?)&quot;.+&lt;\/script&gt;/ism';
+	$replaceMedia2 = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
+	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
+	
 	// Images
 	$patternImages = '/src=&quot;(.+?)&quot;/i';
 	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
-	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia);
+	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
 	
 	return $fixhtmlImages;
 }
