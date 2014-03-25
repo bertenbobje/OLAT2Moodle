@@ -12,12 +12,20 @@ require_once("functions/olatBackupToOlatObject.php");
 require_once("functions/olatObjectToMoodleObject.php");
 require_once("functions/moodleObjectToMoodleBackup.php");
 
+if(isset($_POST['books'])) {
+	if ($_POST['books'] == "on") {
+		$books = true;
+	}
+}
+else {
+	$books = false;
+}
+
 echo "<p>===OLAT OBJECT===</p>";
 if(isset($_FILES["file"]) && $_FILES["file"]) {
 	// Creates an OLAT Object out of an exported OLAT course.
 	$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
 	echo "<p>OK - OLAT Object created</p><br>";
-	var_dump($olatObject);
 }
 else {
 	echo "<p>No file found, did you land on this page by accident?</p><br><a href='index.php'>Go back</a>";
@@ -26,11 +34,16 @@ else {
 echo "<p>===MOODLE OBJECT===</p>";
 // Converts the OLAT Object to a Moodle object.
 $moodleObject = olatObjectToMoodleObject($olatObject);
-echo "<p>OK - Moodle Object created</p><br>";
+echo "<p>OK - Moodle Object created</p>";
 
-echo "<p>===MOODLE BACKUP===</p>";
+if ($books) {
+	$moodleObject = checkForBooks($moodleObject);
+	echo "<p>Checked for possible books</p>";
+}
+
+echo "<br><p>===MOODLE BACKUP===</p>";
 // Uses the Moodle Object to make a Moodle backup .mbz file.
-$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject);
+$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books);
 echo "<p>OK - Moodle backup .mbz created</p><br>";
 
 echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";

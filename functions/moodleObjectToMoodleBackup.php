@@ -8,6 +8,7 @@ require_once("functions/general.php");
 
 // To make sure that every action can happen, even with bigger files.
 ini_set('max_execution_time', 300);
+ini_set('memory_limit', '-1');
 
 // Creates the backup file that Moodle can use to restore a course.
 /*************************************************************************************
@@ -60,7 +61,10 @@ ini_set('max_execution_time', 300);
 // PARAMETERS
 // -> $moodleObject = Moodle Object
 //        $olatPath = OLAT Object (for the files)
-function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
+//           $books = Reads out the checkbox in the beginning and turns pages in a row
+//                    into a single book for a more clear overview
+//
+function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	// Creates a temporary storage name made of random numbers.
 	$num = "moodle";
 	for ($i = 0; $i < 9; $i++) {
@@ -227,6 +231,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	$courseCourseXml->addChild('visible', 1);
 	$courseCourseXml->addChild('defaultgroupingid', 0);
 	$courseCourseXml->addChild('lang');
+	$courseCourseXml->addChild('theme');
 	$courseCourseXml->addChild('timecreated', time());
 	$courseCourseXml->addChild('timemodified', time());
 	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()) - 1);
@@ -260,7 +265,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	foreach ($olatFiles as $olatFile) {
 		// Ignore the .html files, they're stored in the .xml itself
 		$olatFilePath = $olatFilesPath . "/" . $olatFile;
-		if (substr($olatFile, -4) != "html") {
+		if (substr($olatFile, -4) != "html" || substr($olatFile, -3) == "htm") {
 			$fileSHA1 = sha1($olatFile);
 			$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
 			if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
@@ -326,8 +331,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 		if (is_dir($olatExportPathRoot . "/" . $olatExportRootFile)) {
 			$olatExportFiles = getDirectoryList($olatExportPathRoot . "/" . $olatExportRootFile);
 			foreach ($olatExportFiles as $olatExportFile) {
-				// Ignore the .html, .xml and .zip files
-				if (substr($olatExportFile, -4) != "html" && substr($olatExportFile, -3) != "xml" && substr($olatExportFile, -3) != "zip") {
+				// Ignore the .html, .htm, .xml and .zip files
+				if (substr($olatExportFile, -4) != "html" || substr($subjectPageItem, -3) == "htm" || substr($olatExportFile, -3) != "xml" || substr($olatExportFile, -3) != "zip") {
 					$fileSHA1 = sha1($olatExportFile);
 					$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
 					if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
@@ -410,7 +415,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 		$sectionSectionXml = new SimpleXMLElement($header . "<section></section>");
 		$sectionSectionXml->addAttribute('id', $section->getSectionID());
 		$sectionSectionXml->addChild('number', $section->getNumber());
-		$sectionSectionXml->addChild('name', $section->getName());
+		$sectionSectionXml->name = $section->getName();
 		$sectionSectionXml->addChild('summary');
 		$sectionSectionXml->addChild('summaryformat', 1);
 		
@@ -434,7 +439,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 		// moodle_backup.xml
 		$moodleBackupXmlContentsSectionsSection = $moodleBackupXmlContentsSections->addChild('section');
 		$moodleBackupXmlContentsSectionsSection->addChild('sectionid', $section->getSectionID());
-		$moodleBackupXmlContentsSectionsSection->addChild('title', $section->getName());
+		$moodleBackupXmlContentsSectionsSection->title = $section->getName();
 		$moodleBackupXmlContentsSectionsSection->addChild('directory', "sections/section_" . $section->getSectionID());
 	
 		$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
@@ -507,6 +512,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			$activityModuleXml->addChild('indent', $activity->getIndent());
 			$activityModuleXml->addChild('visible', 1);
 			$activityModuleXml->addChild('visibleold', 1);
+			$activityModuleXml->addChild('groupingid', 0);
 			$activityModuleXml->addChild('completionexpected', 0);
 			
 			$dom->loadXML($activityModuleXml->asXML());
@@ -520,8 +526,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			$activityActivityXml->addAttribute('contextid', $activity->getContextID());
 			$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
 			$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
-			$activityActivityChildXml->addChild('name', $activity->getName());
-			$activityActivityChildXml->addChild('intro', "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;");
+			$activityActivityChildXml->name = $activity->getName();
+			$activityActivityChildXml->intro = "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;";
 			$activityActivityChildXml->addChild('introformat', 1);
 			
 			switch ($activity->getModuleName()) {
@@ -566,7 +572,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 					$activityActivityChildXml->addChild('subwikis');
 			}
 			
-			
 			$activityActivityChildXml->addChild('timemodified', time());
 				
 			$dom->loadXML($activityActivityXml->asXML());
@@ -577,7 +582,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
 			$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
 			$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $activity->getModuleName());
-			$moodleBackupXmlContentsActivitiesActivity->addChild('title', $activity->getName());
+			$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
 			$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $activity->getModuleName() . "_" . $activity->getModuleID());
 		
 			$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
