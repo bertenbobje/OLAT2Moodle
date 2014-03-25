@@ -47,6 +47,11 @@ function olatObjectToMoodleObject($olatObject) {
 					$moduleName = "url";
 					$moodleActivity = new ActivityURL($olatChapter->getURL());
 					break;
+				case "wiki":
+					$ok = 1;
+					$moduleName = "wiki";
+					$moodleActivity = new ActivityWiki();
+					break;
 			}
 			if ($ok == 1) {
 				$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() - 50000000000000));
@@ -62,6 +67,10 @@ function olatObjectToMoodleObject($olatObject) {
 			$stype = $olatSubject->getSubjectType();
 			$ok = 0;
 			switch ($stype) {
+				case "st":
+					$ok = 0;
+					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
+					break;
 				case "sp":
 					switch ($olatSubject->getSubjectSubType()) {
 						case "page":
@@ -86,9 +95,10 @@ function olatObjectToMoodleObject($olatObject) {
 					$moduleName = "url";
 					$moodleActivity = new ActivityURL($olatSubject->getSubjectURL());
 					break;
-				case "st":
-					$ok = 0;
-					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
+				case "wiki":
+					$ok = 1;
+					$moduleName = "wiki";
+					$moodleActivity = new ActivityWiki();
 					break;
 			}
 			if ($ok == 1) {
@@ -121,6 +131,10 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
 		$type = $sub->getSubjectType();
 		$ok = 0;
 		switch ($type) {
+			case "st":
+				$ok = 0;
+				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $i);
+				break;
 			case "sp":
 				switch ($sub->getSubjectSubType()) {
 					case "page":
@@ -145,9 +159,10 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
 				$moduleName = "url";
 				$moodleActivity = new ActivityURL($sub->getSubjectURL());
 				break;
-			case "st":
-				$ok = 0;
-				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $i);
+			case "wiki":
+				$ok = 1;
+				$moduleName = "wiki";
+				$moodleActivity = new ActivityWiki();
 				break;
 		}
 		if ($ok == 1) {

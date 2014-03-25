@@ -6,6 +6,7 @@ require_once("classes/generalclasses.php");
 
 require_once("functions/general.php");
 
+// To make sure that every action can happen, even with bigger files.
 ini_set('max_execution_time', 300);
 
 // Creates the backup file that Moodle can use to restore a course.
@@ -228,7 +229,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	$courseCourseXml->addChild('lang');
 	$courseCourseXml->addChild('timecreated', time());
 	$courseCourseXml->addChild('timemodified', time());
-	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()));
+	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()) - 1);
 	
 	$dom->loadXML($courseCourseXml->asXML());
 	file_put_contents($coursePath . "/course.xml", $dom->saveXML());
@@ -322,46 +323,45 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 	$olatExportPathRoot = $olatObject->getRootdir() . "/export";
 	$olatExportRootFiles = getDirectoryList($olatExportPathRoot);
 	foreach ($olatExportRootFiles as $olatExportRootFile) {
-		if (is_dir($olatExportRootFile)) {
+		if (is_dir($olatExportPathRoot . "/" . $olatExportRootFile)) {
 			$olatExportFiles = getDirectoryList($olatExportPathRoot . "/" . $olatExportRootFile);
 			foreach ($olatExportFiles as $olatExportFile) {
-			// Ignore the .html, .xml and .zip files
-			if (substr($olatExportFile, -4) != "html" && substr($olatExportFile, -3) != "xml" && substr($olatExportFile, -3) != "zip") {
-				$fileSHA1 = sha1($olatExportFile);
-				$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
-				if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
-					mkdir($fileSHA1Dir, 0777, true);
-				}		
-				foreach ($moodleObject->getSection() as $section) {
-					foreach ($section->getActivity() as $activity) {
-						$activityModuleName = $activity->getModuleName();
-						if ($activityModuleName == "folder") {
-							if ($activity->getActivityID() == (string) ($activity->getSectionID() - 50000000000000)) {
-								$olatExportFilePath = $olatExportPathRoot . "/" . (string) ($activity->getActivityID() + 50000000000000) . "/" . $olatExportFile;
-							}
-							else {
-								$olatExportFilePath = $olatExportPathRoot . "/" . $activity->getActivityID() . "/" . $olatExportFile;
-							}
-							if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
-								$filesXmlChild = $filesXml->addChild('file');
-								$filesXmlChild->addAttribute('id', $fileID);
-								$filesXmlChild->addChild('contenthash', $fileSHA1);
-								foreach ($activity->getFolderFile() as $folderFile) {
-									echo $folderFile->getFileName();
-									if ($folderFile->getFileName() == $olatExportFile) {
-										echo "ahahahahh";
-										$filesXmlChild->addChild('contextid', $activity->getContextID());
-										$activity->setFile($fileID);
-										$filesXmlChild->addChild('component', "mod_folder");
-										$filesXmlChild->addChild('filearea', "content");
-										$filesXmlChild->addChild('itemid', 0);
-										$filesXmlChild->addChild('filepath', "/");
-										$filesXmlChild->addChild('filename', $olatExportFile);
-										$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
-										$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
-										$filesXmlChild->addChild('source', $olatExportFile);
-										
-										$fileID++;
+				// Ignore the .html, .xml and .zip files
+				if (substr($olatExportFile, -4) != "html" && substr($olatExportFile, -3) != "xml" && substr($olatExportFile, -3) != "zip") {
+					$fileSHA1 = sha1($olatExportFile);
+					$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
+					if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+						mkdir($fileSHA1Dir, 0777, true);
+					}		
+					foreach ($moodleObject->getSection() as $section) {
+						foreach ($section->getActivity() as $activity) {
+							$activityModuleName = $activity->getModuleName();
+							if ($activityModuleName == "folder") {
+								if ($activity->getActivityID() == (string) ($activity->getSectionID() - 50000000000000)) {
+									$olatExportFilePath = $olatExportPathRoot . "/" . (string) ($activity->getActivityID() + 50000000000000) . "/" . $olatExportFile;
+								}
+								else {
+									$olatExportFilePath = $olatExportPathRoot . "/" . $activity->getActivityID() . "/" . $olatExportFile;
+								}
+								if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
+									$filesXmlChild = $filesXml->addChild('file');
+									$filesXmlChild->addAttribute('id', $fileID);
+									$filesXmlChild->addChild('contenthash', $fileSHA1);
+									foreach ($activity->getFolderFile() as $folderFile) {
+										if ($folderFile->getFileName() == $olatExportFile) {
+											$filesXmlChild->addChild('contextid', $activity->getContextID());
+											$activity->setFile($fileID);
+											$filesXmlChild->addChild('component', "mod_folder");
+											$filesXmlChild->addChild('filearea', "content");
+											$filesXmlChild->addChild('itemid', 0);
+											$filesXmlChild->addChild('filepath', "/");
+											$filesXmlChild->addChild('filename', $olatExportFile);
+											$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
+											$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
+											$filesXmlChild->addChild('source', $olatExportFile);
+											
+											$fileID++;
+										}
 									}
 								}
 							}
@@ -369,7 +369,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 					}
 				}
 			}
-		}
 		}
 	}
 	$dom->loadXml($filesXml->asXML());
@@ -508,6 +507,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			$activityModuleXml->addChild('indent', $activity->getIndent());
 			$activityModuleXml->addChild('visible', 1);
 			$activityModuleXml->addChild('visibleold', 1);
+			$activityModuleXml->addChild('completionexpected', 0);
 			
 			$dom->loadXML($activityModuleXml->asXML());
 			file_put_contents($activityPath . "/module.xml", $dom->saveXML());
@@ -524,11 +524,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			$activityActivityChildXml->addChild('intro', "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;");
 			$activityActivityChildXml->addChild('introformat', 1);
 			
-			$display = 1;
-			
 			switch ($activity->getModuleName()) {
 				case "page":
-					$display = 5;
+					$activityActivityChildXml->addChild('display', 5);
 					$activityActivityChildXml->addChild('content', $activity->getContent());
 					$activityActivityChildXml->addChild('contentformat', 1);
 					$activityActivityChildXml->addChild('legacyfiles', 0);
@@ -538,28 +536,37 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 					break;
 				
 				case "folder":
-					$display = 1;
+					$activityActivityChildXml->addChild('display', 1);
 					$activityActivityChildXml->addChild('showexpanded', 1);
 					$activityActivityChildXml->addChild('revision', 1);
 					break;
 					
 				case "url":
-					$display = 0;
+					$activityActivityChildXml->addChild('display', 0);
 					$activityActivityChildXml->addChild('externalurl', $activity->getURL());
 					$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 					$activityActivityChildXml->addChild('parameters', 'a:0:{}');
 					break;
 					
 				case "resource":
-					$display = 0;
+					$activityActivityChildXml->addChild('display', 0);
 					$activityActivityChildXml->addChild('tobemigrated', 0);
 					$activityActivityChildXml->addChild('legacyfiles', 0);
 					$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
 					$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
 					$activityActivityChildXml->addChild('revision', 1);
+				
+				case "wiki":
+					$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
+					$activityActivityChildXml->addChild('wikimode', 'collaborative');
+					$activityActivityChildXml->addChild('defaultformat', 'html');
+					$activityActivityChildXml->addChild('forceformat', 0);
+					$activityActivityChildXml->addChild('editbegin', 0);
+					$activityActivityChildXml->addChild('editend', 0);
+					$activityActivityChildXml->addChild('subwikis');
 			}
 			
-			$activityActivityChildXml->addChild('display', $display);
+			
 			$activityActivityChildXml->addChild('timemodified', time());
 				
 			$dom->loadXML($activityActivityXml->asXML());
