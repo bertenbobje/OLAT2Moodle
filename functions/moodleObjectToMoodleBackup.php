@@ -524,11 +524,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 			$activityActivityChildXml->addChild('intro', "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;");
 			$activityActivityChildXml->addChild('introformat', 1);
 			
-			$display = 1;
-			
 			switch ($activity->getModuleName()) {
 				case "page":
-					$display = 5;
+					$activityActivityChildXml->addChild('display', 5);
 					$activityActivityChildXml->addChild('content', $activity->getContent());
 					$activityActivityChildXml->addChild('contentformat', 1);
 					$activityActivityChildXml->addChild('legacyfiles', 0);
@@ -538,28 +536,37 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject) {
 					break;
 				
 				case "folder":
-					$display = 1;
+					$activityActivityChildXml->addChild('display', 1);
 					$activityActivityChildXml->addChild('showexpanded', 1);
 					$activityActivityChildXml->addChild('revision', 1);
 					break;
 					
 				case "url":
-					$display = 0;
+					$activityActivityChildXml->addChild('display', 0);
 					$activityActivityChildXml->addChild('externalurl', $activity->getURL());
 					$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 					$activityActivityChildXml->addChild('parameters', 'a:0:{}');
 					break;
 					
 				case "resource":
-					$display = 0;
+					$activityActivityChildXml->addChild('display', 0);
 					$activityActivityChildXml->addChild('tobemigrated', 0);
 					$activityActivityChildXml->addChild('legacyfiles', 0);
 					$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
 					$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
 					$activityActivityChildXml->addChild('revision', 1);
+				
+				case "wiki":
+					$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
+					$activityActivityChildXml->addChild('wikimode', 'collaborative');
+					$activityActivityChildXml->addChild('defaultformat', 'html');
+					$activityActivityChildXml->addChild('forceformat', 0);
+					$activityActivityChildXml->addChild('editbegin', 0);
+					$activityActivityChildXml->addChild('editend', 0);
+					$activityActivityChildXml->addChild('subwikis');
 			}
 			
-			$activityActivityChildXml->addChild('display', $display);
+			
 			$activityActivityChildXml->addChild('timemodified', time());
 				
 			$dom->loadXML($activityActivityXml->asXML());
