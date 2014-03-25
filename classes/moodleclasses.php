@@ -154,6 +154,7 @@ class Activity {
 	protected $sectionID;
 	protected $name;
 	protected $indent;
+	protected $book;
 	protected $files = array();
 	
 	public function __construct($activityID = "", $moduleName = "", $name = "") {
@@ -220,6 +221,14 @@ class Activity {
 	
 	public function getIndent() {
 		return $this->indent;
+	}
+	
+	public function setBook($book) {
+		$this->book = $book;
+	}
+	
+	public function getBook() {
+		return $this->book;
 	}
 	
 	public function setFile($files) {
