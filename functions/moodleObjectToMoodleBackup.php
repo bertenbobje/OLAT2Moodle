@@ -11,6 +11,9 @@ ini_set('max_execution_time', 300);
 ini_set('memory_limit', '-1');
 
 // Creates the backup file that Moodle can use to restore a course.
+//
+// Bert Truyens
+//
 /*************************************************************************************
  _________________________
 |                         |
@@ -332,7 +335,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 			$olatExportFiles = getDirectoryList($olatExportPathRoot . "/" . $olatExportRootFile);
 			foreach ($olatExportFiles as $olatExportFile) {
 				// Ignore the .html, .htm, .xml and .zip files
-				if (substr($olatExportFile, -4) != "html" || substr($subjectPageItem, -3) == "htm" || substr($olatExportFile, -3) != "xml" || substr($olatExportFile, -3) != "zip") {
+				if (substr($olatExportFile, -4) != "html" || substr($olatExportFile, -3) == "htm" || substr($olatExportFile, -3) != "xml" || substr($olatExportFile, -3) != "zip") {
 					$fileSHA1 = sha1($olatExportFile);
 					$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
 					if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
@@ -361,10 +364,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 												$filesXmlChild->addChild('filearea', "content");
 												$filesXmlChild->addChild('itemid', 0);
 												$filesXmlChild->addChild('filepath', "/");
-												$filesXmlChild->addChild('filename', $olatExportFile);
+												$filesXmlChild->filename = $olatExportFile;
 												$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
 												$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
-												$filesXmlChild->addChild('source', $olatExportFile);
+												$filesXmlChild->source = $olatExportFile;
 												
 												$fileID++;
 											}
