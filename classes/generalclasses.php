@@ -3,7 +3,9 @@
 // Puts an entire directory with its structure into a .zip
 // With thanks to Roger Thomas, the original creator
 // http://www.rogerethomas.com/blog/recursively-zip-entire-directory-using-php
-
+//
+// Bert Truyens
+//
 class App_File_Zip_Exception extends Exception {}
 	
 class App_File_Zip {

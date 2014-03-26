@@ -7,6 +7,8 @@ require_once("functions/general.php");
 // Creates an OLAT Object out of an exported OLAT course
 // backup file.
 //
+// Bert Truyens
+//
 // PARAMETERS
 // -> $path = Path to the exported OLAT .zip file.
 function olatBackupToOlatObject($path) {

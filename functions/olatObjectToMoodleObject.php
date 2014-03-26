@@ -6,6 +6,8 @@ require_once("classes/moodleclasses.php");
 // Creates an as good as possible Moodle object from
 // the given object parameter (OLAT backup object).
 //
+// Bert Truyens
+//
 // PARAMETERS
 // -> $olatObject = OLAT Object
 function olatObjectToMoodleObject($olatObject) {
@@ -20,56 +22,66 @@ function olatObjectToMoodleObject($olatObject) {
 		$indent = 0;
 		$moodleSection = new Section($olatChapter->getChapterID(), $olatChapter->getShortTitle(), $number);
 		$ctype = $olatChapter->getType();
-		if ($ctype != "st") {
-			$ok = 0;
-			switch ($ctype) {
-				case "sp":
-					switch ($olatChapter->getSubType()) {
-						case "page":
-							$ok = 1;
-							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
-							break;
-						case "resource":
-							$ok = 1;
-							$moduleName = "resource";
-							$moodleActivity = new ActivityResource($olatChapter->getChapterResource());
-							break;
-					}
-					break;
-				case "bc":
-					$ok = 1;
-					$moduleName = "folder";
-					$moodleActivity = new ActivityFolder($olatChapter->getChapterFolders());
-					break;
-				case "tu":
-					$ok = 1;
-					$moduleName = "url";
-					$moodleActivity = new ActivityURL($olatChapter->getURL());
-					break;
-				case "wiki":
-					$ok = 1;
-					$moduleName = "wiki";
-					$moodleActivity = new ActivityWiki();
-					break;
-			}
-			if ($ok == 1) {
-				$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() - 50000000000000));
-				$moodleActivity->setSectionID($olatChapter->getChapterID());
-				$moodleActivity->setModuleName($moduleName);
-				$moodleActivity->setName($olatChapter->getShortTitle());
-				$moodleActivity->setIndent($indent);
-				$moodleActivity->setBook(false);
-				$moodleSection->setActivity($moodleActivity);
-			}
-			$indent++;
+		$ok = 0;
+		switch ($ctype) {
+			case "sp":
+			case "st":
+				switch ($olatChapter->getSubType()) {
+					case "page":
+						$ok = 1;
+						$moduleName = "page";
+						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
+						break;
+					case "resource":
+						$ok = 1;
+						$moduleName = "resource";
+						$moodleActivity = new ActivityResource($olatChapter->getChapterResource());
+						break;
+				}
+				break;
+			case "bc":
+				$ok = 1;
+				$moduleName = "folder";
+				$moodleActivity = new ActivityFolder($olatChapter->getChapterFolders());
+				break;
+			case "tu":
+				$ok = 1;
+				$moduleName = "url";
+				$moodleActivity = new ActivityURL($olatChapter->getURL());
+				break;
+			case "wiki":
+				$ok = 1;
+				$moduleName = "wiki";
+				$moodleActivity = new ActivityWiki();
+				break;
 		}
+		if ($ok == 1) {
+			$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() - 50000000000000));
+			$moodleActivity->setSectionID($olatChapter->getChapterID());
+			$moodleActivity->setModuleName($moduleName);
+			$moodleActivity->setName($olatChapter->getShortTitle());
+			$moodleActivity->setIndent($indent);
+			$moodleActivity->setBook(false);
+			$moodleSection->setActivity($moodleActivity);
+		}
+		$indent++;
 		foreach ($olatChapter->getSubject() as $olatSubject) {
 			$stype = $olatSubject->getSubjectType();
 			$ok = 0;
 			switch ($stype) {
 				case "st":
-					$ok = 0;
+					switch ($olatSubject->getSubjectSubType()) {
+						case "page":
+							$ok = 1;
+							$moduleName = "page";
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+							break;
+						case "resource":
+							$ok = 1;
+							$moduleName = "resource";
+							$moodleActivity = new ActivityResource($olatSubject->getSubjectResource());
+							break;
+					}
 					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
 					break;
 				case "sp":
@@ -134,7 +146,18 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
 		$ok = 0;
 		switch ($type) {
 			case "st":
-				$ok = 0;
+				switch ($sub->getSubjectSubType()) {
+					case "page":
+						$ok = 1;
+						$moduleName = "page";
+						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()));
+						break;
+					case "resource":
+						$ok = 1;
+						$moduleName = "resource";
+						$moodleActivity = new ActivityResource($sub->getSubjectResource());
+						break;
+				}
 				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $i);
 				break;
 			case "sp":
