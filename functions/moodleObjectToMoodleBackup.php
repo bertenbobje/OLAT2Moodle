@@ -670,20 +670,29 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	}
 	
 	// Renames the .zip to .mbz (.mbz is just a renamed .zip anyway)
-	if(rename($zipPath, $path . ".mbz")) {
+	if (rename($zipPath, $path . ".mbz")) {
 		echo "<p>.zip renamed to .mbz</p>";
 	}
 	else {
 		echo "<p>ERROR - .zip failed to rename</p>";
 	}
 	
+	$moodleDownload = "/tmp/" . str_replace(" ", "_", $moodleObject->getShortName()) . ".mbz";
+	
+	if (rename(getcwd() . "/tmp/" . $num . ".mbz", getcwd() . $moodleDownload)) {
+		echo "<p>Course name given to .mbz file</p>";
+	}
+	else {
+		echo "<p>ERROR - .mbz failed to rename</p>";
+	}
+
 	// Remove both the OLAT and Moodle temporary directory
 	rrmdir($path);
 	echo "<p>OLAT temp folder removed</p>";
 	rrmdir($olatObject->getRootDir());
 	echo "<p>Moodle temp folder removed</p>";
 	
-	return "/tmp/" . $num . ".mbz";
+	return $moodleDownload;
 }
 
 ?>
