@@ -534,7 +534,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 			$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
 			$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
 			$activityActivityChildXml->name = $activity->getName();
-			$activityActivityChildXml->intro = "&lt;p&gt;" . $activity->getName() . "&lt;/p&gt;";
+			$activityActivityChildXml->intro = $activity->getName();
 			$activityActivityChildXml->addChild('introformat', 1);
 			
 			switch ($activity->getModuleName()) {
