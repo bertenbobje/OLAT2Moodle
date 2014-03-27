@@ -389,7 +389,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 		echo "<p>Files copied</p>";
 	}
 	else {
-		echo "<p>ERROR - " . $fileError . " files failed to copy</p>";
+		echo "<p>ERROR - " . $fileError . " file(s) failed to copy</p>";
 	}
 	
 	////////////////////////////////////////////////////////////////////
