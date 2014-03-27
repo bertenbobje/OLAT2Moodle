@@ -222,14 +222,16 @@ function moodleFixHTML($html) {
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
 
+	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
+	
 	// Media files (Object)
 	$patternMedia = '/^&lt;object.*file\=(.+?)&quot;.*&lt;\/object&gt;/ism';
-	$replaceMedia = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
+	$replaceMedia = $mediaReplace;
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
 	// Media files (BPlayer)
 	$patternMedia2 = '/^&lt;script.+Bplayer.insertPlayer\(&quot;(.+?)&quot;.+&lt;\/script&gt;/ism';
-	$replaceMedia2 = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
+	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
 	// Images
@@ -237,7 +239,12 @@ function moodleFixHTML($html) {
 	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
 	
-	return $fixhtmlImages;
+	// Spaces in filenames
+	$patternSpaces = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.*?)([ *])(.*?)&quot;&gt;(.+?)&lt;\/a&gt;/i';
+	$replaceSpaces = '&lt;a href=&quot;@@PLUGINFILE@@/$1%20$3&quot;&gt;$4&lt;/a&gt;';
+	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
+	
+	return $fixhtmlSpaces;
 }
 
 // Checks if there are scenarios with two or more pages in a row,
