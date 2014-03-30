@@ -98,14 +98,14 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	$moodleBackupXml = $moodleBackupXmlStart->addChild('information');
 	$moodleBackupXml->addChild('name', 'OLAT2Moodle.mbz');
 	$moodleBackupXml->addChild('moodle_version', 2013111800);
-	$moodleBackupXml->addChild('moodle_release', '==OLAT2Moodle==');
+	$moodleBackupXml->addChild('moodle_release', '2.6');
 	$moodleBackupXml->addChild('backup_version', 2013111800);
-	$moodleBackupXml->addChild('backup_release', '==OLAT2Moodle==');
+	$moodleBackupXml->addChild('backup_release', '2.6');
 	$moodleBackupXml->addChild('backup_date', time());
 	$moodleBackupXml->addChild('mnet_remoteusers', 0);
 	$moodleBackupXml->addChild('include_files', 1);
 	$moodleBackupXml->addChild('include_file_references_to_external_content', 0);
-	$moodleBackupXml->addChild('original_wwwroot', '==OLAT2Moodle==');
+	$moodleBackupXml->addChild('original_wwwroot', 'OLAT2Moodle');
 	$moodleBackupXml->addChild('original_site_identifier_hash', "36492b9f86ba50b90b65082da25006e96b348e1d");
 	$moodleBackupXml->addChild('original_course_id', $moodleObject->getID());
 	$moodleBackupXml->addChild('original_course_fullname', $moodleObject->getFullName());
@@ -317,8 +317,12 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 								$filesXmlChild->addChild('itemid', 0);
 								$filesXmlChild->addChild('filepath', "/");
 								$filesXmlChild->addChild('filename', $olatFile);
+								$filesXmlChild->addChild('userid', 2);
 								$filesXmlChild->addChild('filesize', filesize($olatFilePath));
 								$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
+								$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
+								$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
+								$filesXmlChild->addChild('author', "OLAT2Moodle");
 								$filesXmlChild->addChild('source', $olatFile);
 								$activity->setFile($fileID);
 								
