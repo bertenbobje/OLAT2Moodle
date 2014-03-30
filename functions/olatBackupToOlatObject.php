@@ -69,6 +69,7 @@ function olatBackupToOlatObject($path) {
 	// Chapters
 	$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
 	foreach ($chapters as $child) {
+		$indentation = 0;
 		$ok = 0;
 		switch ($child->type) {
 			// Tests/Quizzes
@@ -163,7 +164,8 @@ function olatBackupToOlatObject($path) {
 			$chapterObject->setType(isset($child->type) ? (string) $child->type : null);
 			$chapterObject->setShortTitle(isset($child->shortTitle) ? (string) $child->shortTitle : null);
 			$chapterObject->setLongTitle(isset($child->longTitle) ? (string) $child->longTitle : null);
-			olatGetSubjects($chapterObject, $child->ident, $xpath, $expath);
+			$chapterObject->setIndentation($indentation);
+			olatGetSubjects($chapterObject, $child->ident, $xpath, $expath, $indentation);
 			$course->setChapter($chapterObject);
 		}
 	}
@@ -180,9 +182,10 @@ function olatBackupToOlatObject($path) {
 //            $id = The ident (ID) of the child to get subjects from
 //         $xpath = runstructure.xml, loaded as a SimpleXMLElement
 //    $pathCourse = Path to the exported OLAT .zip file
-function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
+function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
 	if ($subjects != null) {
+		$indentation++;
 		foreach ($subjects as $schild) {
 			$ok = 0;
 			switch ($schild->type) {
@@ -280,11 +283,13 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse) {
 				$subjectObject->setSubjectType(isset($schild->type) ? (string) $schild->type : null);
 				$subjectObject->setSubjectShortTitle(isset($schild->shortTitle) ? (string) $schild->shortTitle : null);
 				$subjectObject->setSubjectLongTitle(isset($schild->longTitle) ? (string) $schild->longTitle : null);
+				$subjectObject->setSubjectIndentation($indentation);
 				// Recursion for deeper children.
-				olatGetSubjects($subjectObject, $schild->ident, $xpath, $pathCourse);
+				olatGetSubjects($subjectObject, $schild->ident, $xpath, $pathCourse, $indentation);
 				$object->setSubject($subjectObject);
 			}
 		}
+		$indentation--;
 	}
 }
 
