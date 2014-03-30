@@ -19,7 +19,6 @@ function olatObjectToMoodleObject($olatObject) {
 							1);
 	
 	foreach ($olatObject->getChapter() as $olatChapter) {
-		$indent = 0;
 		$moodleSection = new Section($olatChapter->getChapterID(), $olatChapter->getShortTitle(), $number);
 		$ctype = $olatChapter->getType();
 		$ok = 0;
@@ -60,11 +59,10 @@ function olatObjectToMoodleObject($olatObject) {
 			$moodleActivity->setSectionID($olatChapter->getChapterID());
 			$moodleActivity->setModuleName($moduleName);
 			$moodleActivity->setName($olatChapter->getShortTitle());
-			$moodleActivity->setIndent($indent);
+			$moodleActivity->setIndent($olatChapter->getIndentation());
 			$moodleActivity->setBook(false);
 			$moodleSection->setActivity($moodleActivity);
 		}
-		$indent++;
 		foreach ($olatChapter->getSubject() as $olatSubject) {
 			$stype = $olatSubject->getSubjectType();
 			$ok = 0;
@@ -82,7 +80,7 @@ function olatObjectToMoodleObject($olatObject) {
 							$moodleActivity = new ActivityResource($olatSubject->getSubjectResource());
 							break;
 					}
-					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
+					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter);
 					break;
 				case "sp":
 					switch ($olatSubject->getSubjectSubType()) {
@@ -119,11 +117,11 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setSectionID($olatChapter->getChapterID());
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
-				$moodleActivity->setIndent($indent);
+				$moodleActivity->setIndent($olatSubject->getSubjectIndentation());
 				$moodleActivity->setBook(false);
 				$moodleSection->setActivity($moodleActivity);
 				
-				moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $indent);
+				moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter);
 			}
 		}
 		$moodleCourse->setSection($moodleSection);
@@ -139,8 +137,7 @@ function olatObjectToMoodleObject($olatObject) {
 // ->       &$mSec : The Moodle Section
 //           $oSub : The OLAT Subject
 //    $olatChapter : The OLAT Chapter (for the ID)
-//              $i : The current indentation.
-function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
+function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 	foreach ($oSub as $sub) {
 		$type = $sub->getSubjectType();
 		$ok = 0;
@@ -158,7 +155,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
 						$moodleActivity = new ActivityResource($sub->getSubjectResource());
 						break;
 				}
-				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $i);
+				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
 				break;
 			case "sp":
 				switch ($sub->getSubjectSubType()) {
@@ -195,13 +192,13 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$i) {
 			$moodleActivity->setSectionID($olatChapter->getChapterID());
 			$moodleActivity->setModuleName($moduleName);
 			$moodleActivity->setName($sub->getSubjectShortTitle());
-			$moodleActivity->setIndent($i);
+			$moodleActivity->setIndent($sub->getSubjectIndentation());
 			$moodleActivity->setBook(false);
 			
 			$mSec->setActivity($moodleActivity);
 			
 			if(is_object($sub)) {
-				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $i);
+				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
 			}
 		}
 	}
@@ -225,7 +222,7 @@ function moodleFixHTML($html) {
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
 	// Media files (Object)
-	$patternMedia = '/^&lt;object.*file\=(.+?)&quot;.*&lt;\/object&gt;/ism';
+	$patternMedia = '/&lt;object.*file\=(.+?)&quot;.*&lt;\/object&gt;/ism';
 	$replaceMedia = $mediaReplace;
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	

@@ -104,6 +104,7 @@ class Chapter {
 	protected $subtype;
 	protected $shortTitle;
 	protected $longTitle;
+	protected $indentation;
 	protected $subjects = array();
 	
 	public function __construct($chapterID = 0, $type = "", $shortTitle = "", $longTitle = "") {
@@ -156,6 +157,14 @@ class Chapter {
 	
 	public function getLongTitle() {
 		return $this->longTitle;
+	}
+
+	public function setIndentation($indentation) {
+		$this->indentation = $indentation;
+	}
+	
+	public function getIndentation() {
+		return $this->indentation;
 	}
 	
 	public function setSubject($subjects) {
@@ -290,6 +299,7 @@ class Subject {
 	protected $subtype;
 	protected $shortTitle;
 	protected $longTitle;
+	protected $indentation;
 	protected $subjects = array();
 	
 	public function __construct($id = 0, $type = "", $shortTitle = "", $longTitle = "") {
@@ -342,6 +352,14 @@ class Subject {
 	
 	public function getSubjectLongTitle() {
 		return $this->longTitle;
+	}
+	
+	public function setSubjectIndentation($indentation) {
+		$this->indentation = $indentation;
+	}
+	
+	public function getSubjectIndentation() {
+		return $this->indentation;
 	}
 	
 	public function setSubject($subjects) {

@@ -266,7 +266,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	$olatFiles = getDirectoryList($olatFilesPath);
 	$fileError = 0;
 	foreach ($olatFiles as $olatFile) {
-		// Ignore the .html files, they're stored in the .xml itself
+		// Ignore the .html and .htm files, they're stored in the .xml itself
 		$olatFilePath = $olatFilesPath . "/" . $olatFile;
 		if (substr($olatFile, -4) != "html" || substr($olatFile, -3) == "htm") {
 			$fileSHA1 = sha1($olatFile);
@@ -276,17 +276,16 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 			}
 			if (!is_dir($olatFilesPath . "/" . $olatFile)) {
 				if (copy($olatFilesPath . "/" . $olatFile, $fileSHA1Dir . "/" . $fileSHA1)) {
-					$filesXmlChild = $filesXml->addChild('file');
-					$filesXmlChild->addAttribute('id', $fileID);
-					$filesXmlChild->addChild('contenthash', $fileSHA1);
 					foreach ($moodleObject->getSection() as $section) {
 						foreach ($section->getActivity() as $activity) {
+							$fileOK = 0;
 							$activityModuleName = $activity->getModuleName();
 							switch ($activityModuleName) {
 								case "page":
 									if (strpos($activity->getContent(), $olatFile) !== false) {
-										$filesXmlChild->addChild('contextid', $activity->getContextID());
-										$activity->setFile($fileID);
+										$fileOK = 1;
+										$filesXmlChild = $filesXml->addChild('file');
+										$filesXmlChild->addAttribute('id', $fileID);
 										$filesXmlChild->addChild('component', "mod_page");
 									}
 									break;
@@ -294,8 +293,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 								case "folder":
 									foreach ($activity->getFolderFile() as $folderFile) {
 										if ($folderFile->getFileName() == $olatFile) {
-											$filesXmlChild->addChild('contextid', $activity->getContextID());
-											$activity->setFile($fileID);
+											$fileOK = 1;
+											$filesXmlChild = $filesXml->addChild('file');
+											$filesXmlChild->addAttribute('id', $fileID);
 											$filesXmlChild->addChild('component', "mod_folder");
 										}
 									}
@@ -303,23 +303,29 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 									
 								case "resource":
 									if ($activity->getResource() == $olatFile) {
-										$filesXmlChild->addChild('contextid', $activity->getContextID());
-										$activity->setFile($fileID);
+										$fileOK = 1;
+										$filesXmlChild = $filesXml->addChild('file');
+										$filesXmlChild->addAttribute('id', $fileID);
 										$filesXmlChild->addChild('component', "mod_resource");
 									}
 									break;
 							}
+							if ($fileOK != 0) {
+								$filesXmlChild->addChild('contenthash', $fileSHA1);
+								$filesXmlChild->addChild('contextid', $activity->getContextID());
+								$filesXmlChild->addChild('filearea', "content");
+								$filesXmlChild->addChild('itemid', 0);
+								$filesXmlChild->addChild('filepath', "/");
+								$filesXmlChild->addChild('filename', $olatFile);
+								$filesXmlChild->addChild('filesize', filesize($olatFilePath));
+								$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
+								$filesXmlChild->addChild('source', $olatFile);
+								$activity->setFile($fileID);
+								
+								$fileID++;
+							}
 						}
 					}
-					$filesXmlChild->addChild('filearea', "content");
-					$filesXmlChild->addChild('itemid', 0);
-					$filesXmlChild->addChild('filepath', "/");
-					$filesXmlChild->addChild('filename', $olatFile);
-					$filesXmlChild->addChild('filesize', filesize($olatFilePath));
-					$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
-					$filesXmlChild->addChild('source', $olatFile);
-					
-					$fileID++;
 				}
 			}
 			else {
@@ -677,7 +683,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 		echo "<p>ERROR - .zip failed to rename</p>";
 	}
 	
-	$moodleDownload = "/tmp/" . str_replace(" ", "_", $moodleObject->getShortName()) . ".mbz";
+	$moodleDownload = "/tmp/" . str_replace(" ", "_", $moodleObject->getFullName()) . ".mbz";
 	
 	if (rename(getcwd() . "/tmp/" . $num . ".mbz", getcwd() . $moodleDownload)) {
 		echo "<p>Course name given to .mbz file</p>";
