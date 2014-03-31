@@ -84,6 +84,19 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 		mkdir($path, 0777, true);
 	}
 	
+	// Chapter IDs, this is for books later on in the code
+	if ($books) {
+		$chapterID = 1;
+			foreach ($moodleObject->getSection() as $section) {
+				foreach ($section->getActivity() as $activity) {
+					if ($activity->getBook()) {
+						$activity->setChapterID($chapterID);
+						$chapterID++;
+					}
+				}
+			}
+	}
+	
 	// This formats the xml files so it's not all on one line.
 	$dom = new DOMDocument('1.0');
 	$dom->preserveWhiteSpace = false;
@@ -322,13 +335,14 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 									$filesXmlChild->addChild('contextid', $activity->getBookContextID());
 									$filesXmlChild->addChild('component', $component);
 									$filesXmlChild->addChild('filearea', "chapter");
+									$filesXmlChild->addChild('itemid', $activity->getChapterID());
 								}
 								else {
 									$filesXmlChild->addChild('contextid', $activity->getContextID());
 									$filesXmlChild->addChild('component', $component);
 									$filesXmlChild->addChild('filearea', "content");
+									$filesXmlChild->addChild('itemid', 0);
 								}
-								$filesXmlChild->addChild('itemid', 0);
 								$filesXmlChild->addChild('filepath', "/");
 								$filesXmlChild->filename = $olatFile;
 								$filesXmlChild->addChild('userid', 2);
@@ -513,7 +527,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	
 	// Chapter IDs (increases by one by every chapter over all the books, so it's just an increment)
 	// for every chapter page in the entire course
-	$chapterID = 1;
 	foreach ($moodleObject->getSection() as $section) {
 		$previousActivity = null;
 		// Page numbers (increases by one by every chapter of every single book)
@@ -788,8 +801,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 					$activityActivityChildXml->addChild('timemodified', time());
 					$activityBookChapters = $activityActivityChildXml->addChild('chapters');
 					$activityBookChapter = $activityBookChapters->addChild('chapter');
-					$activityBookChapter->addAttribute('id', $chapterID);
-					$chapterID++;
+					$activityBookChapter->addAttribute('id', $activity->getChapterID());
 					$activityBookChapter->addChild('pagenum', $pageNum);
 					$pageNum++;
 					$activityBookChapter->addChild('subchapter', 0);
@@ -802,8 +814,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 				}
 				else if ($currentlyBook && !$firstTags) {
 					$activityBookChapter = $activityBookChapters->addChild('chapter');
-					$activityBookChapter->addAttribute('id', $chapterID);
-					$chapterID++;
+					$activityBookChapter->addAttribute('id', $activity->getChapterID());
 					$activityBookChapter->addChild('pagenum', $pageNum);
 					$pageNum++;
 					$activityBookChapter->addChild('subchapter', 0);
