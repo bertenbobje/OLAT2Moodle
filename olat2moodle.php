@@ -38,6 +38,9 @@ echo "<p>OK - Moodle Object created</p>";
 
 if ($books) {
 	$moodleObject = checkForBooks($moodleObject);
+	//foreach ($moodleObject->getSection() as $section) {
+	//	var_dump($section);
+	//}
 	echo "<p>Checked for possible books</p>";
 }
 

@@ -87,7 +87,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	// This formats the xml files so it's not all on one line.
 	$dom = new DOMDocument('1.0');
 	$dom->preserveWhiteSpace = false;
-	$dom->formatOutput = true;
+	$dom->formatOutput = true;	
 	
 	// The header of every .xml file is always the same.
 	$header = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -286,7 +286,13 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 										$fileOK = 1;
 										$filesXmlChild = $filesXml->addChild('file');
 										$filesXmlChild->addAttribute('id', $fileID);
-										$filesXmlChild->addChild('component', "mod_page");
+										if ($books && $activity->getBook()) {
+											$filesXmlChild->addChild('component', "mod_page");
+										}
+										else {
+											$filesXmlChild->addChild('component', "mod_book");
+										}
+										
 									}
 									break;
 								
@@ -498,136 +504,400 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	}
 
 	foreach ($moodleObject->getSection() as $section) {
+		$previousActivity = null;
+		$previousActivityPath = null;
+		$previousBookDOM = null;
+		// Chapter IDs (increases by one by every chapter over all the books, so it's just an increment)
+		$chapterID = 1;
 		foreach ($section->getActivity() as $activity) {
-			// Create the folder
-			$activityPath = $path . "/activities/" . $activity->getModuleName() . "_" . $activity->getModuleID();
-			if (!file_exists($activityPath) and !is_dir($activityPath)) {
-				mkdir($activityPath, 0777, true);
-			}
-			
-			// "EMPTY"
-			// activities/[activity]_[x]/grades.xml
-			$activityGradesXml = new SimpleXMLElement($header . "<activity_gradebook></activity_gradebook>");
-			$activityGradesXml->addChild('grade_items');
-			$activityGradesXml->addChild('grade_letters');
-			
-			$dom->loadXML($activityGradesXml->asXML());
-			file_put_contents($activityPath . "/grades.xml", $dom->saveXML());
-			// activities/[activity]_[x]/roles.xml
-			$activityRolesXml = new SimpleXMLElement($header . "<roles></roles>");
-			$activityRolesXml->addChild('role_overrides');
-			$activityRolesXml->addChild('role_assignments');
-			
-			$dom->loadXML($activityRolesXml->asXML());
-			file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
-			
-			// NOT "EMPTY"
-			// activities/[activity]_[x]/inforef.xml
-			$activityInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
-			if ($activity->getFile()) {
-				$activityInforefXmlFileRef = $activityInforefXml->addChild('fileref');
-				foreach ($activity->getFile() as $aFile) {
-					$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
-					$activityInforefXmlFileRefFile->addChild('id', $aFile);
+			// Page numbers (increases by one by every chapter of every single book)
+			$pageNum = 1;
+			// Books are collections of pages, so this is to make sure that all pages
+			// that could be bundled in a book will become a book.
+			if (!$books) {
+				// Create the folder
+				$activityPath = $path . "/activities/" . $activity->getModuleName() . "_" . $activity->getModuleID();
+				if (!file_exists($activityPath) and !is_dir($activityPath)) {
+					mkdir($activityPath, 0777, true);
 				}
-			}
-			$dom->loadXML($activityInforefXml->asXML());
-			file_put_contents($activityPath . "/inforef.xml", $dom->saveXML());
-			
-			// activities/[activity]_[x]/module.xml
-			$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
-			$activityModuleXml->addAttribute('id', $activity->getActivityID());
-			$activityModuleXml->addAttribute('version', 2013110500);
-			$activityModuleXml->addChild('modulename', $activity->getModuleName());
-			$activityModuleXml->addChild('sectionid', $section->getSectionID());
-			$activityModuleXml->addChild('idnumber');
-			$activityModuleXml->addChild('added', time());
-			$activityModuleXml->addChild('indent', $activity->getIndent());
-			$activityModuleXml->addChild('visible', 1);
-			$activityModuleXml->addChild('visibleold', 1);
-			$activityModuleXml->addChild('groupingid', 0);
-			$activityModuleXml->addChild('completionexpected', 0);
-			
-			$dom->loadXML($activityModuleXml->asXML());
-			file_put_contents($activityPath . "/module.xml", $dom->saveXML());
-			
-			// activities/[activity]_[x]/[activity].xml
-			$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
-			$activityActivityXml->addAttribute('id', $activity->getActivityID());
-			$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
-			$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
-			$activityActivityXml->addAttribute('contextid', $activity->getContextID());
-			$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
-			$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
-			$activityActivityChildXml->name = $activity->getName();
-			$activityActivityChildXml->intro = $activity->getName();
-			$activityActivityChildXml->addChild('introformat', 1);
-			
-			switch ($activity->getModuleName()) {
-				case "page":
-					$activityActivityChildXml->addChild('display', 5);
-					$activityActivityChildXml->addChild('content', $activity->getContent());
-					$activityActivityChildXml->addChild('contentformat', 1);
-					$activityActivityChildXml->addChild('legacyfiles', 0);
-					$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
-					$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
-					$activityActivityChildXml->addChild('revision', 1);
-					break;
 				
-				case "folder":
-					$activityActivityChildXml->addChild('display', 1);
-					$activityActivityChildXml->addChild('showexpanded', 1);
-					$activityActivityChildXml->addChild('revision', 1);
-					break;
+				// "EMPTY"
+				// activities/[activity]_[x]/grades.xml
+				$activityGradesXml = new SimpleXMLElement($header . "<activity_gradebook></activity_gradebook>");
+				$activityGradesXml->addChild('grade_items');
+				$activityGradesXml->addChild('grade_letters');
+				
+				$dom->loadXML($activityGradesXml->asXML());
+				file_put_contents($activityPath . "/grades.xml", $dom->saveXML());
+				// activities/[activity]_[x]/roles.xml
+				$activityRolesXml = new SimpleXMLElement($header . "<roles></roles>");
+				$activityRolesXml->addChild('role_overrides');
+				$activityRolesXml->addChild('role_assignments');
+				
+				$dom->loadXML($activityRolesXml->asXML());
+				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
+			
+				// NOT "EMPTY"
+				// activities/[activity]_[x]/inforef.xml
+				$activityInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
+				if ($activity->getFile()) {
+					$activityInforefXmlFileRef = $activityInforefXml->addChild('fileref');
+					foreach ($activity->getFile() as $aFile) {
+						$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
+						$activityInforefXmlFileRefFile->addChild('id', $aFile);
+					}
+				}
+				$dom->loadXML($activityInforefXml->asXML());
+				file_put_contents($activityPath . "/inforef.xml", $dom->saveXML());
+				
+				// activities/[activity]_[x]/module.xml
+				$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
+				$activityModuleXml->addAttribute('id', $activity->getActivityID());
+				$activityModuleXml->addAttribute('version', 2013110500);
+				$activityModuleXml->addChild('modulename', $activity->getModuleName());
+				$activityModuleXml->addChild('sectionid', $section->getSectionID());
+				$activityModuleXml->addChild('idnumber');
+				$activityModuleXml->addChild('added', time());
+				$activityModuleXml->addChild('indent', $activity->getIndent());
+				$activityModuleXml->addChild('visible', 1);
+				$activityModuleXml->addChild('visibleold', 1);
+				$activityModuleXml->addChild('groupingid', 0);
+				$activityModuleXml->addChild('completionexpected', 0);
+				
+				$dom->loadXML($activityModuleXml->asXML());
+				file_put_contents($activityPath . "/module.xml", $dom->saveXML());
+				
+				// activities/[activity]_[x]/[activity].xml
+				$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
+				$activityActivityXml->addAttribute('id', $activity->getActivityID());
+				$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
+				$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
+				$activityActivityXml->addAttribute('contextid', $activity->getContextID());
+				$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
+				$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
+				$activityActivityChildXml->name = $activity->getName();
+				$activityActivityChildXml->intro = $activity->getName();
+				$activityActivityChildXml->addChild('introformat', 1);
+				
+				switch ($activity->getModuleName()) {
+					case "page":
+						$activityActivityChildXml->addChild('display', 5);
+						$activityActivityChildXml->addChild('content', $activity->getContent());
+						$activityActivityChildXml->addChild('contentformat', 1);
+						$activityActivityChildXml->addChild('legacyfiles', 0);
+						$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
+						$activityActivityChildXml->addChild('revision', 1);
+						break;
 					
-				case "url":
-					$activityActivityChildXml->addChild('display', 0);
-					$activityActivityChildXml->addChild('externalurl', $activity->getURL());
-					$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
-					$activityActivityChildXml->addChild('parameters', 'a:0:{}');
-					break;
+					case "folder":
+						$activityActivityChildXml->addChild('display', 1);
+						$activityActivityChildXml->addChild('showexpanded', 1);
+						$activityActivityChildXml->addChild('revision', 1);
+						break;
+						
+					case "url":
+						$activityActivityChildXml->addChild('display', 0);
+						$activityActivityChildXml->addChild('externalurl', $activity->getURL());
+						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
+						$activityActivityChildXml->addChild('parameters', 'a:0:{}');
+						break;
+						
+					case "resource":
+						$activityActivityChildXml->addChild('display', 0);
+						$activityActivityChildXml->addChild('tobemigrated', 0);
+						$activityActivityChildXml->addChild('legacyfiles', 0);
+						$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
+						$activityActivityChildXml->addChild('revision', 1);
 					
-				case "resource":
-					$activityActivityChildXml->addChild('display', 0);
-					$activityActivityChildXml->addChild('tobemigrated', 0);
-					$activityActivityChildXml->addChild('legacyfiles', 0);
-					$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
-					$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
-					$activityActivityChildXml->addChild('revision', 1);
+					case "wiki":
+						$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
+						$activityActivityChildXml->addChild('wikimode', 'collaborative');
+						$activityActivityChildXml->addChild('defaultformat', 'html');
+						$activityActivityChildXml->addChild('forceformat', 0);
+						$activityActivityChildXml->addChild('editbegin', 0);
+						$activityActivityChildXml->addChild('editend', 0);
+						$activityActivityChildXml->addChild('subwikis');
+				}
 				
-				case "wiki":
-					$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
-					$activityActivityChildXml->addChild('wikimode', 'collaborative');
-					$activityActivityChildXml->addChild('defaultformat', 'html');
-					$activityActivityChildXml->addChild('forceformat', 0);
-					$activityActivityChildXml->addChild('editbegin', 0);
-					$activityActivityChildXml->addChild('editend', 0);
-					$activityActivityChildXml->addChild('subwikis');
+				$activityActivityChildXml->addChild('timemodified', time());
+					
+				$dom->loadXML($activityActivityXml->asXML());
+				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
+				
+				// moodle_backup.xml
+				$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
+				$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
+				$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
+				$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $activity->getModuleName());
+				$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
+				$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $activity->getModuleName() . "_" . $activity->getModuleID());
+			
+				$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+				$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+				$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
+				$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_included");
+				$moodleBackupXmlSettingsSetting->addChild('value', 1);
+				$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+				$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+				$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
+				$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_userinfo");
+				$moodleBackupXmlSettingsSetting->addChild('value', 0);
 			}
-			
-			$activityActivityChildXml->addChild('timemodified', time());
+			else {
+				// Variable that says if we're currently making a book
+				$currentlyBook = false;
+				// Variable that says if we need to create the starting .xml tags (for books)
+				$firstTags = false;
 				
-			$dom->loadXML($activityActivityXml->asXML());
-			file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
-			
-			// moodle_backup.xml
-			$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
-			$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
-			$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
-			$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $activity->getModuleName());
-			$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
-			$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $activity->getModuleName() . "_" . $activity->getModuleID());
-		
-			$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-			$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-			$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
-			$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_included");
-			$moodleBackupXmlSettingsSetting->addChild('value', 1);
-			$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-			$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-			$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
-			$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_userinfo");
-			$moodleBackupXmlSettingsSetting->addChild('value', 0);
+				// Create the folder
+				// If it's a book, it has to check some things, namely:
+				// - Is the page part of a book?
+				// - Does the previous activity exist? If not, we can safely assume that this is the start of a book
+				// - Is the previous activity already a book? Then we don't need to repeat this.
+				if ($activity->getBook()) {
+					if (!isset($previousActivity)) {
+						$activityPath = $path . "/activities/book_" . $activity->getModuleID();
+						$currentlyBook = true;
+						$firstTags = true;
+					}
+					else if (!$previousActivity->getBook()) {
+						$activityPath = $path . "/activities/book_" . $activity->getModuleID();
+						$currentlyBook = true;
+						$firstTags = true;
+					}
+					else {
+						$currentlyBook = true;
+						$firstTags = false;
+					}
+				}
+				else {
+					$activityPath = $path . "/activities/" . $activity->getModuleName() . "_" . $activity->getModuleID();
+					$currentlyBook = false;
+				}
+				if (!file_exists($activityPath) and !is_dir($activityPath)) {
+					mkdir($activityPath, 0777, true);
+				}
+				
+				// "EMPTY"
+				// activities/[activity]_[x]/grades.xml
+				$activityGradesXml = new SimpleXMLElement($header . "<activity_gradebook></activity_gradebook>");
+				$activityGradesXml->addChild('grade_items');
+				$activityGradesXml->addChild('grade_letters');
+				
+				$dom->loadXML($activityGradesXml->asXML());
+				file_put_contents($activityPath . "/grades.xml", $dom->saveXML());
+				// activities/[activity]_[x]/roles.xml
+				$activityRolesXml = new SimpleXMLElement($header . "<roles></roles>");
+				$activityRolesXml->addChild('role_overrides');
+				$activityRolesXml->addChild('role_assignments');
+				
+				$dom->loadXML($activityRolesXml->asXML());
+				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
+				// NOT "EMPTY"
+				// activities/[activity]_[x]/inforef.xml
+				$activityInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
+				if ($activity->getFile()) {
+					$activityInforefXmlFileRef = $activityInforefXml->addChild('fileref');
+					foreach ($activity->getFile() as $aFile) {
+						$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
+						$activityInforefXmlFileRefFile->addChild('id', $aFile);
+					}
+				}
+				$dom->loadXML($activityInforefXml->asXML());
+				file_put_contents($activityPath . "/inforef.xml", $dom->saveXML());
+				
+				// activities/[activity]_[x]/module.xml
+				if ($currentlyBook && $firstTags) {
+					$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
+					$activityModuleXml->addAttribute('id', $activity->getActivityID());
+					$activityModuleXml->addAttribute('version', 2013110500);
+					$activityModuleXml->addChild('modulename', "book");
+					$activityModuleXml->addChild('sectionid', $section->getSectionID());
+					$activityModuleXml->addChild('idnumber');
+					$activityModuleXml->addChild('added', time());
+					$activityModuleXml->addChild('indent', $activity->getIndent());
+					$activityModuleXml->addChild('visible', 1);
+					$activityModuleXml->addChild('visibleold', 1);
+					$activityModuleXml->addChild('groupingid', 0);
+					$activityModuleXml->addChild('completionexpected', 0);
+				}
+				else {
+					if (!$currentlyBook) {
+						$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
+						$activityModuleXml->addAttribute('id', $activity->getActivityID());
+						$activityModuleXml->addAttribute('version', 2013110500);
+						$activityModuleXml->addChild('modulename', $activity->getModuleName());
+						$activityModuleXml->addChild('sectionid', $section->getSectionID());
+						$activityModuleXml->addChild('idnumber');
+						$activityModuleXml->addChild('added', time());
+						$activityModuleXml->addChild('indent', $activity->getIndent());
+						$activityModuleXml->addChild('visible', 1);
+						$activityModuleXml->addChild('visibleold', 1);
+						$activityModuleXml->addChild('groupingid', 0);
+						$activityModuleXml->addChild('completionexpected', 0);
+					}
+				}
+				
+				$dom->loadXML($activityModuleXml->asXML());
+				file_put_contents($activityPath . "/module.xml", $dom->saveXML());
+				
+				// activities/[activity]_[x]/[activity].xml
+				
+				if ($currentlyBook && $firstTags) {
+					$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
+					$activityActivityXml->addAttribute('id', $activity->getActivityID());
+					$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
+					$activityActivityXml->addAttribute('modulename', "book");
+					$activityActivityXml->addAttribute('contextid', $activity->getContextID());
+					$activityActivityChildXml = $activityActivityXml->addChild('book');
+					$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
+					$activityActivityChildXml->name = $activity->getName();
+					$activityActivityChildXml->intro = $activity->getName();
+					$activityActivityChildXml->addChild('introformat', 1);
+					$activityActivityChildXml->addChild('numbering', 1);
+					$activityActivityChildXml->addChild('customtitles', 1);
+					$activityActivityChildXml->addChild('timecreated', time());
+					$activityActivityChildXml->addChild('timemodified', time());
+					$activityBookChapters = $activityActivityChildXml->addChild('chapters');
+					$activityBookChapter = $activityBookChapters->addChild('chapter');
+					$activityBookChapter->addAttribute('id', $chapterID);
+					$chapterID++;
+					$activityBookChapter->addChild('pagenum', $pageNum);
+					$pageNum++;
+					$activityBookChapter->addChild('subchapter', 0);
+					$activityBookChapter->addChild('title', $activity->getName());
+					$activityBookChapter->addChild('content', $activity->getContent());
+					$activityBookChapter->addChild('contentformat', 1);
+					$activityBookChapter->addChild('hidden', 0);
+					$activityBookChapter->addChild('timemodified', time());
+					$activityBookChapter->addChild('importsrc');
+				}
+				else if ($currentlyBook && !$firstTags) {
+					$activityBookChapter = $activityBookChapters->addChild('chapter');
+					$activityBookChapter->addAttribute('id', $chapterID);
+					$chapterID++;
+					$activityBookChapter->addChild('pagenum', $pageNum);
+					$pageNum++;
+					$activityBookChapter->addChild('subchapter', 0);
+					$activityBookChapter->addChild('title', $activity->getName());
+					$activityBookChapter->addChild('content', $activity->getContent());
+					$activityBookChapter->addChild('contentformat', 1);
+					$activityBookChapter->addChild('hidden', 0);
+					$activityBookChapter->addChild('timemodified', time());
+					$activityBookChapter->addChild('importsrc');
+				}
+				else if (!$currentlyBook) {
+					$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
+					$activityActivityXml->addAttribute('id', $activity->getActivityID());
+					$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
+					$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
+					$activityActivityXml->addAttribute('contextid', $activity->getContextID());
+					$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
+					$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
+					$activityActivityChildXml->name = $activity->getName();
+					$activityActivityChildXml->intro = $activity->getName();
+					$activityActivityChildXml->addChild('introformat', 1);
+					
+					switch ($activity->getModuleName()) {
+						case "page":
+							$activityActivityChildXml->addChild('display', 5);
+							$activityActivityChildXml->addChild('content', $activity->getContent());
+							$activityActivityChildXml->addChild('contentformat', 1);
+							$activityActivityChildXml->addChild('legacyfiles', 0);
+							$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
+							$activityActivityChildXml->addChild('revision', 1);
+							break;
+						
+						case "folder":
+							$activityActivityChildXml->addChild('display', 1);
+							$activityActivityChildXml->addChild('showexpanded', 1);
+							$activityActivityChildXml->addChild('revision', 1);
+							break;
+							
+						case "url":
+							$activityActivityChildXml->addChild('display', 0);
+							$activityActivityChildXml->addChild('externalurl', $activity->getURL());
+							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
+							$activityActivityChildXml->addChild('parameters', 'a:0:{}');
+							break;
+							
+						case "resource":
+							$activityActivityChildXml->addChild('display', 0);
+							$activityActivityChildXml->addChild('tobemigrated', 0);
+							$activityActivityChildXml->addChild('legacyfiles', 0);
+							$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
+							$activityActivityChildXml->addChild('revision', 1);
+						
+						case "wiki":
+							$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
+							$activityActivityChildXml->addChild('wikimode', 'collaborative');
+							$activityActivityChildXml->addChild('defaultformat', 'html');
+							$activityActivityChildXml->addChild('forceformat', 0);
+							$activityActivityChildXml->addChild('editbegin', 0);
+							$activityActivityChildXml->addChild('editend', 0);
+							$activityActivityChildXml->addChild('subwikis');
+					}
+					
+					$activityActivityChildXml->addChild('timemodified', time());
+
+				}
+				
+				$dom->loadXML($activityActivityXml->asXML());
+				
+				if ($currentlyBook) {
+					file_put_contents($activityPath . "/book.xml", $dom->saveXML());
+				}
+				else {
+					file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
+				}
+				
+				if ($currentlyBook && $firstTags) {
+				// moodle_backup.xml
+					$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
+					$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
+					$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
+					$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', "book");
+					$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
+					$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/book_" . $activity->getModuleID());
+				
+					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+					$moodleBackupXmlSettingsSetting->addChild('activity', "book_" . $activity->getModuleID());
+					$moodleBackupXmlSettingsSetting->addChild('name', "book_" . $activity->getModuleID() . "_included");
+					$moodleBackupXmlSettingsSetting->addChild('value', 1);
+					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+					$moodleBackupXmlSettingsSetting->addChild('activity', "book_" . $activity->getModuleID());
+					$moodleBackupXmlSettingsSetting->addChild('name', "book_" . $activity->getModuleID() . "_userinfo");
+					$moodleBackupXmlSettingsSetting->addChild('value', 0);
+				}
+				else if (!$currentlyBook) {
+					$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
+					$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
+					$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
+					$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $activity->getModuleName());
+					$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
+					$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $activity->getModuleName() . "_" . $activity->getModuleID());
+				
+					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+					$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
+					$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_included");
+					$moodleBackupXmlSettingsSetting->addChild('value', 1);
+					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
+					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
+					$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
+					$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_userinfo");
+					$moodleBackupXmlSettingsSetting->addChild('value', 0);
+				}
+				
+				// Set the previous activity
+				$previousActivity = $activity;
+			}
 		}
 	}
 	
@@ -681,7 +951,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	// moodle_backup.xml
 	$dom->loadXML($moodleBackupXmlStart->asXML());
 	file_put_contents($path . "/moodle_backup.xml", $dom->saveXML());
-	//file_put_contents($path . "/moodle_backup.xml", $moodleBackupXmlStart->asXML());
 	
 	// .MBZ
 	// Creates the .zip file with all the Moodle backup contents
