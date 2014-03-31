@@ -262,9 +262,14 @@ function checkForBooks($moodleObject) {
 			if ($moduleName == "page") {
 				$pageSequence++;
 				if ($pageSequence >= 2) {
+					if ($pageSequence == 2) {
+						$bookContextID = $activity->getContextID();
+					}
 					if ($previousActivity->getIndent() == $activity->getIndent()) {
 						$previousActivity->setBook(true);
+						$previousActivity->setBookContextID($bookContextID);
 						$activity->setBook(true);
+						$activity->setBookContextID($bookContextID);
 					}
 				}
 			}

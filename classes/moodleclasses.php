@@ -155,6 +155,7 @@ class Activity {
 	protected $name;
 	protected $indent;
 	protected $book;
+	protected $bookcontextID;
 	protected $files = array();
 	
 	public function __construct($activityID = "", $moduleName = "", $name = "") {
@@ -229,6 +230,14 @@ class Activity {
 	
 	public function getBook() {
 		return $this->book;
+	}
+	
+	public function setBookContextID($bookcontextID) {
+		$this->bookcontextID = $bookcontextID;
+	}
+	
+	public function getBookContextID() {
+		return $this->bookcontextID;
 	}
 	
 	public function setFile($files) {
