@@ -237,8 +237,10 @@ function moodleFixHTML($html) {
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
 	
 	// Spaces in filenames
-	$patternSpaces = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.*?)([ *])(.*?)&quot;&gt;(.+?)&lt;\/a&gt;/i';
-	$replaceSpaces = '&lt;a href=&quot;@@PLUGINFILE@@/$1%20$3&quot;&gt;$4&lt;/a&gt;';
+	//$patternSpaces = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.*?)([ *])(.*?)&quot;&gt;(.+?)&lt;\/a&gt;/i';
+	//$replaceSpaces = '&lt;a href=&quot;@@PLUGINFILE@@/$1%20$3&quot;&gt;$4&lt;/a&gt;';
+	$patternSpaces = '/(?:&lt;a href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/i';
+	$replaceSpaces = '%20';
 	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
 	
 	return $fixhtmlSpaces;
