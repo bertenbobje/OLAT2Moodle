@@ -559,7 +559,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 				
 				// activities/[activity]_[x]/module.xml
 				$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
-				$activityModuleXml->addAttribute('id', $activity->getActivityID());
+				$activityModuleXml->addAttribute('id', $activity->getModuleID());
 				$activityModuleXml->addAttribute('version', 2013110500);
 				$activityModuleXml->addChild('modulename', $activity->getModuleName());
 				$activityModuleXml->addChild('sectionid', $section->getSectionID());
@@ -739,7 +739,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 				// activities/[activity]_[x]/module.xml
 				if ($currentlyBook && $firstTags) {
 					$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
-					$activityModuleXml->addAttribute('id', $activity->getActivityID());
+					$activityModuleXml->addAttribute('id', $activity->getModuleID());
 					$activityModuleXml->addAttribute('version', 2013110500);
 					$activityModuleXml->addChild('modulename', "book");
 					$activityModuleXml->addChild('sectionid', $section->getSectionID());
@@ -753,7 +753,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 				}
 				else if (!$currentlyBook) {
 					$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
-					$activityModuleXml->addAttribute('id', $activity->getActivityID());
+					$activityModuleXml->addAttribute('id', $activity->getModuleID());
 					$activityModuleXml->addAttribute('version', 2013110500);
 					$activityModuleXml->addChild('modulename', $activity->getModuleName());
 					$activityModuleXml->addChild('sectionid', $section->getSectionID());
