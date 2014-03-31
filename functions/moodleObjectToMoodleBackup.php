@@ -316,15 +316,17 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 								$filesXmlChild->addChild('filearea', "content");
 								$filesXmlChild->addChild('itemid', 0);
 								$filesXmlChild->addChild('filepath', "/");
-								$filesXmlChild->addChild('filename', $olatFile);
+								$filesXmlChild->filename = $olatFile;
 								$filesXmlChild->addChild('userid', 2);
 								$filesXmlChild->addChild('filesize', filesize($olatFilePath));
 								$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
+								$filesXmlChild->addChild('status', 0);
 								$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
 								$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
-								$filesXmlChild->addChild('source', $olatFile);
+								$filesXmlChild->source = $olatFile;
 								$filesXmlChild->addChild('author', "OLAT2Moodle");
 								$filesXmlChild->addChild('license', 'allrightsreserved');
+								$filesXmlChild->addChild('sortorder', 0);
 								$filesXmlChild->addChild('repositorytype', '$@NULL@$');
 								$filesXmlChild->addChild('repositoryid', '$@NULL@$');
 								$filesXmlChild->addChild('reference', '$@NULL@$');
@@ -381,9 +383,19 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 												$filesXmlChild->addChild('itemid', 0);
 												$filesXmlChild->addChild('filepath', "/");
 												$filesXmlChild->filename = $olatExportFile;
+												$filesXmlChild->addChild('userid', 2);
 												$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
 												$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
+												$filesXmlChild->addChild('status', 0);
+												$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
+												$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
 												$filesXmlChild->source = $olatExportFile;
+												$filesXmlChild->addChild('author', "OLAT2Moodle");
+												$filesXmlChild->addChild('license', 'allrightsreserved');
+												$filesXmlChild->addChild('sortorder', 0);
+												$filesXmlChild->addChild('repositorytype', '$@NULL@$');
+												$filesXmlChild->addChild('repositoryid', '$@NULL@$');
+												$filesXmlChild->addChild('reference', '$@NULL@$');
 												
 												$fileID++;
 											}
