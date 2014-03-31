@@ -287,10 +287,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 										$filesXmlChild = $filesXml->addChild('file');
 										$filesXmlChild->addAttribute('id', $fileID);
 										if ($books && $activity->getBook()) {
-											$filesXmlChild->addChild('component', "mod_page");
+											$component = "mod_book";
 										}
 										else {
-											$filesXmlChild->addChild('component', "mod_book");
+											$component = "mod_page";
 										}
 										
 									}
@@ -302,7 +302,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 											$fileOK = 1;
 											$filesXmlChild = $filesXml->addChild('file');
 											$filesXmlChild->addAttribute('id', $fileID);
-											$filesXmlChild->addChild('component', "mod_folder");
+											$component = "mod_folder";
 										}
 									}
 									break;
@@ -312,14 +312,22 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 										$fileOK = 1;
 										$filesXmlChild = $filesXml->addChild('file');
 										$filesXmlChild->addAttribute('id', $fileID);
-										$filesXmlChild->addChild('component', "mod_resource");
+										$component = "mod_resource";
 									}
 									break;
 							}
 							if ($fileOK != 0) {
 								$filesXmlChild->addChild('contenthash', $fileSHA1);
-								$filesXmlChild->addChild('contextid', $activity->getContextID());
-								$filesXmlChild->addChild('filearea', "content");
+								if ($books && $activity->getBook()) {
+									$filesXmlChild->addChild('contextid', $activity->getBookContextID());
+									$filesXmlChild->addChild('component', $component);
+									$filesXmlChild->addChild('filearea', "chapter");
+								}
+								else {
+									$filesXmlChild->addChild('contextid', $activity->getContextID());
+									$filesXmlChild->addChild('component', $component);
+									$filesXmlChild->addChild('filearea', "content");
+								}
 								$filesXmlChild->addChild('itemid', 0);
 								$filesXmlChild->addChild('filepath', "/");
 								$filesXmlChild->filename = $olatFile;
@@ -502,16 +510,15 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	if (!file_exists($path . "/activities") and !is_dir($path . "/activities")) {
 		mkdir($path . "/activities", 0777, true);
 	}
-
+	
+	// Chapter IDs (increases by one by every chapter over all the books, so it's just an increment)
+	// for every chapter page in the entire course
+	$chapterID = 1;
 	foreach ($moodleObject->getSection() as $section) {
 		$previousActivity = null;
-		$previousActivityPath = null;
-		$previousBookDOM = null;
-		// Chapter IDs (increases by one by every chapter over all the books, so it's just an increment)
-		$chapterID = 1;
+		// Page numbers (increases by one by every chapter of every single book)
+		$pageNum = 1;
 		foreach ($section->getActivity() as $activity) {
-			// Page numbers (increases by one by every chapter of every single book)
-			$pageNum = 1;
 			// Books are collections of pages, so this is to make sure that all pages
 			// that could be bundled in a book will become a book.
 			if (!$books) {
@@ -695,14 +702,35 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 				
 				$dom->loadXML($activityRolesXml->asXML());
 				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
+				
 				// NOT "EMPTY"
 				// activities/[activity]_[x]/inforef.xml
-				$activityInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
-				if ($activity->getFile()) {
+				if ($currentlyBook && $firstTags) {
+					$activityInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
 					$activityInforefXmlFileRef = $activityInforefXml->addChild('fileref');
-					foreach ($activity->getFile() as $aFile) {
-						$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
-						$activityInforefXmlFileRefFile->addChild('id', $aFile);
+					if ($activity->getFile()) {
+						foreach ($activity->getFile() as $aFile) {
+							$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
+							$activityInforefXmlFileRefFile->addChild('id', $aFile);
+						}
+					}
+				}
+				else if ($currentlyBook && !$firstTags) {
+					if ($activity->getFile()) {
+						foreach ($activity->getFile() as $aFile) {
+							$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
+							$activityInforefXmlFileRefFile->addChild('id', $aFile);
+						}
+					}
+				}
+				else if (!$currentlyBook) {
+					$activityInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
+					if ($activity->getFile()) {
+						$activityInforefXmlFileRef = $activityInforefXml->addChild('fileref');
+						foreach ($activity->getFile() as $aFile) {
+							$activityInforefXmlFileRefFile = $activityInforefXmlFileRef->addChild('file');
+							$activityInforefXmlFileRefFile->addChild('id', $aFile);
+						}
 					}
 				}
 				$dom->loadXML($activityInforefXml->asXML());
@@ -723,21 +751,19 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 					$activityModuleXml->addChild('groupingid', 0);
 					$activityModuleXml->addChild('completionexpected', 0);
 				}
-				else {
-					if (!$currentlyBook) {
-						$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
-						$activityModuleXml->addAttribute('id', $activity->getActivityID());
-						$activityModuleXml->addAttribute('version', 2013110500);
-						$activityModuleXml->addChild('modulename', $activity->getModuleName());
-						$activityModuleXml->addChild('sectionid', $section->getSectionID());
-						$activityModuleXml->addChild('idnumber');
-						$activityModuleXml->addChild('added', time());
-						$activityModuleXml->addChild('indent', $activity->getIndent());
-						$activityModuleXml->addChild('visible', 1);
-						$activityModuleXml->addChild('visibleold', 1);
-						$activityModuleXml->addChild('groupingid', 0);
-						$activityModuleXml->addChild('completionexpected', 0);
-					}
+				else if (!$currentlyBook) {
+					$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
+					$activityModuleXml->addAttribute('id', $activity->getActivityID());
+					$activityModuleXml->addAttribute('version', 2013110500);
+					$activityModuleXml->addChild('modulename', $activity->getModuleName());
+					$activityModuleXml->addChild('sectionid', $section->getSectionID());
+					$activityModuleXml->addChild('idnumber');
+					$activityModuleXml->addChild('added', time());
+					$activityModuleXml->addChild('indent', $activity->getIndent());
+					$activityModuleXml->addChild('visible', 1);
+					$activityModuleXml->addChild('visibleold', 1);
+					$activityModuleXml->addChild('groupingid', 0);
+					$activityModuleXml->addChild('completionexpected', 0);
 				}
 				
 				$dom->loadXML($activityModuleXml->asXML());
