@@ -322,8 +322,12 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 								$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
 								$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
 								$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
-								$filesXmlChild->addChild('author', "OLAT2Moodle");
 								$filesXmlChild->addChild('source', $olatFile);
+								$filesXmlChild->addChild('author', "OLAT2Moodle");
+								$filesXmlChild->addChild('license', 'allrightsreserved');
+								$filesXmlChild->addChild('repositorytype', '$@NULL@$');
+								$filesXmlChild->addChild('repositoryid', '$@NULL@$');
+								$filesXmlChild->addChild('reference', '$@NULL@$');
 								$activity->setFile($fileID);
 								
 								$fileID++;
