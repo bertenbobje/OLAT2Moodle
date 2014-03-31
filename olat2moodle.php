@@ -38,6 +38,7 @@ echo "<p>OK - Moodle Object created</p>";
 
 if ($books) {
 	$moodleObject = checkForBooks($moodleObject);
+	echo "<p style='color:green;'>OK - Books marked</p>";
 }
 
 echo "<br><p>===MOODLE BACKUP===</p>";

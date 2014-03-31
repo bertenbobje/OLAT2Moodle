@@ -156,6 +156,7 @@ class Activity {
 	protected $indent;
 	protected $book;
 	protected $bookcontextID;
+	protected $chapterID;
 	protected $files = array();
 	
 	public function __construct($activityID = "", $moduleName = "", $name = "") {
@@ -238,6 +239,14 @@ class Activity {
 	
 	public function getBookContextID() {
 		return $this->bookcontextID;
+	}
+	
+	public function setChapterID($chapterID) {
+		$this->chapterID = $chapterID;
+	}
+	
+	public function getChapterID() {
+		return $this->chapterID;
 	}
 	
 	public function setFile($files) {
