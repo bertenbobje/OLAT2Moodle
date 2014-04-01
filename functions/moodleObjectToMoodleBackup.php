@@ -84,19 +84,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 		mkdir($path, 0777, true);
 	}
 	
-	// Chapter IDs, this is for books later on in the code
-	if ($books) {
-		$chapterID = 1;
-			foreach ($moodleObject->getSection() as $section) {
-				foreach ($section->getActivity() as $activity) {
-					if ($activity->getBook()) {
-						$activity->setChapterID($chapterID);
-						$chapterID++;
-					}
-				}
-			}
-	}
-	
 	// This formats the xml files so it's not all on one line.
 	$dom = new DOMDocument('1.0');
 	$dom->preserveWhiteSpace = false;

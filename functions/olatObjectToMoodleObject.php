@@ -13,8 +13,9 @@ ini_set('xdebug.var_display_max_depth', -1);
 // Bert Truyens
 //
 // PARAMETERS
-// -> $olatObject = OLAT Object
-function olatObjectToMoodleObject($olatObject) {
+// -> $olatObject = the OLAT Object
+//         $books = Check if the book checkbox was marked
+function olatObjectToMoodleObject($olatObject, $books) {
 	$number = 0;
 	$moodleCourse = new MoodleCourse(
 							$olatObject->getID(),
@@ -283,6 +284,18 @@ function checkForBooks($moodleObject) {
 			$previousActivity = $activity;
 		}
 	}
+	
+	// Chapter IDs, this is for books later on.
+	$chapterID = 1;
+	foreach ($object->getSection() as $section) {
+		foreach ($section->getActivity() as $activity) {
+			if ($activity->getBook()) {
+				$activity->setChapterID($chapterID);
+				$chapterID++;
+			}
+		}
+	}
+	
 	return $object;
 }
 
@@ -310,7 +323,10 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 								if ($mactivity->getContentFile() == $olatFile) {
 									if ($books) {
 										if ($mactivity->getBook()) {
-										
+											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . $mactivity->getBookContextID() - 1 . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
+										}
+										else {
+											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
 										}
 									}
 									else {
