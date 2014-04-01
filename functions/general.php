@@ -76,7 +76,7 @@ function checkdoublefilereference($zippedzip) {
 		$dirdump = array_map('strtolower', $dirdump);
 		$diff = array_count_values($dirdump);
 		foreach($diff as $key=>$val){
-			if($val == 2){
+			if($val != 1){
 				trigger_error("Coursefolder includes duplicate references, these will be discarded. 
 				Some content may not be imported as a result. The duplicate content discarded is named: " . $key,  E_USER_WARNING);
 			}
