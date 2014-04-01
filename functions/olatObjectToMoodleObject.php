@@ -316,10 +316,9 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 									else {
 										$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
 									}
-									$content = $mactivity->getContent();
+									$content = $activity->getContent();
 									$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
-									$mactivity->setContent($activityContent);
-									//var_dump($mactivity->getContent());
+									$activity->setContent($activityContent);
 								}
 							}
 						}
