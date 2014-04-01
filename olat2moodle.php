@@ -33,7 +33,7 @@ else {
 
 echo "<p>===MOODLE OBJECT===</p>";
 // Converts the OLAT Object to a Moodle object.
-$moodleObject = olatObjectToMoodleObject($olatObject);
+$moodleObject = olatObjectToMoodleObject($olatObject, $books);
 echo "<p>OK - Moodle Object created</p>";
 
 if ($books) {
