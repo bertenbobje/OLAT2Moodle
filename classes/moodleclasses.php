@@ -156,6 +156,7 @@ class Activity {
 	protected $indent;
 	protected $book;
 	protected $bookcontextID;
+	protected $booksubchapter;
 	protected $chapterID;
 	protected $files = array();
 	
@@ -239,6 +240,14 @@ class Activity {
 	
 	public function getBookContextID() {
 		return $this->bookcontextID;
+	}
+	
+	public function setBookSubChapter($booksubchapter) {
+		$this->booksubchapter = $booksubchapter;
+	}
+	
+	public function getBookSubChapter() {
+		return $this->booksubchapter;
 	}
 	
 	public function setChapterID($chapterID) {

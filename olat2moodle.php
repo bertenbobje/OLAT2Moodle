@@ -12,6 +12,10 @@ require_once("functions/olatBackupToOlatObject.php");
 require_once("functions/olatObjectToMoodleObject.php");
 require_once("functions/moodleObjectToMoodleBackup.php");
 
+//ini_set('xdebug.var_display_max_data', -1);
+//ini_set('xdebug.var_display_max_children', -1);
+//ini_set('xdebug.var_display_max_depth', -1);
+
 if(isset($_POST['books'])) {
 	if ($_POST['books'] == "on") {
 		$books = true;
@@ -38,6 +42,7 @@ echo "<p>OK - Moodle Object created</p>";
 
 if ($books) {
 	$moodleObject = checkForBooks($moodleObject);
+	//var_dump($moodleObject);
 	echo "<p style='color:green;'>OK - Books marked</p>";
 }
 
