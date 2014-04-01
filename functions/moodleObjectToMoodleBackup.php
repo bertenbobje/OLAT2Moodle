@@ -792,7 +792,12 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 					$activityBookChapter->addAttribute('id', $activity->getChapterID());
 					$activityBookChapter->addChild('pagenum', $pageNum);
 					$pageNum++;
-					$activityBookChapter->addChild('subchapter', 0);
+					if ($activity->getBookSubChapter()) {
+						$activityBookChapter->addChild('subchapter', 1);
+					}
+					else {
+						$activityBookChapter->addChild('subchapter', 0);
+					}
 					$activityBookChapter->addChild('title', $activity->getName());
 					$activityBookChapter->addChild('content', $activity->getContent());
 					$activityBookChapter->addChild('contentformat', 1);
@@ -805,7 +810,12 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 					$activityBookChapter->addAttribute('id', $activity->getChapterID());
 					$activityBookChapter->addChild('pagenum', $pageNum);
 					$pageNum++;
-					$activityBookChapter->addChild('subchapter', 0);
+					if ($activity->getBookSubChapter()) {
+						$activityBookChapter->addChild('subchapter', 1);
+					}
+					else {
+						$activityBookChapter->addChild('subchapter', 0);
+					}
 					$activityBookChapter->addChild('title', $activity->getName());
 					$activityBookChapter->addChild('content', $activity->getContent());
 					$activityBookChapter->addChild('contentformat', 1);

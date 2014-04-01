@@ -258,35 +258,69 @@ function checkForBooks($moodleObject) {
 	foreach($object->getSection() as $section) {
 		$pageSequence = 1;
 		$previousActivity = null;
+		$subChapter = false;
+		$firstActivity = true;
 		foreach($section->getActivity() as $activity) {
-			$moduleName = $activity->getModuleName();
-			if ($moduleName == "page") {
-				if (isset($previousActivity)) {
-					$previousIndent = $previousActivity->getIndent();
-					if ($activity->getIndent() == $previousIndent) {
-						$pageSequence++;
-						if ($pageSequence >= 2) {
-							if ($pageSequence == 2) {
-								$bookContextID = $previousActivity->getContextID();
-								$previousActivity->setBook(true);
-								$previousActivity->setBookContextID($bookContextID);
-							}
-							$activity->setBook(true);
-							$activity->setBookContextID($bookContextID);
+			// The first activity will always be the first indent, and could never become a book.
+			// But this can mess with the code, so the first activity is ignored.
+			if (!$firstActivity) {
+				$moduleName = $activity->getModuleName();
+				if ($moduleName == "page") {
+					if (isset($previousActivity)) {
+						if ($subChapter) {
+							$previousIndent = $previousActivity->getIndent() - 1;
 						}
-					}
-					else {
-						$pageSequence = 1;
+						else {
+							$previousIndent = $previousActivity->getIndent();
+						}
+						if ($activity->getIndent() == $previousIndent) {
+							$pageSequence++;
+							if ($pageSequence >= 2) {
+								if ($pageSequence == 2) {
+									$bookContextID = $previousActivity->getContextID();
+									$previousActivity->setBook(true);
+									$previousActivity->setBookContextID($bookContextID);
+									$previousActivity->setBookSubChapter(false);
+								}
+								$activity->setBook(true);
+								$activity->setBookContextID($bookContextID);
+								$activity->setBookSubChapter(false);
+							}
+							$subChapter = false;
+						}
+						else if ($activity->getIndent() == $previousIndent + 1) {
+							$pageSequence++;
+							if ($pageSequence >= 2) {
+								if ($pageSequence == 2) {
+									$bookContextID = $previousActivity->getContextID();
+									$previousActivity->setBook(true);
+									$previousActivity->setBookContextID($bookContextID);
+									$previousActivity->setBookSubChapter(false);
+								}
+								$activity->setBook(true);
+								$activity->setBookContextID($bookContextID);
+								$activity->setBookSubChapter(true);
+							}
+							$subChapter = true;
+						}
+						else {
+							$pageSequence = 1;
+							$subChapter = false;
+						}
+						var_dump($activity->getName());
+						var_dump($subChapter);
+						echo "<br><br>";
 					}
 				}
 				else {
-					$pageSequence++;
+					$pageSequence = 1;
+					$subChapter = false;
 				}
+				$previousActivity = $activity;
 			}
 			else {
-				$pageSequence = 1;
+				$firstActivity = false;
 			}
-			$previousActivity = $activity;
 		}
 	}
 	
@@ -328,7 +362,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 								if ($mactivity->getContentFile() == $olatFile) {
 									if ($books) {
 										if ($mactivity->getBook()) {
-											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . $mactivity->getBookContextID() - 1 . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
+											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
 										}
 										else {
 											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
