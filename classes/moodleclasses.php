@@ -265,9 +265,11 @@ class Activity {
 class ActivityPage extends Activity {
 
 	protected $content;
+	protected $contentfile;
 	
-	public function __construct($content) {
+	public function __construct($content, $contentfile) {
 		$this->content = $content;
+		$this->contentfile = $contentfile;
 	}
 	
 	public function setContent($content) {
@@ -276,6 +278,14 @@ class ActivityPage extends Activity {
 	
 	public function getContent() {
 		return $this->content;
+	}
+	
+	public function setContentFile($contentfile) {
+		$this->contentfile = $contentfile;
+	}
+	
+	public function getContentFile() {
+		return $this->contentfile;
 	}
 	
 }
