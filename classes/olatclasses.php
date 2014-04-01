@@ -185,7 +185,7 @@ class ChapterPage extends Chapter {
 	protected $htmlPage;
 	protected $contentfile;
 	
-	public function __construct($htmlPage, $contentfile) {
+	public function __construct($htmlPage, $contentfile = "") {
 		$this->htmlPage = $htmlPage;
 		$this->contentfile = $contentfile;
 	}
@@ -390,7 +390,7 @@ class SubjectPage extends Subject {
 	protected $htmlPage;
 	protected $contentfile;
 	
-	public function __construct($htmlPage, $contentfile) {
+	public function __construct($htmlPage, $contentfile = "") {
 		$this->htmlPage = $htmlPage;
 		$this->contentfile = $contentfile;
 	}
