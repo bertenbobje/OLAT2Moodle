@@ -32,6 +32,9 @@ function olatBackupToOlatObject($path) {
 			mkdir($expath, 0777, true);
 		}
 		
+		//Checks if double file references in the coursefolder are present.
+		checkdoublefilereference($zip);
+		
 		// Extract the .zip to the path.
 		$zip->extractTo($expath);
 		$zip->close();
