@@ -3,10 +3,6 @@
 require_once("classes/olatclasses.php");
 require_once("classes/moodleclasses.php");
 
-ini_set('xdebug.var_display_max_data', -1);
-ini_set('xdebug.var_display_max_children', -1);
-ini_set('xdebug.var_display_max_depth', -1);
-
 // Creates an as good as possible Moodle object from
 // the given object parameter (OLAT backup object).
 //
@@ -260,26 +256,35 @@ function moodleFixHTML($html) {
 function checkForBooks($moodleObject) {
 	$object = $moodleObject;
 	foreach($object->getSection() as $section) {
-		$pageSequence = 0;
+		$pageSequence = 1;
 		$previousActivity = null;
 		foreach($section->getActivity() as $activity) {
 			$moduleName = $activity->getModuleName();
 			if ($moduleName == "page") {
-				$pageSequence++;
-				if ($pageSequence >= 2) {
-					if ($pageSequence == 2) {
-						$bookContextID = $activity->getContextID();
+				if (isset($previousActivity)) {
+					$previousIndent = $previousActivity->getIndent();
+					if ($activity->getIndent() == $previousIndent) {
+						$pageSequence++;
+						if ($pageSequence >= 2) {
+							if ($pageSequence == 2) {
+								$bookContextID = $previousActivity->getContextID();
+								$previousActivity->setBook(true);
+								$previousActivity->setBookContextID($bookContextID);
+							}
+							$activity->setBook(true);
+							$activity->setBookContextID($bookContextID);
+						}
 					}
-					if ($previousActivity->getIndent() == $activity->getIndent()) {
-						$previousActivity->setBook(true);
-						$previousActivity->setBookContextID($bookContextID);
-						$activity->setBook(true);
-						$activity->setBookContextID($bookContextID);
+					else {
+						$pageSequence = 1;
 					}
+				}
+				else {
+					$pageSequence++;
 				}
 			}
 			else {
-				$pageSequence = 0;
+				$pageSequence = 1;
 			}
 			$previousActivity = $activity;
 		}
