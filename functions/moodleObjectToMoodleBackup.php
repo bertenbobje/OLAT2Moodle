@@ -682,6 +682,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 				else {
 					$activityPath = $path . "/activities/" . $activity->getModuleName() . "_" . $activity->getModuleID();
 					$currentlyBook = false;
+					$pageNum = 1;
 				}
 				if (!file_exists($activityPath) and !is_dir($activityPath)) {
 					mkdir($activityPath, 0777, true);
