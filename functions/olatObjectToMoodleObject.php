@@ -3,6 +3,10 @@
 require_once("classes/olatclasses.php");
 require_once("classes/moodleclasses.php");
 
+ini_set('xdebug.var_display_max_data', -1);
+ini_set('xdebug.var_display_max_children', -1);
+ini_set('xdebug.var_display_max_depth', -1);
+
 // Creates an as good as possible Moodle object from
 // the given object parameter (OLAT backup object).
 //
@@ -29,7 +33,7 @@ function olatObjectToMoodleObject($olatObject) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()));
+						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()), $olatChapter->getContentFile());
 						break;
 					case "resource":
 						$ok = 1;
@@ -72,7 +76,7 @@ function olatObjectToMoodleObject($olatObject) {
 						case "page":
 							$ok = 1;
 							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()), $olatSubject->getSubjectContentFile());
 							break;
 						case "resource":
 							$ok = 1;
@@ -87,7 +91,7 @@ function olatObjectToMoodleObject($olatObject) {
 						case "page":
 							$ok = 1;
 							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()));
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()), $olatSubject->getSubjectContentFile());
 							break;
 						case "resource":
 							$ok = 1;
@@ -147,7 +151,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()));
+						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()), $sub->getSubjectContentFile());
 						break;
 					case "resource":
 						$ok = 1;
@@ -162,7 +166,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()));
+						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()), $sub->getSubjectContentFile());
 						break;
 					case "resource":
 						$ok = 1;
@@ -277,6 +281,51 @@ function checkForBooks($moodleObject) {
 				$pageSequence = 0;
 			}
 			$previousActivity = $activity;
+		}
+	}
+	return $object;
+}
+
+// This function fixes HTML references to the course itself in Moodle activities
+//
+// PARAMETERS
+// -> $moodleObject = the Moodle object
+//      $olatObject = the OLAT object
+//           $books = Check if the book checkbox was marked
+function fixHTMLReferences($moodleObject, $olatObject, $books) {
+	$object = $moodleObject;
+	foreach ($object->getSection() as $section) {
+		foreach ($section->getActivity() as $activity) {
+			$moduleName = $activity->getModuleName();
+			if ($moduleName == "page") {
+				$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
+				$olatFiles = getDirectoryList($olatFilesPath);
+				foreach ($olatFiles as $olatFile) {
+					$htmlString = $activity->getContent();
+					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile) . '(.*?)&quot;(.*?)&gt;/ism';
+					preg_match($htmlPattern, $htmlString, $matches);
+					if (!empty($matches)) {
+						foreach ($object->getSection() as $msection) {
+							foreach ($msection->getActivity() as $mactivity) {
+								if ($mactivity->getContentFile() == $olatFile) {
+									if ($books) {
+										if ($mactivity->getBook()) {
+										
+										}
+									}
+									else {
+										$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+									}
+									$content = $mactivity->getContent();
+									$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
+									$mactivity->setContent($activityContent);
+									//var_dump($mactivity->getContent());
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	return $object;

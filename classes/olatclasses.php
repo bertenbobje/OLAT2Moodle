@@ -183,9 +183,11 @@ class Chapter {
 class ChapterPage extends Chapter {
 	
 	protected $htmlPage;
+	protected $contentfile;
 	
-	public function __construct($htmlPage) {
+	public function __construct($htmlPage, $contentfile) {
 		$this->htmlPage = $htmlPage;
+		$this->contentfile = $contentfile;
 	}
 	
 	public function setChapterPage($htmlPage) {
@@ -194,6 +196,14 @@ class ChapterPage extends Chapter {
 	
 	public function getChapterPage() {
 		return $this->htmlPage;
+	}
+	
+	public function setContentFile($contentfile) {
+		$this->contentfile = $contentfile;
+	}
+	
+	public function getContentFile() {
+		return $this->contentfile;
 	}
 	
 }
@@ -378,9 +388,11 @@ class Subject {
 class SubjectPage extends Subject {
 
 	protected $htmlPage;
+	protected $contentfile;
 	
-	public function __construct($htmlPage) {
+	public function __construct($htmlPage, $contentfile) {
 		$this->htmlPage = $htmlPage;
+		$this->contentfile = $contentfile;
 	}
 	
 	public function setSubjectPage($htmlPage) {
@@ -389,6 +401,14 @@ class SubjectPage extends Subject {
 	
 	public function getSubjectPage() {
 		return $this->htmlPage;
+	}
+	
+	public function setSubjectContentFile($contentfile) {
+		$this->contentfile = $contentfile;
+	}
+	
+	public function getSubjectContentFile() {
+		return $this->contentfile;
 	}
 	
 }
