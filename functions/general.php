@@ -8,18 +8,13 @@
 //
 // PARAMETERS
 // -> $dir = The directory
-function getDirectoryList($dir) {
-	$results = array();
-	if (file_exists($dir)) {
-		$handler = opendir($dir);
-		while ($file = readdir($handler)) {
-			if ($file != "." && $file != "..") {
-				$results[] = $file;
-			}
-		}
-		closedir($handler);
+function listFolderFiles($dir){
+	$result = array();
+	foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(realpath($dir), RecursiveDirectoryIterator::SKIP_DOTS)) as $filename)
+	{
+		$result[] = substr($filename, strlen($dir) + 1);
 	}
-	return $results;
+	return $result;
 }
 
 // Removes a folder with all its subfolders and files.
