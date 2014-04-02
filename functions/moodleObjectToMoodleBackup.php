@@ -244,7 +244,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 	
 	// moodle_backup.xml
 	$moodleBackupXmlContentsCourse->addChild('courseid', $moodleObject->getID());
-	$moodleBackupXmlContentsCourse->addChild('title', $moodleObject->getShortName());
+	$moodleBackupXmlContentsCourse->title = $moodleObject->getShortName();
 	$moodleBackupXmlContentsCourse->addchild('directory', "course");
 	
 	////////////////////////////////////////////////////////////////////
@@ -798,7 +798,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 					else {
 						$activityBookChapter->addChild('subchapter', 0);
 					}
-					$activityBookChapter->addChild('title', $activity->getName());
+					$activityBookChapter->title = $activity->getName();
 					$activityBookChapter->addChild('content', $activity->getContent());
 					$activityBookChapter->addChild('contentformat', 1);
 					$activityBookChapter->addChild('hidden', 0);
@@ -816,7 +816,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 					else {
 						$activityBookChapter->addChild('subchapter', 0);
 					}
-					$activityBookChapter->addChild('title', $activity->getName());
+					$activityBookChapter->title = $activity->getName();
 					$activityBookChapter->addChild('content', $activity->getContent());
 					$activityBookChapter->addChild('contentformat', 1);
 					$activityBookChapter->addChild('hidden', 0);
@@ -866,6 +866,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 							$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
 							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
 							$activityActivityChildXml->addChild('revision', 1);
+							break;
 						
 						case "wiki":
 							$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
@@ -875,10 +876,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books) {
 							$activityActivityChildXml->addChild('editbegin', 0);
 							$activityActivityChildXml->addChild('editend', 0);
 							$activityActivityChildXml->addChild('subwikis');
+							break;
 					}
 					
 					$activityActivityChildXml->addChild('timemodified', time());
-
 				}
 				
 				$dom->loadXML($activityActivityXml->asXML());

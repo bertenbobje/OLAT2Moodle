@@ -32,6 +32,11 @@ function olatObjectToMoodleObject($olatObject, $books) {
 						$moduleName = "page";
 						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()), $olatChapter->getContentFile());
 						break;
+					case "emptypage":
+						$ok = 1;
+						$moduleName = "label";
+						$moodleActivity = new ActivityLabel();
+						break;
 					case "resource":
 						$ok = 1;
 						$moduleName = "resource";
@@ -74,6 +79,11 @@ function olatObjectToMoodleObject($olatObject, $books) {
 							$ok = 1;
 							$moduleName = "page";
 							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()), $olatSubject->getSubjectContentFile());
+							break;
+						case "emptypage":
+							$ok = 1;
+							$moduleName = "label";
+							$moodleActivity = new ActivityLabel();
 							break;
 						case "resource":
 							$ok = 1;
@@ -149,6 +159,11 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 						$ok = 1;
 						$moduleName = "page";
 						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()), $sub->getSubjectContentFile());
+						break;
+					case "emptypage":
+						$ok = 1;
+						$moduleName = "label";
+						$moodleActivity = new ActivityLabel();
 						break;
 					case "resource":
 						$ok = 1;
