@@ -381,7 +381,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
 							foreach ($msection->getActivity() as $mactivity) {
-								if ($mactivity->getContentFile() == $olatFile) {
+								if (method_exists($mactivity, "getContentFile") && $mactivity->getContentFile() == $olatFile) {
 									if ($books) {
 										if ($mactivity->getBook()) {
 											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
