@@ -101,15 +101,15 @@ function olatBackupToOlatObject($path) {
 			case "bc":
 				$ok = 1;
 				$chapterObject = new ChapterDropFolder();
-				$course_map = getDirectoryList($expath . "/export/" . $child->ident);
-				for ($i = 0; $i < count($course_map); $i++) {
-					$location = $expath . "/export/" . $child->ident . "/" . $course_map[$i];
+				$course_map = listFolderFiles($expath . "/export/" . $child->ident);
+				foreach ($course_map as $courseFile) {
+					$location = $expath . "/export/" . $child->ident . "/" . $courseFile;
 					$folderObject = new Folder(
-								(string) $course_map[$i],
+								(string) $courseFile,
 								(string) $location,
 								(string) filesize($location),
 								(string) filetype($location),
-								(string) date("F d Y H:i:s.", filemtime($location)));
+								(string) date("F d Y H:i:s", filemtime($location)));
 					$chapterObject->setChapterFolders($folderObject);
 				}
 				break;
@@ -237,15 +237,15 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				case "bc":
 					$ok = 1;
 					$subjectObject = new SubjectDropFolder();
-					$course_map = getDirectoryList($pathCourse . "/export/" . $schild->ident);
-					for ($i = 0; $i < count($course_map); $i++) {
-						$location = $pathCourse . "/export/" . $schild->ident . "/" . $course_map[$i];
+					$course_map = listFolderFiles($pathCourse . "/export/" . $schild->ident);
+					foreach ($course_map as $courseFile) {
+						$location = $pathCourse. "/export/" . $schild->ident . "/" . $courseFile;
 						$folderObject = new Folder(
-									(string) $course_map[$i],
+									(string) $courseFile,
 									(string) $location,
 									(string) filesize($location),
 									(string) filetype($location),
-									(string) date("F d Y H:i:s.", filemtime($location)));
+									(string) date("F d Y H:i:s", filemtime($location)));
 						$subjectObject->setSubjectFolders($folderObject);
 					}
 					break;
