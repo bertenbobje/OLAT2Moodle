@@ -19,6 +19,7 @@
 //                                            - ActivityBook
 //                                            - ActivityQuiz
 //                                            - ActivityWiki
+//                                            - ActivityLabel
 //
 
 ///////////////////////////////////////////////////////////
@@ -366,6 +367,15 @@ class ActivityResource extends Activity {
 // ACTIVITY WIKI //////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 class ActivityWiki extends Activity {
+
+	public function __construct() {}
+	
+}
+
+///////////////////////////////////////////////////////////
+// ACTIVITY LABEL /////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ActivityLabel extends Activity {
 
 	public function __construct() {}
 	

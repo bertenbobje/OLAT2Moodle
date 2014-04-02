@@ -29,6 +29,7 @@ echo "<p>===OLAT OBJECT===</p>";
 if(isset($_FILES["file"]) && $_FILES["file"]) {
 	// Creates an OLAT Object out of an exported OLAT course.
 	$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
+	//var_dump($olatObject);
 	echo "<p>OK - OLAT Object created</p><br>";
 }
 else {
@@ -38,6 +39,7 @@ else {
 echo "<p>===MOODLE OBJECT===</p>";
 // Converts the OLAT Object to a Moodle object.
 $moodleObject = olatObjectToMoodleObject($olatObject, $books);
+//var_dump($moodleObject);
 echo "<p>OK - Moodle Object created</p>";
 
 if ($books) {

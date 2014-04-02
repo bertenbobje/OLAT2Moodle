@@ -131,10 +131,12 @@ function olatBackupToOlatObject($path) {
 						$chapterObject = new ChapterResource($chapterPagePath);
 						$chapterObject->setSubType("resource");
 					}
+					unset($chapterPageItem);
 				}
 				else {
 					$emptyHTML = "xxx";
 					$chapterObject = new ChapterPage($emptyHTML);
+					$chapterObject->setSubType("emptypage");
 				}
 				break;
 
@@ -168,6 +170,7 @@ function olatBackupToOlatObject($path) {
 			$chapterObject->setShortTitle(isset($child->shortTitle) ? (string) $child->shortTitle : null);
 			$chapterObject->setLongTitle(isset($child->longTitle) ? (string) $child->longTitle : null);
 			$chapterObject->setIndentation($indentation);
+			
 			olatGetSubjects($chapterObject, $child->ident, $xpath, $expath, $indentation);
 			$course->setChapter($chapterObject);
 		}
@@ -237,9 +240,9 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 						$subjectPageItem = $subjectPage;
 					}
 					if (isset($subjectPageItem)) {
-						// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
 						if (substr($subjectPageItem, -4) == "html" || substr($subjectPageItem, -3) == "htm") {
 							$page = file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem);
+							// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
 							$subjectObject = new SubjectPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"), (string) substr($subjectPageItem, 1));
 							$subjectObject->setSubjectSubType("page");
 						}
@@ -250,10 +253,12 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 							$subjectObject = new SubjectResource(substr($spp, 1));
 							$subjectObject->setSubjectSubType("resource");
 						}
+						unset($subjectPageItem);
 					}
 					else {
 						$emptyHTML = "xxx";
 						$subjectObject = new SubjectPage($emptyHTML);
+						$subjectObject->setSubjectSubType("emptypage");
 					}
 					break;
 					
