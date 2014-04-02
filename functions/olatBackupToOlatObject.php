@@ -4,6 +4,9 @@ require_once("classes/olatclasses.php");
 
 require_once("functions/general.php");
 
+ini_set('max_execution_time', 300);
+ini_set('memory_limit', '-1');
+
 // Creates an OLAT Object out of an exported OLAT course
 // backup file.
 //
@@ -38,7 +41,7 @@ function olatBackupToOlatObject($path) {
 		// Extract the .zip to the path.
 		$zip->extractTo($expath);
 		$zip->close();
-						
+		
 		// $olat will be the root for the XML file
 		if (file_exists($expath . "/runstructure.xml")) {
 			$olat = file_get_contents($expath . "/runstructure.xml");
@@ -123,21 +126,27 @@ function olatBackupToOlatObject($path) {
 				if (isset($chapterPageItem)) {
 					// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
 					if (substr($chapterPageItem, -4) == "html" || substr($chapterPageItem, -3) == "htm") {
-						$page = file_get_contents($expath . "/coursefolder" . $chapterPageItem);
-						$chapterObject = new ChapterPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"), (string) substr($chapterPageItem, 1));
-						$chapterObject->setSubType("page");
+						if (file_exists($expath . "/coursefolder" . $chapterPageItem)) {
+							$page = file_get_contents($expath . "/coursefolder" . $chapterPageItem);
+							$chapterObject = new ChapterPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"), (string) substr($chapterPageItem, 1));
+							$chapterObject->setSubType("page");
+						}
+						else {
+							echo "<p style='color:red;'> WARNING - " . $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
+							$ok = 0;
+						}
 					}
 					else {
 						$chapterObject = new ChapterResource($chapterPagePath);
 						$chapterObject->setSubType("resource");
 					}
-					unset($chapterPageItem);
 				}
 				else {
 					$emptyHTML = "xxx";
 					$chapterObject = new ChapterPage($emptyHTML);
 					$chapterObject->setSubType("emptypage");
 				}
+									unset($chapterPageItem);
 				break;
 
 			// URL
@@ -164,7 +173,7 @@ function olatBackupToOlatObject($path) {
 				break;
 		}
 		
-		if ($ok != 0) {
+		if ($ok != 0 && isset($chapterObject)) {
 			$chapterObject->setChapterID(isset($child->ident) ? (string) $child->ident : null);
 			$chapterObject->setType(isset($child->type) ? (string) $child->type : null);
 			$chapterObject->setShortTitle(isset($child->shortTitle) ? (string) $child->shortTitle : null);
@@ -241,10 +250,16 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 					}
 					if (isset($subjectPageItem)) {
 						if (substr($subjectPageItem, -4) == "html" || substr($subjectPageItem, -3) == "htm") {
-							$page = file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem);
-							// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
-							$subjectObject = new SubjectPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"), (string) substr($subjectPageItem, 1));
-							$subjectObject->setSubjectSubType("page");
+							if (file_exists($pathCourse . "/coursefolder" . $subjectPageItem)) {
+								$page = file_get_contents($pathCourse . "/coursefolder" . $subjectPageItem);
+								// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
+								$subjectObject = new SubjectPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"), (string) substr($subjectPageItem, 1));
+								$subjectObject->setSubjectSubType("page");
+							}
+							else {
+								echo "<p style='color:red;'> WARNING - " . $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
+								$ok = 0;
+							}
 						}
 						else {
 							foreach ($subjectPagePath as $sppath) {
@@ -253,13 +268,13 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 							$subjectObject = new SubjectResource(substr($spp, 1));
 							$subjectObject->setSubjectSubType("resource");
 						}
-						unset($subjectPageItem);
 					}
 					else {
 						$emptyHTML = "xxx";
 						$subjectObject = new SubjectPage($emptyHTML);
 						$subjectObject->setSubjectSubType("emptypage");
 					}
+					unset($subjectPageItem);
 					break;
 					
 				// URL
@@ -286,7 +301,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 					break;
 			}
 
-			if ($ok != 0) {
+			if ($ok != 0 && isset($subjectObject)) {
 				$subjectObject->setSubjectID(isset($schild->ident) ? (string) $schild->ident : null);
 				$subjectObject->setSubjectType(isset($schild->type) ? (string) $schild->type : null);
 				$subjectObject->setSubjectShortTitle(isset($schild->shortTitle) ? (string) $schild->shortTitle : null);
