@@ -119,7 +119,7 @@ function olatBackupToOlatObject($path) {
 			case "st":
 				$ok = 1;
 				// Looks for the only <string> record that starts with a '/' (HTML-reference).
-				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
+				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'file']/following::string[1]");
 				foreach ($chapterPagePath as $chapterPage) {
 					$chapterPageItem = $chapterPage;
 				}
@@ -149,22 +149,33 @@ function olatBackupToOlatObject($path) {
 									unset($chapterPageItem);
 				break;
 
-			// URL
-			case "tu":
-				$ok = 1;
-				$urlPart1Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., 'www')]");
-				foreach ($urlPart1Path as $up1p) {
-					$urlPart1 = $up1p;
-				}		
-				$urlPart2Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
-				foreach ($urlPart2Path as $up2p) {
-					$urlPart2 = $up2p;
-				}
-				if (isset($urlPart1) && isset($urlPart2)) {
-					$url = $urlPart1 . $urlPart2;
-					$chapterObject = new ChapterURL($url);
-				}
-				break;
+				// URL
+				case "tu":
+					$ok = 1;
+					$urlPart1Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'host']/following::string[1]");
+					foreach ($urlPart1Path as $up1p) {
+						$urlPart1 = $up1p;
+					}		
+					$urlPart2Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'uri']/following::string[1]");
+					foreach ($urlPart2Path as $up2p) {
+						$urlPart2 = $up2p;
+					}
+					$urlPart3Path = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'query']/following::string[1]");
+					foreach ($urlPart3Path as $up3p) {
+						$urlPart3 = $up3p;
+					}
+					
+					if (isset($urlPart1)) {
+						$url = "http://" . $urlPart1;
+						if (isset($urlPart2)) {
+							$url = $url . $urlPart2;
+						}
+						if (isset($urlPart3)) {
+							$url = $url . "?" . $urlPart3;
+						}
+						$chapterObject = new ChapterURL($url);
+					}
+					break;
 			
 			// Wiki
 			case "wiki":
@@ -244,7 +255,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				case "st":
 					$ok = 1;
 					// Looks for the only <string> record that starts with a '/' (HTML-reference).
-					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
+					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[text() = 'file']/following::string[1]");
 					foreach ($subjectPagePath as $subjectPage) {
 						$subjectPageItem = $subjectPage;
 					}
@@ -280,16 +291,27 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				// URL
 				case "tu":
 					$ok = 1;
-					$urlPart1Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., 'www')]");
+					$urlPart1Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[text() = 'host']/following::string[1]");
 					foreach ($urlPart1Path as $up1p) {
 						$urlPart1 = $up1p;
 					}		
-					$urlPart2Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(., '/')]");
+					$urlPart2Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[text() = 'uri']/following::string[1]");
 					foreach ($urlPart2Path as $up2p) {
 						$urlPart2 = $up2p;
 					}
-					if (isset($urlPart1) && isset($urlPart2)) {
-						$url = "http://" . $urlPart1 . $urlPart2;
+					$urlPart3Path = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[text() = 'query']/following::string[1]");
+					foreach ($urlPart3Path as $up3p) {
+						$urlPart3 = $up3p;
+					}
+					
+					if (isset($urlPart1)) {
+						$url = "http://" . $urlPart1;
+						if (isset($urlPart2)) {
+							$url = $url . $urlPart2;
+						}
+						if (isset($urlPart3)) {
+							$url = $url . "?" . $urlPart3;
+						}
 						$subjectObject = new SubjectURL($url);
 					}
 					break;
