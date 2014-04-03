@@ -305,10 +305,12 @@ function checkForBooks($moodleObject) {
 							$pageSequence++;
 							if ($pageSequence >= 2) {
 								if ($pageSequence == 2) {
-									$bookContextID = $previousActivity->getContextID();
-									$previousActivity->setBook(true);
-									$previousActivity->setBookContextID($bookContextID);
-									$previousActivity->setBookSubChapter(false);
+									if ($previousActivity->getModuleName() == "page") {
+										$bookContextID = $previousActivity->getContextID();
+										$previousActivity->setBook(true);
+										$previousActivity->setBookContextID($bookContextID);
+										$previousActivity->setBookSubChapter(false);
+									}
 								}
 								$activity->setBook(true);
 								$activity->setBookContextID($bookContextID);
@@ -384,7 +386,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
 							foreach ($msection->getActivity() as $mactivity) {
-								if (method_exists($mactivity, "getContentFile") && $mactivity->getContentFile() == $olatFile) {
+								if ($mactivity->getContentFile() == $olatFile) {
 									if ($books) {
 										if ($mactivity->getBook()) {
 											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$2&quot;$3&gt;';
