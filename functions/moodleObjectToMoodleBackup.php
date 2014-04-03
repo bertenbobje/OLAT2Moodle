@@ -383,18 +383,20 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$activityModuleName = $activity->getModuleName();
 							if ($activityModuleName == "folder") {
 								if ($activity->getActivityID() == (string) ($activity->getSectionID() - 50000000000000)) {
-									$olatExportFilePath = $olatExportPathRoot . "/" . (string) ($activity->getActivityID() + 50000000000000) . "/" . $olatExportFile;
+									$activityID = (string) ($activity->getActivityID() + 50000000000000);
 								}
 								else {
-									$olatExportFilePath = $olatExportPathRoot . "/" . $activity->getActivityID() . "/" . $olatExportFile;
+									$activityID = $activity->getActivityID();
 								}
+								$olatExportFilePath = $olatExportPathRoot . "/" . $activityID . "/" . $olatExportFile;
 								if (file_exists($olatExportFilePath)) {
+									//echo substr($olatExportFile, 0, strpos($olatExportFile, DIRECTORY_SEPARATOR)) . "<br>";
 									if (!is_dir($olatExportFilePath)) {
 										if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
 											foreach ($activity->getFolderFile() as $folderFile) {
-												echo $folderFile->getFileName() . "<br>";
-												echo substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)) . "<br><br>";
-												if ($folderFile->getFileName() == substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR))) {
+												//echo $folderFile->getFileName() . "<br>";
+												//echo preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR))) . "<br><br>";
+												if ($folderFile->getFileName() == preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) {
 													$filesXmlChild = $filesXml->addChild('file');
 													$filesXmlChild->addAttribute('id', $fileID);
 													$filesXmlChild->addChild('contenthash', $fileSHA1);
@@ -403,21 +405,23 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 													$filesXmlChild->addChild('component', "mod_folder");
 													$filesXmlChild->addChild('filearea', "content");
 													$filesXmlChild->addChild('itemid', 0);
-													$filePath = substr($olatExportFile, 0, strrpos($olatExportFile, DIRECTORY_SEPARATOR));
-													if (!empty($filepath)) {
-														$filesXmlChild->filepath = str_replace("\\", "/", substr($olatExportFile, 0, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
+													$preg = preg_quote('.*' . $activityID . '(.*)[\/]', '/');
+													$fpath = str_replace("\\", "/", preg_replace("/$preg/", '$1', $olatExportFile));
+													$filePath = substr($fpath, 0, strrpos($fpath, '/'));
+													if (!empty($filePath)) {
+														$filesXmlChild->filepath = "/" . $filePath . "/";
 													}
 													else {
 														$filesXmlChild->addchild('filepath', "/");
 													}
-													$filesXmlChild->filename = substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR));
+													$filesXmlChild->filename = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
 													$filesXmlChild->addChild('userid', 2);
 													$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
 													$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
 													$filesXmlChild->addChild('status', 0);
 													$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
 													$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
-													$filesXmlChild->source = substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR));
+													$filesXmlChild->source = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
 													$filesXmlChild->addChild('author', "OLAT2Moodle");
 													$filesXmlChild->addChild('license', 'allrightsreserved');
 													$filesXmlChild->addChild('sortorder', 0);
