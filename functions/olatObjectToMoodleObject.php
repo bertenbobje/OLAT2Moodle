@@ -73,6 +73,7 @@ function olatObjectToMoodleObject($olatObject, $books) {
 			$stype = $olatSubject->getSubjectType();
 			$ok = 0;
 			switch ($stype) {
+				case "sp":
 				case "st":
 					switch ($olatSubject->getSubjectSubType()) {
 						case "page":
@@ -91,25 +92,8 @@ function olatObjectToMoodleObject($olatObject, $books) {
 							$moodleActivity = new ActivityResource($olatSubject->getSubjectResource());
 							break;
 					}
-					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter);
-					break;
-				case "sp":
-					switch ($olatSubject->getSubjectSubType()) {
-						case "page":
-							$ok = 1;
-							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()), $olatSubject->getSubjectContentFile());
-							break;
-						case "emptypage":
-							$ok = 1;
-							$moduleName = "label";
-							$moodleActivity = new ActivityLabel();
-							break;
-						case "resource":
-							$ok = 1;
-							$moduleName = "resource";
-							$moodleActivity = new ActivityResource($olatSubject->getSubjectResource());
-							break;
+					if ($stype == "st") {
+						moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter);
 					}
 					break;
 				case "bc":
@@ -158,6 +142,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 		$type = $sub->getSubjectType();
 		$ok = 0;
 		switch ($type) {
+			case "sp":
 			case "st":
 				switch ($sub->getSubjectSubType()) {
 					case "page":
@@ -176,25 +161,8 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 						$moodleActivity = new ActivityResource($sub->getSubjectResource());
 						break;
 				}
-				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
-				break;
-			case "sp":
-				switch ($sub->getSubjectSubType()) {
-					case "page":
-						$ok = 1;
-						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()), $sub->getSubjectContentFile());
-						break;
-					case "emptypage":
-						$ok = 1;
-						$moduleName = "label";
-						$moodleActivity = new ActivityLabel();
-						break;
-					case "resource":
-						$ok = 1;
-						$moduleName = "resource";
-						$moodleActivity = new ActivityResource($sub->getSubjectResource());
-						break;
+				if ($type == "st") {
+					moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
 				}
 				break;
 			case "bc":
@@ -301,7 +269,7 @@ function checkForBooks($moodleObject) {
 						else {
 							$previousIndent = $previousActivity->getIndent();
 						}
-						if ($activity->getIndent() == $previousIndent) {
+						if ($activity->getIndent() == $previousIndent || $activity->getIndent() == $previousIndent + 1) {
 							$pageSequence++;
 							if ($pageSequence >= 2) {
 								if ($pageSequence == 2) {
@@ -312,24 +280,15 @@ function checkForBooks($moodleObject) {
 								}
 								$activity->setBook(true);
 								$activity->setBookContextID($bookContextID);
-								$activity->setBookSubChapter(false);
-							}
-							$subChapter = false;
-						}
-						else if ($activity->getIndent() == $previousIndent + 1) {
-							$pageSequence++;
-							if ($pageSequence >= 2) {
-								if ($pageSequence == 2) {
-									$bookContextID = $previousActivity->getContextID();
-									$previousActivity->setBook(true);
-									$previousActivity->setBookContextID($bookContextID);
-									$previousActivity->setBookSubChapter(false);
+								if ($activity->getIndent() == $previousIndent + 1) {
+									$activity->setBookSubChapter(true);
+									$subChapter = true;
 								}
-								$activity->setBook(true);
-								$activity->setBookContextID($bookContextID);
-								$activity->setBookSubChapter(true);
+								else if ($activity->getIndent() == $previousIndent) {
+									$activity->setBookSubChapter(false);
+									$subChapter = false;
+								}
 							}
-							$subChapter = true;
 						}
 						else {
 							$pageSequence = 0;
