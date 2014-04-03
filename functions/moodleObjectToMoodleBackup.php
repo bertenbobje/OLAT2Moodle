@@ -825,22 +825,24 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					$activityBookChapter->addChild('importsrc');
 				}
 				else if ($currentlyBook && !$firstTags) {
-					$activityBookChapter = $activityBookChapters->addChild('chapter');
-					$activityBookChapter->addAttribute('id', $activity->getChapterID());
-					$activityBookChapter->addChild('pagenum', $pageNum);
-					$pageNum++;
-					if ($activity->getBookSubChapter()) {
-						$activityBookChapter->addChild('subchapter', 1);
+					if ($activity->getModuleName() == "page") {
+						$activityBookChapter = $activityBookChapters->addChild('chapter');
+						$activityBookChapter->addAttribute('id', $activity->getChapterID());
+						$activityBookChapter->addChild('pagenum', $pageNum);
+						$pageNum++;
+						if ($activity->getBookSubChapter()) {
+							$activityBookChapter->addChild('subchapter', 1);
+						}
+						else {
+							$activityBookChapter->addChild('subchapter', 0);
+						}
+						$activityBookChapter->title = $activity->getName();
+						$activityBookChapter->addChild('content', $activity->getContent());
+						$activityBookChapter->addChild('contentformat', 1);
+						$activityBookChapter->addChild('hidden', 0);
+						$activityBookChapter->addChild('timemodified', time());
+						$activityBookChapter->addChild('importsrc');
 					}
-					else {
-						$activityBookChapter->addChild('subchapter', 0);
-					}
-					$activityBookChapter->title = $activity->getName();
-					$activityBookChapter->addChild('content', $activity->getContent());
-					$activityBookChapter->addChild('contentformat', 1);
-					$activityBookChapter->addChild('hidden', 0);
-					$activityBookChapter->addChild('timemodified', time());
-					$activityBookChapter->addChild('importsrc');
 				}
 				else if (!$currentlyBook) {
 					$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
