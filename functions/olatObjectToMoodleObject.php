@@ -257,14 +257,17 @@ function moodleFixHTML($html) {
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
+	// References
+	$patternReferences = '/&lt;a(.*?)href=&quot;((?!http:\/\/).+?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceReferences = '&lt;a$1href=&quot;@@PLUGINFILE@@/$2&quot;$3&lt;/a&gt;';
+	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlMedia2);
+	
 	// Images
 	$patternImages = '/src=&quot;(.+?)&quot;/i';
 	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
-	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
+	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlReferences);
 	
 	// Spaces in filenames
-	//$patternSpaces = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.*?)([ *])(.*?)&quot;&gt;(.+?)&lt;\/a&gt;/i';
-	//$replaceSpaces = '&lt;a href=&quot;@@PLUGINFILE@@/$1%20$3&quot;&gt;$4&lt;/a&gt;';
 	$patternSpaces = '/(?:&lt;a href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/i';
 	$replaceSpaces = '%20';
 	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
@@ -376,7 +379,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				$olatFiles = listFolderFiles($olatFilesPath);
 				foreach ($olatFiles as $olatFile) {
 					$htmlString = $activity->getContent();
-					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile) . '(.*?)&quot;(.*?)&gt;/ism';
+					$htmlPattern = '/&lt;a.*?href=&quot;(' . preg_quote($olatFile) . ')(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
@@ -384,14 +387,14 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 								if (method_exists($mactivity, "getContentFile") && $mactivity->getContentFile() == $olatFile) {
 									if ($books) {
 										if ($mactivity->getBook()) {
-											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
+											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$2&quot;$3&gt;';
 										}
 										else {
-											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$2&quot;$3&gt;';
 										}
 									}
 									else {
-										$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+										$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$2&quot;$3&gt;';
 									}
 									$content = $activity->getContent();
 									$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
