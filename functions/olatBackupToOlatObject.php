@@ -118,8 +118,8 @@ function olatBackupToOlatObject($path) {
 			case "sp":
 			case "st":
 				$ok = 1;
-				// Looks for the only <string> record that starts with a '/' (HTML-reference).
-				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'file']/following::string[1]");
+				// Looks for the HTML file (if it exists)
+				$chapterPagePath = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[starts-with(.,'/')]");
 				foreach ($chapterPagePath as $chapterPage) {
 					$chapterPageItem = $chapterPage;
 				}
@@ -128,6 +128,7 @@ function olatBackupToOlatObject($path) {
 					if (substr($chapterPageItem, -4) == "html" || substr($chapterPageItem, -3) == "htm") {
 						if (file_exists($expath . "/coursefolder" . $chapterPageItem)) {
 							$page = file_get_contents($expath . "/coursefolder" . $chapterPageItem);
+							// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
 							$chapterObject = new ChapterPage(htmlspecialchars($page, ENT_QUOTES, "UTF-8"), (string) substr($chapterPageItem, 1));
 							$chapterObject->setSubType("page");
 						}
@@ -137,7 +138,10 @@ function olatBackupToOlatObject($path) {
 						}
 					}
 					else {
-						$chapterObject = new ChapterResource($chapterPagePath);
+						foreach ($chapterPagePath as $cppath) {
+							$cpp = $cppath;
+						}
+						$chapterObject = new ChapterResource(substr($cpp, 1));
 						$chapterObject->setSubType("resource");
 					}
 				}
@@ -146,7 +150,7 @@ function olatBackupToOlatObject($path) {
 					$chapterObject = new ChapterPage($emptyHTML);
 					$chapterObject->setSubType("emptypage");
 				}
-									unset($chapterPageItem);
+				unset($chapterPageItem);
 				break;
 
 				// URL
@@ -254,8 +258,8 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				case "sp":
 				case "st":
 					$ok = 1;
-					// Looks for the only <string> record that starts with a '/' (HTML-reference).
-					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[text() = 'file']/following::string[1]");
+					// Looks for the HTML file (if it exists)
+					$subjectPagePath = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[starts-with(.,'/')]");
 					foreach ($subjectPagePath as $subjectPage) {
 						$subjectPageItem = $subjectPage;
 					}
