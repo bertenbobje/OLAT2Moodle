@@ -793,59 +793,55 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				// activities/[activity]_[x]/[activity].xml
 				
 				if ($currentlyBook && $firstTags) {
-					if ($activity->getModuleName() == "page") {
-						$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
-						$activityActivityXml->addAttribute('id', $activity->getActivityID());
-						$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
-						$activityActivityXml->addAttribute('modulename', "book");
-						$activityActivityXml->addAttribute('contextid', $activity->getContextID());
-						$activityActivityChildXml = $activityActivityXml->addChild('book');
-						$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
-						$activityActivityChildXml->name = $activity->getName();
-						$activityActivityChildXml->intro = $activity->getName();
-						$activityActivityChildXml->addChild('introformat', 1);
-						$activityActivityChildXml->addChild('numbering', $chapterFormat);
-						$activityActivityChildXml->addChild('customtitles', 1);
-						$activityActivityChildXml->addChild('timecreated', time());
-						$activityActivityChildXml->addChild('timemodified', time());
-						$activityBookChapters = $activityActivityChildXml->addChild('chapters');
-						$activityBookChapter = $activityBookChapters->addChild('chapter');
-						$activityBookChapter->addAttribute('id', $activity->getChapterID());
-						$activityBookChapter->addChild('pagenum', $pageNum);
-						$pageNum++;
-						if ($activity->getBookSubChapter()) {
-							$activityBookChapter->addChild('subchapter', 1);
-						}
-						else {
-							$activityBookChapter->addChild('subchapter', 0);
-						}
-						$activityBookChapter->title = $activity->getName();
-						$activityBookChapter->addChild('content', $activity->getContent());
-						$activityBookChapter->addChild('contentformat', 1);
-						$activityBookChapter->addChild('hidden', 0);
-						$activityBookChapter->addChild('timemodified', time());
-						$activityBookChapter->addChild('importsrc');
+					$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
+					$activityActivityXml->addAttribute('id', $activity->getActivityID());
+					$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
+					$activityActivityXml->addAttribute('modulename', "book");
+					$activityActivityXml->addAttribute('contextid', $activity->getContextID());
+					$activityActivityChildXml = $activityActivityXml->addChild('book');
+					$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
+					$activityActivityChildXml->name = $activity->getName();
+					$activityActivityChildXml->intro = $activity->getName();
+					$activityActivityChildXml->addChild('introformat', 1);
+					$activityActivityChildXml->addChild('numbering', $chapterFormat);
+					$activityActivityChildXml->addChild('customtitles', 1);
+					$activityActivityChildXml->addChild('timecreated', time());
+					$activityActivityChildXml->addChild('timemodified', time());
+					$activityBookChapters = $activityActivityChildXml->addChild('chapters');
+					$activityBookChapter = $activityBookChapters->addChild('chapter');
+					$activityBookChapter->addAttribute('id', $activity->getChapterID());
+					$activityBookChapter->addChild('pagenum', $pageNum);
+					$pageNum++;
+					if ($activity->getBookSubChapter()) {
+						$activityBookChapter->addChild('subchapter', 1);
 					}
+					else {
+						$activityBookChapter->addChild('subchapter', 0);
+					}
+					$activityBookChapter->title = $activity->getName();
+					$activityBookChapter->addChild('content', $activity->getContent());
+					$activityBookChapter->addChild('contentformat', 1);
+					$activityBookChapter->addChild('hidden', 0);
+					$activityBookChapter->addChild('timemodified', time());
+					$activityBookChapter->addChild('importsrc');
 				}
 				else if ($currentlyBook && !$firstTags) {
-					if ($activity->getModuleName() == "page") {
-						$activityBookChapter = $activityBookChapters->addChild('chapter');
-						$activityBookChapter->addAttribute('id', $activity->getChapterID());
-						$activityBookChapter->addChild('pagenum', $pageNum);
-						$pageNum++;
-						if ($activity->getBookSubChapter()) {
-							$activityBookChapter->addChild('subchapter', 1);
-						}
-						else {
-							$activityBookChapter->addChild('subchapter', 0);
-						}
-						$activityBookChapter->title = $activity->getName();
-						$activityBookChapter->addChild('content', $activity->getContent());
-						$activityBookChapter->addChild('contentformat', 1);
-						$activityBookChapter->addChild('hidden', 0);
-						$activityBookChapter->addChild('timemodified', time());
-						$activityBookChapter->addChild('importsrc');
+					$activityBookChapter = $activityBookChapters->addChild('chapter');
+					$activityBookChapter->addAttribute('id', $activity->getChapterID());
+					$activityBookChapter->addChild('pagenum', $pageNum);
+					$pageNum++;
+					if ($activity->getBookSubChapter()) {
+						$activityBookChapter->addChild('subchapter', 1);
 					}
+					else {
+						$activityBookChapter->addChild('subchapter', 0);
+					}
+					$activityBookChapter->title = $activity->getName();
+					$activityBookChapter->addChild('content', $activity->getContent());
+					$activityBookChapter->addChild('contentformat', 1);
+					$activityBookChapter->addChild('hidden', 0);
+					$activityBookChapter->addChild('timemodified', time());
+					$activityBookChapter->addChild('importsrc');
 				}
 				else if (!$currentlyBook) {
 					$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
