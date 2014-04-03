@@ -284,10 +284,11 @@ function moodleFixHTML($html) {
 function checkForBooks($moodleObject) {
 	$object = $moodleObject;
 	foreach($object->getSection() as $section) {
-		$pageSequence = 1;
+		$pageSequence = 0;
 		$previousActivity = null;
 		$subChapter = false;
 		$firstActivity = true;
+		$bookContextId = "";
 		foreach($section->getActivity() as $activity) {
 			// The first activity will always be the first indent, and could never become a book.
 			// But this can mess with the code, so the first activity is ignored.
@@ -305,12 +306,10 @@ function checkForBooks($moodleObject) {
 							$pageSequence++;
 							if ($pageSequence >= 2) {
 								if ($pageSequence == 2) {
-									if ($previousActivity->getModuleName() == "page") {
-										$bookContextID = $previousActivity->getContextID();
-										$previousActivity->setBook(true);
-										$previousActivity->setBookContextID($bookContextID);
-										$previousActivity->setBookSubChapter(false);
-									}
+									$bookContextID = $previousActivity->getContextID();
+									$previousActivity->setBook(true);
+									$previousActivity->setBookContextID($bookContextID);
+									$previousActivity->setBookSubChapter(false);
 								}
 								$activity->setBook(true);
 								$activity->setBookContextID($bookContextID);
@@ -334,13 +333,16 @@ function checkForBooks($moodleObject) {
 							$subChapter = true;
 						}
 						else {
-							$pageSequence = 1;
+							$pageSequence = 0;
 							$subChapter = false;
 						}
 					}
+					else {
+						$pageSequence++;
+					}
 				}
 				else {
-					$pageSequence = 1;
+					$pageSequence = 0;
 					$subChapter = false;
 				}
 				$previousActivity = $activity;
