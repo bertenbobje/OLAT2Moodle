@@ -288,7 +288,6 @@ function checkForBooks($moodleObject) {
 		$previousActivity = null;
 		$subChapter = false;
 		$firstActivity = true;
-		$bookContextId = "";
 		foreach($section->getActivity() as $activity) {
 			// The first activity will always be the first indent, and could never become a book.
 			// But this can mess with the code, so the first activity is ignored.
