@@ -373,7 +373,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 			$moduleName = $activity->getModuleName();
 			if ($moduleName == "page") {
 				$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
-				$olatFiles = getDirectoryList($olatFilesPath);
+				$olatFiles = listFolderFiles($olatFilesPath);
 				foreach ($olatFiles as $olatFile) {
 					$htmlString = $activity->getContent();
 					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile) . '(.*?)&quot;(.*?)&gt;/ism';

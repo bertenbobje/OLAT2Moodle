@@ -233,7 +233,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$courseCourseXml->addChild('theme');
 	$courseCourseXml->addChild('timecreated', time());
 	$courseCourseXml->addChild('timemodified', time());
-	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()) - 1);
+	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()));
 	
 	$dom->loadXML($courseCourseXml->asXML());
 	file_put_contents($coursePath . "/course.xml", $dom->saveXML());
