@@ -258,8 +258,8 @@ function moodleFixHTML($html) {
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
 	// References
-	$patternReferences = '/&lt;a(.*?)href=&quot;((?!http:\/\/).+?)&quot;(.*?)&lt;\/a&gt;/ism';
-	$replaceReferences = '&lt;a$1href=&quot;@@PLUGINFILE@@/$2&quot;$3&lt;/a&gt;';
+	$patternReferences = '/&lt;a (.*?)href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceReferences = '&lt;a $1href=&quot;@@PLUGINFILE@@/$2&quot;$3&lt;/a&gt;';
 	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlMedia2);
 	
 	// Images
@@ -268,7 +268,7 @@ function moodleFixHTML($html) {
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlReferences);
 	
 	// Spaces in filenames
-	$patternSpaces = '/(?:&lt;a href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/i';
+	$patternSpaces = '/(?:&lt;a .*?href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/i';
 	$replaceSpaces = '%20';
 	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
 	
@@ -380,8 +380,8 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 			if ($moduleName == "page") {
 				$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
 				$olatFiles = listFolderFiles($olatFilesPath);
+				$htmlString = $activity->getContent();
 				foreach ($olatFiles as $olatFile) {
-					$htmlString = $activity->getContent();
 					$htmlPattern = '/&lt;a.*?href=&quot;(' . preg_quote($olatFile) . ')(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
@@ -406,6 +406,34 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 							}
 						}
 					}
+				}
+				
+				// Converts the javascript: nodes to matching Moodle activities (if they are present)
+				$javaPattern = '/&lt;a href=&quot;javascript:.*?gotonode\((.+?)\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt/ism';
+				preg_match($javaPattern, $htmlString, $javaMatches);
+				if (!empty($javaMatches)) {
+					var_dump($javaMatches);
+					foreach ($object->getSection() as $jsection) {
+						foreach ($jsection->getActivity() as $jactivity) {
+							if ($javaMatches[1] == $jactivity->getActivityID() || $javaMatches[1] == (string) ($jactivity->getActivityID() + 50000000000000)) {
+								if ($books) {
+									if ($mactivity->getBook()) {
+										$javaReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($jactivity->getBookContextID() - 1) . '*' . $jactivity->getChapterID() . '@$' . $javaMatches[2] . '&quot;' . $javaMatches[3] . '&gt;';
+									}
+									else {
+										$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$' . $javaMatches[2] . '&quot;' . $javaMatches[3] . '&gt;';
+									}
+								}
+								else {
+									$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$' . $javaMatches[2] . '&quot;' . $javaMatches[3] . '&gt;';
+								}
+								$content = $activity->getContent();
+								$activityContent = preg_replace($javaPattern, $javaReplace, $content);
+								$activity->setContent($activityContent);
+							}
+						}
+					}
+					echo "__________________________<br>";
 				}
 			}
 		}
