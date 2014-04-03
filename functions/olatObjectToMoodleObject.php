@@ -248,12 +248,12 @@ function moodleFixHTML($html) {
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
 	// Media files (Object)
-	$patternMedia = '/&lt;object.*file\=(.+?)&quot;.*&lt;\/object&gt;/ism';
+	$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
 	$replaceMedia = $mediaReplace;
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
 	// Media files (BPlayer)
-	$patternMedia2 = '/^&lt;script.+Bplayer.insertPlayer\(&quot;(.+?)&quot;.+&lt;\/script&gt;/ism';
+	$patternMedia2 = '/&lt;script.+?Bplayer.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
