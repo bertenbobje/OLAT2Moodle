@@ -105,7 +105,7 @@ function olatBackupToOlatObject($path) {
 				foreach ($course_map as $courseFile) {
 					$location = $expath . "/export/" . $child->ident . "/" . $courseFile;
 					$folderObject = new Folder(
-								(string) $courseFile,
+								(string) preg_replace("/[\/\\\]/", "", substr($courseFile, strrpos($courseFile, DIRECTORY_SEPARATOR))),
 								(string) $location,
 								(string) filesize($location),
 								(string) filetype($location),
@@ -241,7 +241,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 					foreach ($course_map as $courseFile) {
 						$location = $pathCourse. "/export/" . $schild->ident . "/" . $courseFile;
 						$folderObject = new Folder(
-									(string) $courseFile,
+									(string) preg_replace("/[\/\\\]/", "", substr($courseFile, strrpos($courseFile, DIRECTORY_SEPARATOR))),
 									(string) $location,
 									(string) filesize($location),
 									(string) filetype($location),
