@@ -371,7 +371,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 						preg_match($javaPattern2, $htmlString, $javaMatches2);
 						if (!empty($javaMatches) || !empty($javaMatches2)) {
 							if ($books) {
-								if ($mactivity->getBook()) {
+								if ($jactivity->getBook()) {
 									$javaReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($jactivity->getBookContextID() - 1) . '*' . $jactivity->getChapterID() . '@$&quot;$1&gt;$2&lt;/a&gt;';
 								}
 								else {
