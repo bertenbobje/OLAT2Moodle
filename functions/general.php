@@ -11,8 +11,7 @@
 // -> $dir = The directory
 function listFolderFiles($dir){
 	$result = array();
-	foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(realpath($dir), RecursiveDirectoryIterator::SKIP_DOTS)) as $filename)
-	{
+	foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(realpath($dir), RecursiveDirectoryIterator::SKIP_DOTS)) as $filename) {
 		$result[] = substr($filename, strlen($dir) + 1);
 	}
 	return $result;
