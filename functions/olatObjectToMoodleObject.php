@@ -225,7 +225,7 @@ function moodleFixHTML($html) {
 	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlMedia2);
 	
 	// Images
-	$patternImages = '/src=&quot;(.+?)&quot;/i';
+	$patternImages = '/src=&quot;(?!http:\/\/)(?!javascript:)(.+?)&quot;/ism';
 	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlReferences);
 	
