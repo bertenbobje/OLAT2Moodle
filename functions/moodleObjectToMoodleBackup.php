@@ -279,7 +279,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						switch ($activityModuleName) {
 							case "page":
 								if (strpos($activity->getContent(), $olatFile) !== false
-													|| strpos($activity->getContent(), str_replace(' ', '%20', $olatFile)) !== false) {
+													|| strpos($activity->getContent(), str_replace(' ', '%20', $olatFile)) !== false
+													|| strpos($activity->getContent(), str_replace("\"", "", (iconv('UTF-8', 'ASCII//TRANSLIT', $olatFile)))) !== false
+													|| strpos($activity->getContent(), str_replace("\"", "", (iconv('UTF-8', 'ASCII//TRANSLIT', str_replace(' ', '%20', $olatFile))))) !== false) {
 									$fileOK = 1;
 									$filesXmlChild = $filesXml->addChild('file');
 									$filesXmlChild->addAttribute('id', $fileID);
