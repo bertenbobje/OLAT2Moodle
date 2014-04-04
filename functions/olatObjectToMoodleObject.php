@@ -11,7 +11,7 @@ require_once("classes/moodleclasses.php");
 // PARAMETERS
 // -> $olatObject = the OLAT Object
 //         $books = Check if the book checkbox was marked
-function olatObjectToMoodleObject($olatObject, $books) {
+function olatObjectToMoodleObject($olatObject) {
 	$number = 0;
 	$moodleCourse = new MoodleCourse(
 							$olatObject->getID(),
@@ -92,9 +92,6 @@ function olatObjectToMoodleObject($olatObject, $books) {
 							$moodleActivity = new ActivityResource($olatSubject->getSubjectResource());
 							break;
 					}
-					if ($stype == "st") {
-						moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter);
-					}
 					break;
 				case "bc":
 					$ok = 1;
@@ -160,9 +157,6 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 						$moduleName = "resource";
 						$moodleActivity = new ActivityResource($sub->getSubjectResource());
 						break;
-				}
-				if ($type == "st") {
-					moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
 				}
 				break;
 			case "bc":
@@ -258,7 +252,7 @@ function checkForBooks($moodleObject) {
 		$firstActivity = true;
 		foreach($section->getActivity() as $activity) {
 			// The first activity will always be the first indent, and could never become a book.
-			// But this can mess with the code, so the first activity is ignored.
+			// But this can mess with the indentation of following pages, so this the first one will be ignored.
 			if (!$firstActivity) {
 				$moduleName = $activity->getModuleName();
 				if ($moduleName == "page") {
@@ -301,6 +295,7 @@ function checkForBooks($moodleObject) {
 				}
 				else {
 					$pageSequence = 0;
+					$previousActivity = null;
 					$subChapter = false;
 				}
 				$previousActivity = $activity;
