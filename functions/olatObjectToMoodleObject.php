@@ -336,7 +336,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				$olatFiles = listFolderFiles($olatFilesPath);
 				$htmlString = $activity->getContent();
 				foreach ($olatFiles as $olatFile) {
-					$htmlPattern = '/&lt;a.*?href=&quot;' . preg_quote($olatFile) . '(.*?)&quot;(.*?)&gt;/ism';
+					$htmlPattern = '/&lt;a.*?href=&quot;' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
