@@ -55,7 +55,9 @@ require_once("functions/general.php");
  |_ ||| questions.xml ------- (E)
  |_ ||| roles.xml ----------- (E)
  |_ ||| scales.xml ---------- (E)
+ 
 *************************************************************************************/
+
 //
 // PARAMETERS
 // -> $moodleObject = Moodle Object

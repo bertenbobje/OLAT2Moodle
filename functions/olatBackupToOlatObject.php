@@ -4,9 +4,6 @@ require_once("classes/olatclasses.php");
 
 require_once("functions/general.php");
 
-ini_set('max_execution_time', 300);
-ini_set('memory_limit', '-1');
-
 // Creates an OLAT Object out of an exported OLAT course
 // backup file.
 //
