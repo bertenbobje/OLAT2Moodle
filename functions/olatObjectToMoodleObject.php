@@ -220,8 +220,8 @@ function moodleFixHTML($html) {
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
 	// References
-	$patternReferences = '/&lt;a (.*?)href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
-	$replaceReferences = '&lt;a $1href=&quot;@@PLUGINFILE@@/$2&quot;$3&lt;/a&gt;';
+	$patternReferences = '/&lt;a .*?href=&quot;((?!http:\/\/)(?!javascript:)(?!@@PLUGINFILE@@)[\w-\/:]+(?!\.html?).\w+)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
 	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlMedia2);
 	
 	// Images
@@ -230,7 +230,7 @@ function moodleFixHTML($html) {
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlReferences);
 	
 	// Spaces in filenames
-	$patternSpaces = '/(?:&lt;a .*?href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/i';
+	$patternSpaces = '/(?:&lt;a .*?href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/ism';
 	$replaceSpaces = '%20';
 	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
 	
@@ -341,8 +341,9 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
 							foreach ($msection->getActivity() as $mactivity) {
-								if ($mactivity->getContentFile() == $olatFile) {
-									if ($books) {
+								if ($mactivity->getModuleName() == "page") {
+									if ($mactivity->getContentFile() == $olatFile) {
+										if ($books) {
 										if ($mactivity->getBook()) {
 											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
 										}
@@ -350,12 +351,13 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
 										}
 									}
-									else {
-										$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
-									}
+										else {
+											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+										}
 									$content = $activity->getContent();
 									$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
 									$activity->setContent($activityContent);
+									}
 								}
 							}
 						}
