@@ -199,6 +199,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 // PARAMETERS
 // -> $html = The HTML file (as string)
 function moodleFixHTML($html) {
+	// Removes everything before <body> and after </body>
 	$patternRemoveStart = '/^.+&lt;body&gt;/ism';
 	$replaceRemoveStart = '';
 	$fixhtmlRemoveStart = preg_replace($patternRemoveStart, $replaceRemoveStart, $html);
@@ -206,28 +207,38 @@ function moodleFixHTML($html) {
 	$patternRemoveEnd = '/&lt;\/body&gt;.+$/ism';
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
-
+	
+	// Fixes the a tags so that only href is in them.
+	$patternAhref = '/&lt;a(.*?)href=&quot;(.+?)&quot;(.*?)&gt;/ism';
+	$replaceAhref = '&lt;a href=&quot;$2&quot;&gt;';
+	$fixhtmlAhref = preg_replace($patternAhref, $replaceAhref, $fixhtmlRemoveEnd);
+	
+	// References
+	$patternReferences = '/&lt;a .*?href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
+	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlAhref);
+	
+	// Un-reference the HTML files
+	$patternUnreference = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.+?\.html?.*?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceUnreference = '&lt;a href=&quot;$1&quot;$2&lt;/a&gt;';
+	$fixhtmlUnreference = preg_replace($patternUnreference, $replaceUnreference, $fixhtmlReferences);
+	
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
 	// Media files (Object)
 	$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
 	$replaceMedia = $mediaReplace;
-	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
+	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlUnreference);
 	
 	// Media files (BPlayer)
 	$patternMedia2 = '/&lt;script.+?Bplayer.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
-	// References
-	$patternReferences = '/&lt;a .*?href=&quot;((?!http:\/\/)(?!javascript:)(?!@@PLUGINFILE@@)[\w-\/:]+(?!\.html?).\w+)&quot;(.*?)&lt;\/a&gt;/ism';
-	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
-	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlMedia2);
-	
 	// Images
 	$patternImages = '/src=&quot;(?!http:\/\/)(?!javascript:)(.+?)&quot;/ism';
 	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
-	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlReferences);
+	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
 	
 	// Spaces in filenames
 	$patternSpaces = '/(?:&lt;a .*?href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/ism';
@@ -336,7 +347,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				$olatFiles = listFolderFiles($olatFilesPath);
 				$htmlString = $activity->getContent();
 				foreach ($olatFiles as $olatFile) {
-					$htmlPattern = '/&lt;a.*?href=&quot;' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
+					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
@@ -344,7 +355,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 								if ($mactivity->getModuleName() == "page") {
 									if ($mactivity->getContentFile() == $olatFile) {
 										if ($books) {
-										if ($mactivity->getBook()) {
+											if ($mactivity->getBook()) {
 											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
 										}
 										else {
@@ -354,9 +365,9 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 										else {
 											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
 										}
-									$content = $activity->getContent();
-									$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
-									$activity->setContent($activityContent);
+										$content = $activity->getContent();
+										$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
+										$activity->setContent($activityContent);
 									}
 								}
 							}
