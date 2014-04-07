@@ -368,7 +368,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	$directoryArray = array_unique($directoryArray);
 	
-	foreach($directoryArray as $directory) {
+	foreach ($directoryArray as $directory) {
 		if (is_dir($directory)) {
 			$olatExportFiles = listFolderFiles($directory);
 			foreach ($olatExportFiles as $olatExportFile) {
@@ -488,7 +488,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		$sectionSectionXml->addChild('summaryformat', 1);
 		
 		$sectionSequence = "";
-		foreach($section->getActivity() as $activity) {
+		foreach ($section->getActivity() as $activity) {
 			if ($activity->getSectionID() == $section->getSectionID()) {
 				$sectionSequence .= $activity->getModuleID() . ",";
 			}

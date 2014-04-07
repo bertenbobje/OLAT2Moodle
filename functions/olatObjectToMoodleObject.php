@@ -185,7 +185,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			
 			$mSec->setActivity($moodleActivity);
 			
-			if(is_object($sub)) {
+			if (is_object($sub)) {
 				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
 			}
 		}
@@ -245,12 +245,12 @@ function moodleFixHTML($html) {
 // -> $moodleObject = the Moodle object
 function checkForBooks($moodleObject) {
 	$object = $moodleObject;
-	foreach($object->getSection() as $section) {
+	foreach ($object->getSection() as $section) {
 		$pageSequence = 0;
 		$previousActivity = null;
 		$subChapter = false;
 		$firstActivity = true;
-		foreach($section->getActivity() as $activity) {
+		foreach ($section->getActivity() as $activity) {
 			// The first activity will always be the first indent, and could never become a book.
 			// But this can mess with the indentation of following pages, so this the first one will be ignored.
 			if (!$firstActivity) {
