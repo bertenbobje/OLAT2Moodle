@@ -54,7 +54,7 @@ function checkDoubleFileReference($zippedzip) {
 		$zipfiles[$i] = basename( $stat['name'] );
 	}
 		
-	foreach($zipfiles as $entry) {
+	foreach ($zipfiles as $entry) {
 		if ($entry == "coursefolder") {
 			$courseFolderReached = true;
 		}
@@ -69,10 +69,10 @@ function checkDoubleFileReference($zippedzip) {
 		
 	$dirdump = array_map('strtolower', $dirdump);
 	$diff = array_count_values($dirdump);
-	foreach($diff as $key=>$val){
-		if ($val != 1){
-			trigger_error("The coursefolder directory includes duplicate references, these will be discarded. 
-			Some content may not be imported as a result. The duplicate content discarded is named: " . $key,  E_USER_WARNING);
+	foreach ($diff as $key=>$val) {
+		if ($val != 1) {
+			echo "<p style='color:red;'>WARNING - The coursefolder directory includes duplicate references, these will be discarded. 
+					Some content may not be imported as a result. The duplicate content discarded is named: " . $key . "</p>";
 		}
 	}
 }
