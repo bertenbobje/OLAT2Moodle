@@ -214,7 +214,7 @@ function moodleFixHTML($html) {
 	$fixhtmlAhref = preg_replace($patternAhref, $replaceAhref, $fixhtmlRemoveEnd);
 	
 	// References
-	$patternReferences = '/&lt;a .*?href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$patternReferences = '/&lt;a href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
 	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
 	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlAhref);
 	
@@ -241,7 +241,7 @@ function moodleFixHTML($html) {
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
 	
 	// Spaces in filenames
-	$patternSpaces = '/(?:&lt;a .*?href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/ism';
+	$patternSpaces = '/(?:&lt;a href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/ism';
 	$replaceSpaces = '%20';
 	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
 	
