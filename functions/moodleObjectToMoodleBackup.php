@@ -52,7 +52,7 @@ require_once("functions/general.php");
  |_ ||| moodle_backup.log --- (EE)
  |_ ||| moodle_backup.xml --- General .xml containing all references (biggest XML)
  |_ ||| outcomes.xml -------- (E)
- |_ ||| questions.xml ------- (E)
+ |_ ||| questions.xml ------- Contains the question bank
  |_ ||| roles.xml ----------- (E)
  |_ ||| scales.xml ---------- (E)
  
@@ -94,7 +94,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// This will get added to a lot through the process.
 	$moodleBackupXmlStart = new SimpleXMLElement($header . "<moodle_backup></moodle_backup>");
 	$moodleBackupXml = $moodleBackupXmlStart->addChild('information');
-	$moodleBackupXml->addChild('name', 'OLAT2Moodle.mbz');
+	$moodleBackupXml->addChild('name', clean($moodleObject->getFullName()) . '.mbz');
 	$moodleBackupXml->addChild('moodle_version', 2013111800);
 	$moodleBackupXml->addChild('moodle_release', '2.6');
 	$moodleBackupXml->addChild('backup_version', 2013111800);
@@ -104,7 +104,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXml->addChild('include_files', 1);
 	$moodleBackupXml->addChild('include_file_references_to_external_content', 0);
 	$moodleBackupXml->addChild('original_wwwroot', 'OLAT2Moodle');
-	$moodleBackupXml->addChild('original_site_identifier_hash', "36492b9f86ba50b90b65082da25006e96b348e1d");
+	$moodleBackupXml->addChild('original_site_identifier_hash', "2221f5e20fe9c6708db19a7804aee7a34b077352");
 	$moodleBackupXml->addChild('original_course_id', $moodleObject->getID());
 	$moodleBackupXml->addChild('original_course_fullname', $moodleObject->getFullName());
 	$moodleBackupXml->addChild('original_course_shortname', $moodleObject->getShortName());
@@ -128,7 +128,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
 	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
 	$moodleBackupXmlSettingsSetting->addChild('name', 'filename');
-	$moodleBackupXmlSettingsSetting->addChild('value', 'OLAT2Moodle.mbz');
+	$moodleBackupXmlSettingsSetting->addChild('value', clean($moodleObject->getFullName()) . '.mbz');
 	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
 	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
 	$moodleBackupXmlSettingsSetting->addChild('name', 'imscc11');
@@ -910,9 +910,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				else {
 					file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
 				}
-				
-				if ($currentlyBook && $firstTags) {
+
 				// moodle_backup.xml
+				if ($currentlyBook && $firstTags) {
 					$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
 					$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
 					$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
