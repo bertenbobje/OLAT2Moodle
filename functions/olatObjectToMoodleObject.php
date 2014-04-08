@@ -213,10 +213,15 @@ function moodleFixHTML($html) {
 	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
 	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlRemoveStart);
 	
+	// References part II
+	$patternReferences2 = '/&lt;a target=&quot;_blank&quot; href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceReferences2 = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
+	$fixhtmlReferences2 = preg_replace($patternReferences2, $replaceReferences2, $fixhtmlReferences);
+	
 	// Un-reference the HTML files
 	$patternUnreference = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.+?\.html?.*?)&quot;(.*?)&lt;\/a&gt;/ism';
 	$replaceUnreference = '&lt;a href=&quot;$1&quot;$2&lt;/a&gt;';
-	$fixhtmlUnreference = preg_replace($patternUnreference, $replaceUnreference, $fixhtmlReferences);
+	$fixhtmlUnreference = preg_replace($patternUnreference, $replaceUnreference, $fixhtmlReferences2);
 	
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
