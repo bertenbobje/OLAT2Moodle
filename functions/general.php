@@ -51,7 +51,7 @@ function checkDoubleFileReference($zippedzip) {
 	$i = 0;
 	for($i = 0; $i < $zippedzip->numFiles; $i++) {
 		$stat = $zippedzip->statIndex($i);
-		$zipfiles[$i] = basename( $stat['name'] );
+		$zipfiles[$i] = basename($stat['name']);
 	}
 		
 	foreach ($zipfiles as $entry) {
@@ -63,16 +63,18 @@ function checkDoubleFileReference($zippedzip) {
 		}
 		if($courseFolderReached == true) {
 			$i++;
-			$dirdump[$i]=$entry;
+			$dirdump[$i] = $entry;
 		}
 	}
-		
-	$dirdump = array_map('strtolower', $dirdump);
-	$diff = array_count_values($dirdump);
-	foreach ($diff as $key=>$val) {
-		if ($val != 1) {
-			echo "<p style='color:red;'>WARNING - The coursefolder directory includes duplicate references, these will be discarded. 
-					Some content may not be imported as a result. The duplicate content discarded is named: " . $key . "</p>";
+	
+	if (isset($dirdump)) {
+		$dirdump = array_map('strtolower', $dirdump);
+		$diff = array_count_values($dirdump);
+		foreach ($diff as $key=>$val) {
+			if ($val != 1) {
+				echo "<p style='color:red;'>WARNING - The coursefolder directory contains duplicate files, these will be discarded. 
+						Some content may not load in Moodle as a result. The discarded content is named: " . $key . "</p>";
+			}
 		}
 	}
 }
