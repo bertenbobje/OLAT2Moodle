@@ -1,6 +1,7 @@
 <html>
 <head>
 	<title>OLAT2Moodle</title>
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 	<style type="text/css">
 	body {
 		background-color: #FFFFAA;

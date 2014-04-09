@@ -20,6 +20,13 @@ ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_depth', -1);
 
+echo '
+<head>
+	<title>OLAT2Moodle</title>
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+</head>
+';
+
 if(isset($_POST['books'])) {
 	if ($_POST['books'] == "on") {
 		$books = true;
