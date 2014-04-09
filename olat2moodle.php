@@ -20,11 +20,12 @@ ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_depth', -1);
 
-echo '
-<head>
-	<title>OLAT2Moodle</title>
-	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-</head>
+echo '<html>
+	<head>
+		<title>OLAT2Moodle</title>
+		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+	</head>
+	<body>
 ';
 
 if(isset($_POST['books'])) {
@@ -70,5 +71,10 @@ $moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $
 echo "<p>OK - Moodle backup .mbz created</p><br>";
 
 echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";
+
+echo '
+	</body>
+</html>
+';
 
 ?>
