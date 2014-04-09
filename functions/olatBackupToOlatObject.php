@@ -209,6 +209,7 @@ function olatBackupToOlatObject($path) {
 //            $id = The ident (ID) of the child to get subjects from
 //         $xpath = runstructure.xml, loaded as a SimpleXMLElement
 //    $pathCourse = Path to the exported OLAT .zip file
+//  &$indentation = The indentation of the OLAT subject
 function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
 	if ($subjects != null) {

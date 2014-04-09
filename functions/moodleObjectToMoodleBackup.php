@@ -64,6 +64,7 @@ require_once("functions/general.php");
 //        $olatPath = OLAT Object (for the files)
 //           $books = Reads out the checkbox in the beginning and turns pages in a row
 //                    into a single book for a more clear overview
+//   $chapterFormat = The chapter format (the choice box in the first page reflects this)
 //
 function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat) {
 	// Creates a temporary storage name made of random numbers.
@@ -190,8 +191,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	////////////////////////////////////////////////////////////////////
 	// COURSE
 	
-	// course folder
-	
+	// Create the /course folder
 	$coursePath = $path . "/course";
 	
 	if (!file_exists($coursePath) and !is_dir($coursePath)) {
@@ -248,18 +248,19 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	////////////////////////////////////////////////////////////////////
 	// FILES + files.xml
 	
-	// files path
-	$filesPath = $path . "/files";
-	
 	// files.xml
 	$filesXml = new SimpleXMLElement($header . "<files></files>");
 	$fileID = 10;
 	
+	// Create the /files folder
+	$filesPath = $path . "/files";
 	if (!file_exists($filesPath) and !is_dir($filesPath)) {
 		mkdir($filesPath, 0777, true);
 	}
 	
-	// OLAT files
+	// All files that are present in a page, resource or page turned book will be
+	// fetched from the OLAT backup and put in its respective folders and files.xml
+	// for Moodle
 	$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
 	$olatFiles = listFolderFiles($olatFilesPath);
 	$fileError = 0;
@@ -278,6 +279,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityModuleName = $activity->getModuleName();
 						switch ($activityModuleName) {
 							case "page":
+								// There can be a lot of possibilities for matching filenames, because of
+								// strange characters (u umlauts) and spaces.
 								if (strpos($activity->getContent(), $olatFile) !== false
 													|| strpos($activity->getContent(), str_replace(' ', '%20', $olatFile)) !== false
 													|| strpos(utf8_decode($activity->getContent()), htmlentities(htmlentities($olatFile))) !== false
@@ -291,7 +294,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 									else {
 										$component = "mod_page";
 									}
-									
 								}
 								break;
 							case "folder":
@@ -303,8 +305,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 										$component = "mod_folder";
 									}
 								}
-								break;
-								
+								break;		
 							case "resource":
 								if ($activity->getResource() == $olatFile) {
 									$fileOK = 1;
@@ -357,7 +358,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		}
 	}
 	
-	// Migrates the files to put in the folders.
+	// The files for the folders are located somewhere else, so this is
+	// for fetching the folder files from OLAT.
 	$olatExportPathRoot = $olatObject->getRootdir() . "/export";
 	$olatExportRootFiles = listFolderFiles($olatExportPathRoot);
 	$directoryArray = array();
@@ -366,6 +368,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		$directoryArray[] = $dir;
 	}
 	
+	// Removes all the duplicate files found, which speeds up the process
 	$directoryArray = array_unique($directoryArray);
 	
 	foreach ($directoryArray as $directory) {
@@ -391,12 +394,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 								}
 								$olatExportFilePath = $olatExportPathRoot . "/" . $activityID . "/" . $olatExportFile;
 								if (file_exists($olatExportFilePath)) {
-									//echo substr($olatExportFile, 0, strpos($olatExportFile, DIRECTORY_SEPARATOR)) . "<br>";
 									if (!is_dir($olatExportFilePath)) {
 										if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
 											foreach ($activity->getFolderFile() as $folderFile) {
-												//echo $folderFile->getFileName() . "<br>";
-												//echo preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR))) . "<br><br>";
 												if ($folderFile->getFileName() == preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) {
 													$filesXmlChild = $filesXml->addChild('file');
 													$filesXmlChild->addAttribute('id', $fileID);
@@ -446,17 +446,15 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	$dom->loadXml($filesXml->asXML());
 	file_put_contents($path . "/files.xml", $dom->saveXML());
-	if ($fileError == 0) {
-		echo "<p>Files copied</p>";
-	}
-	else {
+	if ($fileError != 0) {
 		echo "<p style='color:red;'>WARNING - " . $fileError . " file(s) failed to copy</p>";
 	}
+	echo "<p>OK - Files copied</p>";
 	
 	////////////////////////////////////////////////////////////////////
 	// SECTIONS
 	
-	// sections folder
+	// Create the /sections folder
 	if (!file_exists($path . "/sections") and !is_dir($path . "/sections")) {
 		mkdir($path . "/sections", 0777, true);
 	}
@@ -465,7 +463,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$sectionNumber = 1;
 	
 	foreach ($moodleObject->getSection() as $section) {
-		// Create the folder
+		// Create the section folders in /section
 		$sectionPath = $path . "/sections/section_" . $section->getSectionID();
 		if (!file_exists($sectionPath) and !is_dir($sectionPath)) {
 			mkdir($sectionPath, 0777, true);
@@ -527,13 +525,11 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	////////////////////////////////////////////////////////////////////
 	// ACTIVITIES
 	
-	// activities folder
+	// Create the /activities folder
 	if (!file_exists($path . "/activities") and !is_dir($path . "/activities")) {
 		mkdir($path . "/activities", 0777, true);
 	}
 	
-	// Chapter IDs (increases by one by every chapter over all the books, so it's just an increment)
-	// for every chapter page in the entire course
 	foreach ($moodleObject->getSection() as $section) {
 		$previousActivity = null;
 		// Page numbers (increases by one by every chapter of every single book)
@@ -1014,7 +1010,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	try {
 		$zipPath = $path . ".zip";
 		App_File_Zip::CreateFromFilesystem($path, $zipPath);
-		echo "<p>.zip created</p>";
+		echo "<p>OK - .zip created</p>";
 	}
 	catch (App_File_Zip_Exception $e) {
 		echo "<p>ERROR - .zip failed to create: " . $e . "</p>";
@@ -1022,7 +1018,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	// Renames the .zip to .mbz (.mbz is just a renamed .zip anyway)
 	if (rename($zipPath, $path . ".mbz")) {
-		echo "<p>.zip renamed to .mbz</p>";
+		echo "<p>OK - .zip renamed to .mbz</p>";
 	}
 	else {
 		echo "<p>ERROR - .zip failed to rename</p>";
@@ -1031,7 +1027,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleDownload = "/tmp/" . clean($moodleObject->getFullName()) . ".mbz";
 	
 	if (rename(getcwd() . "/tmp/" . $num . ".mbz", getcwd() . $moodleDownload)) {
-		echo "<p>Course name given to .mbz file</p>";
+		echo "<p>OK - Course name given to .mbz file</p>";
 	}
 	else {
 		echo "<p>ERROR - .mbz failed to rename</p>";
@@ -1039,9 +1035,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 
 	// Remove both the OLAT and Moodle temporary directory
 	rrmdir($path);
-	echo "<p>OLAT temp folder removed</p>";
+	echo "<p>OK - OLAT temp folder removed</p>";
 	rrmdir($olatObject->getRootDir());
-	echo "<p>Moodle temp folder removed</p>";
+	echo "<p>OK - Moodle temp folder removed</p>";
 	
 	return $moodleDownload;
 }

@@ -192,9 +192,8 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 	}
 }
 
-// Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
-// Also fixes the <img src=""> tags to be Moodle-specific and makes the
-// .mp3, .flv and .wav references Moodle-specific by turning them into <a> tags.
+// This cleans up the HTML files given by OLAT to make them work
+// in Moodle.
 //
 // PARAMETERS
 // -> $html = The HTML file (as string)
@@ -208,12 +207,12 @@ function moodleFixHTML($html) {
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
 	
-	// References
+	// <a> references
 	$patternReferences = '/&lt;a href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
 	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
 	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlRemoveStart);
 	
-	// References part II
+	// <a> references part II
 	$patternReferences2 = '/&lt;a target=&quot;_blank&quot; href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
 	$replaceReferences2 = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
 	$fixhtmlReferences2 = preg_replace($patternReferences2, $replaceReferences2, $fixhtmlReferences);
@@ -250,6 +249,8 @@ function moodleFixHTML($html) {
 
 // Checks if there are scenarios with two or more pages in a row,
 // and adds a 'books' boolean (T/F) to it in the object for said page.
+// If the indentation is one more than the previous activity, it will
+// also get a 'subchapter' boolean assigned.
 // NOTE: This only happens if the books checkbox was checked at the start.
 //
 // PARAMETERS
@@ -346,6 +347,8 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
 				$olatFiles = listFolderFiles($olatFilesPath);
 				$htmlString = $activity->getContent();
+				
+				// Converts the <a> tags to a page in the current course (if present)
 				foreach ($olatFiles as $olatFile) {
 					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
