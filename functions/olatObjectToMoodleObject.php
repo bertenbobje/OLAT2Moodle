@@ -10,7 +10,6 @@ require_once("classes/moodleclasses.php");
 //
 // PARAMETERS
 // -> $olatObject = the OLAT Object
-//         $books = Check if the book checkbox was marked
 function olatObjectToMoodleObject($olatObject) {
 	$number = 0;
 	$moodleCourse = new MoodleCourse(
