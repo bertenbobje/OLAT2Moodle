@@ -353,7 +353,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 			}
 		}
 		else {
-			echo "<p style='color:red;'>ERROR COPYING FILE: " . $olatFile . "</p><br>";
+			echo "<p style='color:red;'>WARNING - Couldn't copy file: " . $olatFile . "</p><br>";
 			$fileError++;
 		}
 	}

@@ -46,14 +46,14 @@ function olatBackupToOlatObject($path) {
 			$doc = new DOMDocument();
 			$doc->loadXML($olat);
 			$xpath = simplexml_load_file($expath . "/runstructure.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
-			echo "<p>OLAT backup file opened successfully</p>";
+			echo "<p>OK - OLAT backup file opened successfully</p>";
 		}
 		else {
-			echo "<p>Error reading XML</p>";
+			echo "<p style='color:red;'>ERROR - Error reading XML</p>";
 		}
 	}
 	else {
-		echo "<p>Error parsing file</p>";
+		echo "<p style='color:red;'>ERROR - Error parsing file</p>";
 	}
 
 	// Course
