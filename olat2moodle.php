@@ -55,12 +55,12 @@ if (isset($_FILES["file"])) {
 			echo "<p>OK - Moodle Object created</p>";
 
 			if ($books) {
-				$moodleObject = checkForBooks($moodleObject);
+				//$moodleObject = checkForBooks($moodleObject);
 				//var_dump($moodleObject);
 				echo "<p style='color:green;'>OK - Books marked</p>";
 			}
 
-			$moodleObject = fixHTMLReferences($moodleObject, $olatObject, $books);
+			//$moodleObject = fixHTMLReferences($moodleObject, $olatObject, $books);
 			echo "<p>OK - All HTML references fixed</p>";
 
 			echo "<br><p>===MOODLE BACKUP===</p>";
