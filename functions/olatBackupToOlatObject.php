@@ -379,7 +379,6 @@ function quizParse($object, $path) {
 	var_dump($repoXml);
 	var_dump($qtiXml);
 	
-	
 	return $qObject;
 }
 
