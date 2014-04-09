@@ -7,17 +7,25 @@
 /*********************************************************/
 
 //                                             ________________
-// Course (1)                                 |                |
-//    |___> Chapter (1+)										  v                | recursion
-//             | |_______________________> Subject (1+) _______|
-//             |                              |
-// Folder      |                              |
+// Course (1)                            inf. |                |
+//   1 |___> Chapter (1+)										  v                | recursion
+//      inf.   | |_______________________> Subject (1+) _______|
+//             |1   1             inf.        | 1        1
+// Folder      |                              | 
+//        inf. |                         inf. |
 //             - ChapterPage                  - SubjectPage
 //             - ChapterLearningObject        - SubjectLearningObject
 //             - ChapterDropFolder            - SubjectDropFolder
-//                                            - SubjectTest
-//						 - ChapterURL										- SubjectURL
+//             - ChapterURL										- SubjectURL
 //             - ChapterResource              - SubjectResource
+//             - ChapterTest                  - SubjectTest
+//                    | 1                          1 |
+//                    |                              |
+//                    |______________________________|
+//                                    | inf.
+//                                    |
+//                              - TestQuestion ---------------- - TestAnswer
+//                                              1         inf.
 //
 
 ///////////////////////////////////////////////////////////
@@ -300,6 +308,87 @@ class ChapterWiki extends Chapter {
 }
 
 ///////////////////////////////////////////////////////////
+// CHAPTER TEST ///////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ChapterTest extends Chapter {
+	
+	protected $questions = array();
+	protected $attempts;
+	protected $intropage;
+	protected $scoremodel;
+	protected $selectionnumber;
+	protected $ordertype;
+	protected $information;
+	
+	public function __construct($questions = "", $attempts = "", $intropage = "", $scoremodel = "", $selectionnumber = "", $ordertype = "", $information = "") {
+		$this->questions = $questions;
+		$this->attempts = $attempts;
+		$this->intropage = $intropage;
+		$this->scoremodel = $scoremodel;
+		$this->selectionnumber = $selectionnumber;
+		$this->ordertype = $ordertype;
+		$this->information = $information;
+	}
+	
+	public function setQuestions($questions) {
+		array_push($this->questions, $questions);
+	}
+	
+	public function getQuestions() {
+		return $this->questions;
+	}
+	
+	public function setAttempts($attempts) {
+		array_push($this->attempts, $attempts);
+	}
+	
+	public function getAttempts() {
+		return $this->attempts;
+	}
+	
+	public function setIntroPage($intropage) {
+		$this->intropage = $intropage;
+	}
+	
+	public function getIntroPage() {
+		return $this->intropage;
+	}
+	
+	public function setScoreModel($scoremodel) {
+		$this->scoremodel = $scoremodel;
+	}
+	
+	public function getScoreModel() {
+		return $this->scoremodel;
+	}
+	
+	public function setSelectionNumber($selectionnumber) {
+		$this->selectionnumber = $selectionnumber;
+	}
+	
+	public function getSelectionNumber() {
+		return $this->selectionnumber;
+	}
+	
+	public function setOrderType($ordertype) {
+		$this->ordertype = $ordertype;
+	}
+	
+	public function getOrderType() {
+		return $this->ordertype;
+	}
+	
+	public function setInformation($information) {
+		$this->information = $information;
+	}
+	
+	public function getInformation() {
+		return $this->information;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
 // SUBJECT ////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 class Subject {
@@ -454,27 +543,6 @@ class SubjectDropFolder extends Subject {
 }
 
 ///////////////////////////////////////////////////////////
-// SUBJECT TEST ///////////////////////////////////////////
-///////////////////////////////////////////////////////////
-class SubjectTest extends Subject {
-
-	protected $test;
-
-	public function __construct($test) {
-		$this->test= $test;
-	}
-
-	public function setSubjectTest($test) {
-		$this->test = $test;
-	}
-	
-	public function getSubjectTest() {
-		return $this->test;
-	}
-
-}
-
-///////////////////////////////////////////////////////////
 // SUBJECT URL ////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 class SubjectURL extends Subject {
@@ -522,6 +590,171 @@ class SubjectResource extends Subject {
 class SubjectWiki extends Subject {
 	
 	public function __construct() {}
+	
+}
+
+///////////////////////////////////////////////////////////
+// SUBJECT TEST ///////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class SubjectTest extends Subject {
+	
+	protected $questions = array();
+	protected $attempts;
+	protected $intropage;
+	protected $scoremodel;
+	protected $selectionnumber;
+	protected $ordertype;
+	protected $information;
+	
+	public function __construct($questions = "", $attempts = "", $intropage = "", $scoremodel = "", $selectionnumber = "", $ordertype = "", $information = "") {
+		$this->questions = $questions;
+		$this->attempts = $attempts;
+		$this->intropage = $intropage;
+		$this->scoremodel = $scoremodel;
+		$this->selectionnumber = $selectionnumber;
+		$this->ordertype = $ordertype;
+		$this->information = $information;
+	}
+	
+	public function setQuestions($questions) {
+		array_push($this->questions, $questions);
+	}
+	
+	public function getQuestions() {
+		return $this->questions;
+	}
+	
+	public function setAttempts($attempts) {
+		array_push($this->attempts, $attempts);
+	}
+	
+	public function getAttempts() {
+		return $this->attempts;
+	}
+	
+	public function setIntroPage($intropage) {
+		$this->intropage = $intropage;
+	}
+	
+	public function getIntroPage() {
+		return $this->intropage;
+	}
+	
+	public function setScoreModel($scoremodel) {
+		$this->scoremodel = $scoremodel;
+	}
+	
+	public function getScoreModel() {
+		return $this->scoremodel;
+	}
+	
+	public function setSelectionNumber($selectionnumber) {
+		$this->selectionnumber = $selectionnumber;
+	}
+	
+	public function getSelectionNumber() {
+		return $this->selectionnumber;
+	}
+	
+	public function setOrderType($ordertype) {
+		$this->ordertype = $ordertype;
+	}
+	
+	public function getOrderType() {
+		return $this->ordertype;
+	}
+	
+	public function setInformation($information) {
+		$this->information = $information;
+	}
+	
+	public function getInformation() {
+		return $this->information;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// TEST QUESTION //////////////////////////////////////////
+///////////////////////////////////////////////////////////
+
+class TestQuestion {
+
+	protected $questionID;
+	protected $question;
+	protected $questiontype;
+	protected $answers = array();
+	
+	public function __construct($questionID, $question, $questiontype, $answer) {
+		$this->questionID = $questionID;
+		$this->question = $question;
+		$this->questiontype = $questiontype;
+		$this->answers = $answers;
+	}
+	
+	public function setQuestionID($questionID) {
+		$this->questionID = $questionID;
+	}
+	
+	public function getQuestionID() {
+		return $this->questionID;
+	}
+	
+	public function setQuestion($question) {
+		$this->question = $question;
+	}
+	
+	public function getQuestion() {
+		return $this->question;
+	}
+	
+	public function setQuestionType($questiontype) {
+		$this->questiontype = $questiontype;
+	}
+	
+	public function getQuestionType() {
+		return $this->questiontype;
+	}
+	
+	public function setAnswers($answers) {
+		array_push($this->answers, $answers);
+	}
+	
+	public function getAnswers() {
+		return $this->answers;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// TEST ANSWER ////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+
+class TestAnswer {
+
+	protected $answer;
+	protected $correct;
+	
+	public function __construct($answer, $correct) {
+		$this->answer = $answer;
+		$this->correct = $correct;
+	}
+	
+	public function setAnswer($answer) {
+		$this->answer = $answer;
+	}
+	
+	public function getAnswer() {
+		return $this->answer;
+	}
+	
+	public function setCorrect($correct) {
+		$this->correct = $correct;
+	}
+	
+	public function getCorrect() {
+		return $this->correct;
+	}
 	
 }
 

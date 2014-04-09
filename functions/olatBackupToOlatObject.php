@@ -83,7 +83,9 @@ function olatBackupToOlatObject($path) {
 						case "iqself":
 						case "iqsurv":
 							$ok = 1;
-							$chapterObject = new Chapter;
+							$chapterObject = new ChapterTest;
+							$testFolder = $expath . "/export/" . $child->ident;
+							$chapterObject = quizParse($chapterObject, $testFolder);
 							break;
 						
 						// Enrollment
@@ -235,7 +237,9 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				case "iqself":
 				case "iqsurv":
 					$ok = 1;
-					$subjectObject = new Subject;
+					$subjectObject = new SubjectTest;
+					$testFolder = $pathCourse . "/export/" . $schild->ident;
+					$subjectObject = quizParse($subjectObject, $testFolder);
 					break;
 				
 				// Enrollment
@@ -351,6 +355,32 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 		}
 		$indentation--;
 	}
+}
+
+// Reads out the Quiz files and puts them in their respective objects.
+//
+// PARAMETERS
+// -> $object = the Test object (chapter or subject)
+//      $path = Path to quiz folder (/coursefolder/[ident]/)
+//
+function quizParse($object, $path) {
+	$qObject = $object;
+	
+	// Unpack the repo.zip archive
+	$testZip = new ZipArchive;
+	if ($testZip->open($path . "/repo.zip")) {
+		$testZip->extractTo($path . "/repo");
+		$testZip->close();
+	}
+	
+	$repoXml = simplexml_load_file($path . "/repo.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
+	$qtiXml = simplexml_load_file($path . "/repo/qti.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
+	
+	var_dump($repoXml);
+	var_dump($qtiXml);
+	
+	
+	return $qObject;
 }
 
 ?>
