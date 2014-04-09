@@ -39,38 +39,44 @@ else {
 	$chapterFormat = "";
 }
 
-//if(isset($_FILES["file"]) && $_FILES["file"]) {
-if (file_exists($_FILES["file"]["tmp_name"]) || is_uploaded_file($_FILES["file"]["tmp_name"])) {
-	echo "<p>===OLAT OBJECT===</p>";
-	// Creates an OLAT Object out of an exported OLAT course.
-	$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
-	//var_dump($olatObject);
-	echo "<p>OK - OLAT Object created</p><br>";
-	
-	echo "<p>===MOODLE OBJECT===</p>";
-	// Converts the OLAT Object to a Moodle object.
-	$moodleObject = olatObjectToMoodleObject($olatObject, $books);
-	//var_dump($moodleObject);
-	echo "<p>OK - Moodle Object created</p>";
+if (isset($_FILES["file"])) {
+	if (file_exists($_FILES["file"]["tmp_name"]) || is_uploaded_file($_FILES["file"]["tmp_name"])) {
+		// Creates an OLAT Object out of an exported OLAT course.
+		$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
+		if ($olatObject !== null) {
+			echo "<br><p>===OLAT OBJECT===</p>";
+			//var_dump($olatObject);
+			echo "<p>OK - OLAT Object created</p><br>";
+			
+			echo "<p>===MOODLE OBJECT===</p>";
+			// Converts the OLAT Object to a Moodle object.
+			$moodleObject = olatObjectToMoodleObject($olatObject, $books);
+			//var_dump($moodleObject);
+			echo "<p>OK - Moodle Object created</p>";
 
-	if ($books) {
-		$moodleObject = checkForBooks($moodleObject);
-		//var_dump($moodleObject);
-		echo "<p style='color:green;'>OK - Books marked</p>";
+			if ($books) {
+				$moodleObject = checkForBooks($moodleObject);
+				//var_dump($moodleObject);
+				echo "<p style='color:green;'>OK - Books marked</p>";
+			}
+
+			$moodleObject = fixHTMLReferences($moodleObject, $olatObject, $books);
+			echo "<p>OK - All HTML references fixed</p>";
+
+			echo "<br><p>===MOODLE BACKUP===</p>";
+			// Uses the Moodle Object to make a Moodle backup .mbz file.
+			$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat);
+			echo "<p>OK - Moodle backup .mbz created</p><br>";
+
+			echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";
+		}
 	}
-
-	$moodleObject = fixHTMLReferences($moodleObject, $olatObject, $books);
-	echo "<p>OK - All HTML references fixed</p>";
-
-	echo "<br><p>===MOODLE BACKUP===</p>";
-	// Uses the Moodle Object to make a Moodle backup .mbz file.
-	$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat);
-	echo "<p>OK - Moodle backup .mbz created</p><br>";
-
-	echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";
+	else {
+		echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><br><a href='index.php'>Go to start page</a>";
+	}
 }
 else {
-	echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><br><a href='index.php'>Go back</a>";
+	echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><br><a href='index.php'>Go to start page</a>";
 }
 
 echo '
