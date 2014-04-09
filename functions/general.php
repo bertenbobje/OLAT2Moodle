@@ -42,7 +42,7 @@ function rrmdir($dir) {
 
 // Here we read the archived file without unzipping it.
 // We run a check in the files under coursefolder to see if any duplicate file names exist
-// If so, we trigger an error that also shows the file name in question.
+// If so, we trigger a warning that also shows the file name in question.
 //
 // PARAMETERS
 // -> $zippedzip = The .zip file
@@ -82,9 +82,12 @@ function checkDoubleFileReference($zippedzip) {
 // PARAMETERS
 // -> $string = The string
 function clean($string) {
-	$string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-	$string = preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
-	return preg_replace('/-+/', '-', $string); // Replaces multiple hyphens with single one.
+	// Replaces all spaces with hyphens.
+	$string = str_replace(' ', '-', $string);
+	// Removes special chars.
+	$string = preg_replace('/[^A-Za-z0-9\-]/', '', $string);
+	// Replaces multiple hyphens with single one.
+	return preg_replace('/-+/', '-', $string);
 }
 
 ?>
