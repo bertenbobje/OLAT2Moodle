@@ -52,16 +52,19 @@ require_once("functions/general.php");
  |_ ||| moodle_backup.log --- (EE)
  |_ ||| moodle_backup.xml --- General .xml containing all references (biggest XML)
  |_ ||| outcomes.xml -------- (E)
- |_ ||| questions.xml ------- (E)
+ |_ ||| questions.xml ------- Contains the question bank
  |_ ||| roles.xml ----------- (E)
  |_ ||| scales.xml ---------- (E)
+ 
 *************************************************************************************/
+
 //
 // PARAMETERS
 // -> $moodleObject = Moodle Object
 //        $olatPath = OLAT Object (for the files)
 //           $books = Reads out the checkbox in the beginning and turns pages in a row
 //                    into a single book for a more clear overview
+//   $chapterFormat = The chapter format (the choice box in the first page reflects this)
 //
 function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat) {
 	// Creates a temporary storage name made of random numbers.
@@ -92,7 +95,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// This will get added to a lot through the process.
 	$moodleBackupXmlStart = new SimpleXMLElement($header . "<moodle_backup></moodle_backup>");
 	$moodleBackupXml = $moodleBackupXmlStart->addChild('information');
-	$moodleBackupXml->addChild('name', 'OLAT2Moodle.mbz');
+	$moodleBackupXml->addChild('name', clean($moodleObject->getFullName()) . '.mbz');
 	$moodleBackupXml->addChild('moodle_version', 2013111800);
 	$moodleBackupXml->addChild('moodle_release', '2.6');
 	$moodleBackupXml->addChild('backup_version', 2013111800);
@@ -102,7 +105,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXml->addChild('include_files', 1);
 	$moodleBackupXml->addChild('include_file_references_to_external_content', 0);
 	$moodleBackupXml->addChild('original_wwwroot', 'OLAT2Moodle');
-	$moodleBackupXml->addChild('original_site_identifier_hash', "36492b9f86ba50b90b65082da25006e96b348e1d");
+	$moodleBackupXml->addChild('original_site_identifier_hash', "2221f5e20fe9c6708db19a7804aee7a34b077352");
 	$moodleBackupXml->addChild('original_course_id', $moodleObject->getID());
 	$moodleBackupXml->addChild('original_course_fullname', $moodleObject->getFullName());
 	$moodleBackupXml->addChild('original_course_shortname', $moodleObject->getShortName());
@@ -126,7 +129,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
 	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
 	$moodleBackupXmlSettingsSetting->addChild('name', 'filename');
-	$moodleBackupXmlSettingsSetting->addChild('value', 'OLAT2Moodle.mbz');
+	$moodleBackupXmlSettingsSetting->addChild('value', clean($moodleObject->getFullName()) . '.mbz');
 	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
 	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
 	$moodleBackupXmlSettingsSetting->addChild('name', 'imscc11');
@@ -188,8 +191,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	////////////////////////////////////////////////////////////////////
 	// COURSE
 	
-	// course folder
-	
+	// Create the /course folder
 	$coursePath = $path . "/course";
 	
 	if (!file_exists($coursePath) and !is_dir($coursePath)) {
@@ -233,7 +235,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$courseCourseXml->addChild('theme');
 	$courseCourseXml->addChild('timecreated', time());
 	$courseCourseXml->addChild('timemodified', time());
-	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()) - 1);
+	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()));
 	
 	$dom->loadXML($courseCourseXml->asXML());
 	file_put_contents($coursePath . "/course.xml", $dom->saveXML());
@@ -246,125 +248,135 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	////////////////////////////////////////////////////////////////////
 	// FILES + files.xml
 	
-	// files path
-	$filesPath = $path . "/files";
-	
 	// files.xml
 	$filesXml = new SimpleXMLElement($header . "<files></files>");
 	$fileID = 10;
 	
+	// Create the /files folder
+	$filesPath = $path . "/files";
 	if (!file_exists($filesPath) and !is_dir($filesPath)) {
 		mkdir($filesPath, 0777, true);
 	}
 	
-	// OLAT files
+	// All files that are present in a page, resource or page turned book will be
+	// fetched from the OLAT backup and put in its respective folders and files.xml
+	// for Moodle
 	$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
-	$olatFiles = getDirectoryList($olatFilesPath);
+	$olatFiles = listFolderFiles($olatFilesPath);
 	$fileError = 0;
 	foreach ($olatFiles as $olatFile) {
-		// Ignore the .html and .htm files, they're stored in the .xml itself
 		$olatFilePath = $olatFilesPath . "/" . $olatFile;
-		if (substr($olatFile, -4) != "html" || substr($olatFile, -3) == "htm") {
-			$fileSHA1 = sha1($olatFile);
-			$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
-			if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
-				mkdir($fileSHA1Dir, 0777, true);
-			}
-			if (!is_dir($olatFilesPath . "/" . $olatFile)) {
-				if (copy($olatFilesPath . "/" . $olatFile, $fileSHA1Dir . "/" . $fileSHA1)) {
-					foreach ($moodleObject->getSection() as $section) {
-						foreach ($section->getActivity() as $activity) {
-							$fileOK = 0;
-							$activityModuleName = $activity->getModuleName();
-							switch ($activityModuleName) {
-								case "page":
-									if (strpos($activity->getContent(), $olatFile) !== false) {
+		$fileSHA1 = sha1($olatFile);
+		$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
+		if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+			mkdir($fileSHA1Dir, 0777, true);
+		}
+		if (!is_dir($olatFilesPath . "/" . $olatFile)) {
+			if (copy($olatFilesPath . "/" . $olatFile, $fileSHA1Dir . "/" . $fileSHA1)) {
+				foreach ($moodleObject->getSection() as $section) {
+					foreach ($section->getActivity() as $activity) {
+						$fileOK = 0;
+						$activityModuleName = $activity->getModuleName();
+						switch ($activityModuleName) {
+							case "page":
+								// There can be a lot of possibilities for matching filenames, because of
+								// strange characters (u umlauts) and spaces.
+								if (strpos($activity->getContent(), $olatFile) !== false
+													|| strpos($activity->getContent(), str_replace(' ', '%20', $olatFile)) !== false
+													|| strpos(utf8_decode($activity->getContent()), htmlentities(htmlentities($olatFile))) !== false
+													|| strpos(utf8_decode($activity->getContent()), htmlentities(htmlentities(str_replace(' ', '%20', $olatFile)))) !== false) {
+									$fileOK = 1;
+									$filesXmlChild = $filesXml->addChild('file');
+									$filesXmlChild->addAttribute('id', $fileID);
+									if ($books && $activity->getBook()) {
+										$component = "mod_book";
+									}
+									else {
+										$component = "mod_page";
+									}
+								}
+								break;
+							case "folder":
+								foreach ($activity->getFolderFile() as $folderFile) {
+									if ($folderFile->getFileName() == $olatFile) {
 										$fileOK = 1;
 										$filesXmlChild = $filesXml->addChild('file');
 										$filesXmlChild->addAttribute('id', $fileID);
-										if ($books && $activity->getBook()) {
-											$component = "mod_book";
-										}
-										else {
-											$component = "mod_page";
-										}
-										
+										$component = "mod_folder";
 									}
-									break;
-								
-								case "folder":
-									foreach ($activity->getFolderFile() as $folderFile) {
-										if ($folderFile->getFileName() == $olatFile) {
-											$fileOK = 1;
-											$filesXmlChild = $filesXml->addChild('file');
-											$filesXmlChild->addAttribute('id', $fileID);
-											$component = "mod_folder";
-										}
-									}
-									break;
-									
-								case "resource":
-									if ($activity->getResource() == $olatFile) {
-										$fileOK = 1;
-										$filesXmlChild = $filesXml->addChild('file');
-										$filesXmlChild->addAttribute('id', $fileID);
-										$component = "mod_resource";
-									}
-									break;
-							}
-							if ($fileOK != 0) {
-								$filesXmlChild->addChild('contenthash', $fileSHA1);
-								if ($books && $activity->getBook()) {
-									$filesXmlChild->addChild('contextid', $activity->getBookContextID());
-									$filesXmlChild->addChild('component', $component);
-									$filesXmlChild->addChild('filearea', "chapter");
-									$filesXmlChild->addChild('itemid', $activity->getChapterID());
 								}
-								else {
-									$filesXmlChild->addChild('contextid', $activity->getContextID());
-									$filesXmlChild->addChild('component', $component);
-									$filesXmlChild->addChild('filearea', "content");
-									$filesXmlChild->addChild('itemid', 0);
+								break;		
+							case "resource":
+								if ($activity->getResource() == $olatFile) {
+									$fileOK = 1;
+									$filesXmlChild = $filesXml->addChild('file');
+									$filesXmlChild->addAttribute('id', $fileID);
+									$component = "mod_resource";
 								}
-								$filesXmlChild->addChild('filepath', "/");
-								$filesXmlChild->filename = $olatFile;
-								$filesXmlChild->addChild('userid', 2);
-								$filesXmlChild->addChild('filesize', filesize($olatFilePath));
-								$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
-								$filesXmlChild->addChild('status', 0);
-								$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
-								$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
-								$filesXmlChild->source = $olatFile;
-								$filesXmlChild->addChild('author', "OLAT2Moodle");
-								$filesXmlChild->addChild('license', 'allrightsreserved');
-								$filesXmlChild->addChild('sortorder', 0);
-								$filesXmlChild->addChild('repositorytype', '$@NULL@$');
-								$filesXmlChild->addChild('repositoryid', '$@NULL@$');
-								$filesXmlChild->addChild('reference', '$@NULL@$');
-								$activity->setFile($fileID);
-								
-								$fileID++;
+								break;
+						}
+						if ($fileOK != 0) {
+							$filesXmlChild->addChild('contenthash', $fileSHA1);
+							if ($books && $activity->getBook()) {
+								$filesXmlChild->addChild('contextid', $activity->getBookContextID());
+								$filesXmlChild->addChild('component', $component);
+								$filesXmlChild->addChild('filearea', "chapter");
+								$filesXmlChild->addChild('itemid', $activity->getChapterID());
 							}
+							else {
+								$filesXmlChild->addChild('contextid', $activity->getContextID());
+								$filesXmlChild->addChild('component', $component);
+								$filesXmlChild->addChild('filearea', "content");
+								$filesXmlChild->addChild('itemid', 0);
+							}
+							$filesXmlChild->addChild('filepath', "/");
+							$filesXmlChild->filename = $olatFile;
+							$filesXmlChild->addChild('userid', 2);
+							$filesXmlChild->addChild('filesize', filesize($olatFilePath));
+							$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatFilePath));
+							$filesXmlChild->addChild('status', 0);
+							$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
+							$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
+							$filesXmlChild->source = $olatFile;
+							$filesXmlChild->addChild('author', "OLAT2Moodle");
+							$filesXmlChild->addChild('license', 'allrightsreserved');
+							$filesXmlChild->addChild('sortorder', 0);
+							$filesXmlChild->addChild('repositorytype', '$@NULL@$');
+							$filesXmlChild->addChild('repositoryid', '$@NULL@$');
+							$filesXmlChild->addChild('reference', '$@NULL@$');
+							$activity->setFile($fileID);
+							
+							$fileID++;
 						}
 					}
 				}
 			}
-			else {
-				echo "<p style='color:red;'>ERROR COPYING FILE: " . $olatFile . "</p><br>";
-				$fileError++;
-			}
+		}
+		else {
+			echo "<p style='color:red;'>WARNING - Couldn't copy file: " . $olatFile . "</p><br>";
+			$fileError++;
 		}
 	}
 	
-	// Migrates the files to put in the folders.
+	// The files for the folders are located somewhere else, so this is
+	// for fetching the folder files from OLAT.
 	$olatExportPathRoot = $olatObject->getRootdir() . "/export";
-	$olatExportRootFiles = getDirectoryList($olatExportPathRoot);
+	$olatExportRootFiles = listFolderFiles($olatExportPathRoot);
+	$directoryArray = array();
 	foreach ($olatExportRootFiles as $olatExportRootFile) {
-		if (is_dir($olatExportPathRoot . "/" . $olatExportRootFile)) {
-			$olatExportFiles = getDirectoryList($olatExportPathRoot . "/" . $olatExportRootFile);
+		$dir = $olatExportPathRoot . "/" . substr($olatExportRootFile, 0, strpos($olatExportRootFile, DIRECTORY_SEPARATOR));
+		$directoryArray[] = $dir;
+	}
+	
+	// Removes all the duplicate files found, which speeds up the process
+	$directoryArray = array_unique($directoryArray);
+	
+	foreach ($directoryArray as $directory) {
+		if (is_dir($directory)) {
+			$olatExportFiles = listFolderFiles($directory);
 			foreach ($olatExportFiles as $olatExportFile) {
-				// Ignore the .html, .htm, .xml and .zip files
-				if (substr($olatExportFile, -4) != "html" || substr($olatExportFile, -3) == "htm" || substr($olatExportFile, -3) != "xml" || substr($olatExportFile, -3) != "zip") {
+				// Ignore the .xml and .zip files
+				if (substr($olatExportFile, -3) != "xml" || substr($olatExportFile, -3) != "zip") {
 					$fileSHA1 = sha1($olatExportFile);
 					$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
 					if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
@@ -375,33 +387,42 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$activityModuleName = $activity->getModuleName();
 							if ($activityModuleName == "folder") {
 								if ($activity->getActivityID() == (string) ($activity->getSectionID() - 50000000000000)) {
-									$olatExportFilePath = $olatExportPathRoot . "/" . (string) ($activity->getActivityID() + 50000000000000) . "/" . $olatExportFile;
+									$activityID = (string) ($activity->getActivityID() + 50000000000000);
 								}
 								else {
-									$olatExportFilePath = $olatExportPathRoot . "/" . $activity->getActivityID() . "/" . $olatExportFile;
+									$activityID = $activity->getActivityID();
 								}
+								$olatExportFilePath = $olatExportPathRoot . "/" . $activityID . "/" . $olatExportFile;
 								if (file_exists($olatExportFilePath)) {
 									if (!is_dir($olatExportFilePath)) {
 										if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
-											$filesXmlChild = $filesXml->addChild('file');
-											$filesXmlChild->addAttribute('id', $fileID);
-											$filesXmlChild->addChild('contenthash', $fileSHA1);
 											foreach ($activity->getFolderFile() as $folderFile) {
-												if ($folderFile->getFileName() == $olatExportFile) {
+												if ($folderFile->getFileName() == preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) {
+													$filesXmlChild = $filesXml->addChild('file');
+													$filesXmlChild->addAttribute('id', $fileID);
+													$filesXmlChild->addChild('contenthash', $fileSHA1);
 													$filesXmlChild->addChild('contextid', $activity->getContextID());
 													$activity->setFile($fileID);
 													$filesXmlChild->addChild('component', "mod_folder");
 													$filesXmlChild->addChild('filearea', "content");
 													$filesXmlChild->addChild('itemid', 0);
-													$filesXmlChild->addChild('filepath', "/");
-													$filesXmlChild->filename = $olatExportFile;
+													$preg = preg_quote('.*' . $activityID . '(.*)[\/]', '/');
+													$fpath = str_replace("\\", "/", preg_replace("/$preg/", '$1', $olatExportFile));
+													$filePath = substr($fpath, 0, strrpos($fpath, '/'));
+													if (!empty($filePath)) {
+														$filesXmlChild->filepath = "/" . $filePath . "/";
+													}
+													else {
+														$filesXmlChild->addchild('filepath', "/");
+													}
+													$filesXmlChild->filename = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
 													$filesXmlChild->addChild('userid', 2);
 													$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
 													$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
 													$filesXmlChild->addChild('status', 0);
 													$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
 													$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
-													$filesXmlChild->source = $olatExportFile;
+													$filesXmlChild->source = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
 													$filesXmlChild->addChild('author', "OLAT2Moodle");
 													$filesXmlChild->addChild('license', 'allrightsreserved');
 													$filesXmlChild->addChild('sortorder', 0);
@@ -422,19 +443,18 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 			}
 		}
 	}
+	
 	$dom->loadXml($filesXml->asXML());
 	file_put_contents($path . "/files.xml", $dom->saveXML());
-	if ($fileError == 0) {
-		echo "<p>Files copied</p>";
-	}
-	else {
+	if ($fileError != 0) {
 		echo "<p style='color:red;'>WARNING - " . $fileError . " file(s) failed to copy</p>";
 	}
+	echo "<p>OK - Files copied</p>";
 	
 	////////////////////////////////////////////////////////////////////
 	// SECTIONS
 	
-	// sections folder
+	// Create the /sections folder
 	if (!file_exists($path . "/sections") and !is_dir($path . "/sections")) {
 		mkdir($path . "/sections", 0777, true);
 	}
@@ -443,7 +463,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$sectionNumber = 1;
 	
 	foreach ($moodleObject->getSection() as $section) {
-		// Create the folder
+		// Create the section folders in /section
 		$sectionPath = $path . "/sections/section_" . $section->getSectionID();
 		if (!file_exists($sectionPath) and !is_dir($sectionPath)) {
 			mkdir($sectionPath, 0777, true);
@@ -466,7 +486,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		$sectionSectionXml->addChild('summaryformat', 1);
 		
 		$sectionSequence = "";
-		foreach($section->getActivity() as $activity) {
+		foreach ($section->getActivity() as $activity) {
 			if ($activity->getSectionID() == $section->getSectionID()) {
 				$sectionSequence .= $activity->getModuleID() . ",";
 			}
@@ -505,13 +525,11 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	////////////////////////////////////////////////////////////////////
 	// ACTIVITIES
 	
-	// activities folder
+	// Create the /activities folder
 	if (!file_exists($path . "/activities") and !is_dir($path . "/activities")) {
 		mkdir($path . "/activities", 0777, true);
 	}
 	
-	// Chapter IDs (increases by one by every chapter over all the books, so it's just an increment)
-	// for every chapter page in the entire course
 	foreach ($moodleObject->getSection() as $section) {
 		$previousActivity = null;
 		// Page numbers (increases by one by every chapter of every single book)
@@ -603,7 +621,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						
 					case "url":
 						$activityActivityChildXml->addChild('display', 0);
-						$activityActivityChildXml->addChild('externalurl', $activity->getURL());
+						$activityActivityChildXml->externalurl = $activity->getURL();
 						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 						$activityActivityChildXml->addChild('parameters', 'a:0:{}');
 						break;
@@ -617,7 +635,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityActivityChildXml->addChild('revision', 1);
 					
 					case "wiki":
-						$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
+						$activityActivityChildXml->firstpagetitle = $activity->getName();
 						$activityActivityChildXml->addChild('wikimode', 'collaborative');
 						$activityActivityChildXml->addChild('defaultformat', 'html');
 						$activityActivityChildXml->addChild('forceformat', 0);
@@ -852,7 +870,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							
 						case "url":
 							$activityActivityChildXml->addChild('display', 0);
-							$activityActivityChildXml->addChild('externalurl', $activity->getURL());
+							$activityActivityChildXml->externalurl = $activity->getURL();
 							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 							$activityActivityChildXml->addChild('parameters', 'a:0:{}');
 							break;
@@ -867,7 +885,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							break;
 						
 						case "wiki":
-							$activityActivityChildXml->addChild('firstpagetitle', $activity->getName());
+							$activityActivityChildXml->firstpagetitle = $activity->getName();
 							$activityActivityChildXml->addChild('wikimode', 'collaborative');
 							$activityActivityChildXml->addChild('defaultformat', 'html');
 							$activityActivityChildXml->addChild('forceformat', 0);
@@ -888,9 +906,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				else {
 					file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
 				}
-				
-				if ($currentlyBook && $firstTags) {
+
 				// moodle_backup.xml
+				if ($currentlyBook && $firstTags) {
 					$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
 					$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
 					$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
@@ -992,7 +1010,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	try {
 		$zipPath = $path . ".zip";
 		App_File_Zip::CreateFromFilesystem($path, $zipPath);
-		echo "<p>.zip created</p>";
+		echo "<p>OK - .zip created</p>";
 	}
 	catch (App_File_Zip_Exception $e) {
 		echo "<p>ERROR - .zip failed to create: " . $e . "</p>";
@@ -1000,7 +1018,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	// Renames the .zip to .mbz (.mbz is just a renamed .zip anyway)
 	if (rename($zipPath, $path . ".mbz")) {
-		echo "<p>.zip renamed to .mbz</p>";
+		echo "<p>OK - .zip renamed to .mbz</p>";
 	}
 	else {
 		echo "<p>ERROR - .zip failed to rename</p>";
@@ -1009,7 +1027,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleDownload = "/tmp/" . clean($moodleObject->getFullName()) . ".mbz";
 	
 	if (rename(getcwd() . "/tmp/" . $num . ".mbz", getcwd() . $moodleDownload)) {
-		echo "<p>Course name given to .mbz file</p>";
+		echo "<p>OK - Course name given to .mbz file</p>";
 	}
 	else {
 		echo "<p>ERROR - .mbz failed to rename</p>";
@@ -1017,9 +1035,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 
 	// Remove both the OLAT and Moodle temporary directory
 	rrmdir($path);
-	echo "<p>OLAT temp folder removed</p>";
+	echo "<p>OK - OLAT temp folder removed</p>";
 	rrmdir($olatObject->getRootDir());
-	echo "<p>Moodle temp folder removed</p>";
+	echo "<p>OK - Moodle temp folder removed</p>";
 	
 	return $moodleDownload;
 }

@@ -10,8 +10,7 @@ require_once("classes/moodleclasses.php");
 //
 // PARAMETERS
 // -> $olatObject = the OLAT Object
-//         $books = Check if the book checkbox was marked
-function olatObjectToMoodleObject($olatObject, $books) {
+function olatObjectToMoodleObject($olatObject) {
 	$number = 0;
 	$moodleCourse = new MoodleCourse(
 							$olatObject->getID(),
@@ -73,27 +72,8 @@ function olatObjectToMoodleObject($olatObject, $books) {
 			$stype = $olatSubject->getSubjectType();
 			$ok = 0;
 			switch ($stype) {
-				case "st":
-					switch ($olatSubject->getSubjectSubType()) {
-						case "page":
-							$ok = 1;
-							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()), $olatSubject->getSubjectContentFile());
-							break;
-						case "emptypage":
-							$ok = 1;
-							$moduleName = "label";
-							$moodleActivity = new ActivityLabel();
-							break;
-						case "resource":
-							$ok = 1;
-							$moduleName = "resource";
-							$moodleActivity = new ActivityResource($olatSubject->getSubjectResource());
-							break;
-					}
-					moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter);
-					break;
 				case "sp":
+				case "st":
 					switch ($olatSubject->getSubjectSubType()) {
 						case "page":
 							$ok = 1;
@@ -158,27 +138,8 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 		$type = $sub->getSubjectType();
 		$ok = 0;
 		switch ($type) {
-			case "st":
-				switch ($sub->getSubjectSubType()) {
-					case "page":
-						$ok = 1;
-						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()), $sub->getSubjectContentFile());
-						break;
-					case "emptypage":
-						$ok = 1;
-						$moduleName = "label";
-						$moodleActivity = new ActivityLabel();
-						break;
-					case "resource":
-						$ok = 1;
-						$moduleName = "resource";
-						$moodleActivity = new ActivityResource($sub->getSubjectResource());
-						break;
-				}
-				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
-				break;
 			case "sp":
+			case "st":
 				switch ($sub->getSubjectSubType()) {
 					case "page":
 						$ok = 1;
@@ -223,20 +184,20 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			
 			$mSec->setActivity($moodleActivity);
 			
-			if(is_object($sub)) {
+			if (is_object($sub)) {
 				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
 			}
 		}
 	}
 }
 
-// Removes the DOCTYPE and the <html>, <head> and <body> tags, including end tags.
-// Also fixes the <img src=""> tags to be Moodle-specific and makes the
-// .mp3, .flv and .wav references Moodle-specific by turning them into <a> tags.
+// This cleans up the HTML files given by OLAT to make them work
+// in Moodle.
 //
 // PARAMETERS
 // -> $html = The HTML file (as string)
 function moodleFixHTML($html) {
+	// Removes everything before <body> and after </body>
 	$patternRemoveStart = '/^.+&lt;body&gt;/ism';
 	$replaceRemoveStart = '';
 	$fixhtmlRemoveStart = preg_replace($patternRemoveStart, $replaceRemoveStart, $html);
@@ -244,28 +205,41 @@ function moodleFixHTML($html) {
 	$patternRemoveEnd = '/&lt;\/body&gt;.+$/ism';
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
-
+	
+	// <a> references
+	$patternReferences = '/&lt;a href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
+	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlRemoveStart);
+	
+	// <a> references part II
+	$patternReferences2 = '/&lt;a target=&quot;_blank&quot; href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceReferences2 = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
+	$fixhtmlReferences2 = preg_replace($patternReferences2, $replaceReferences2, $fixhtmlReferences);
+	
+	// Un-reference the HTML files
+	$patternUnreference = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.+?\.html?.*?)&quot;(.*?)&lt;\/a&gt;/ism';
+	$replaceUnreference = '&lt;a href=&quot;$1&quot;$2&lt;/a&gt;';
+	$fixhtmlUnreference = preg_replace($patternUnreference, $replaceUnreference, $fixhtmlReferences2);
+	
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
 	// Media files (Object)
-	$patternMedia = '/&lt;object.*file\=(.+?)&quot;.*&lt;\/object&gt;/ism';
+	$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
 	$replaceMedia = $mediaReplace;
-	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
+	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlUnreference);
 	
 	// Media files (BPlayer)
-	$patternMedia2 = '/^&lt;script.+Bplayer.insertPlayer\(&quot;(.+?)&quot;.+&lt;\/script&gt;/ism';
+	$patternMedia2 = '/&lt;script.+?Bplayer.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
 	// Images
-	$patternImages = '/src=&quot;(.+?)&quot;/i';
+	$patternImages = '/src=&quot;(?!http:\/\/)(?!javascript:)(.+?)&quot;/ism';
 	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
 	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
 	
 	// Spaces in filenames
-	//$patternSpaces = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.*?)([ *])(.*?)&quot;&gt;(.+?)&lt;\/a&gt;/i';
-	//$replaceSpaces = '&lt;a href=&quot;@@PLUGINFILE@@/$1%20$3&quot;&gt;$4&lt;/a&gt;';
-	$patternSpaces = '/(?:&lt;a href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/i';
+	$patternSpaces = '/(?:&lt;a href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/ism';
 	$replaceSpaces = '%20';
 	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
 	
@@ -274,20 +248,22 @@ function moodleFixHTML($html) {
 
 // Checks if there are scenarios with two or more pages in a row,
 // and adds a 'books' boolean (T/F) to it in the object for said page.
+// If the indentation is one more than the previous activity, it will
+// also get a 'subchapter' boolean assigned.
 // NOTE: This only happens if the books checkbox was checked at the start.
 //
 // PARAMETERS
 // -> $moodleObject = the Moodle object
 function checkForBooks($moodleObject) {
 	$object = $moodleObject;
-	foreach($object->getSection() as $section) {
-		$pageSequence = 1;
+	foreach ($object->getSection() as $section) {
+		$pageSequence = 0;
 		$previousActivity = null;
 		$subChapter = false;
 		$firstActivity = true;
-		foreach($section->getActivity() as $activity) {
+		foreach ($section->getActivity() as $activity) {
 			// The first activity will always be the first indent, and could never become a book.
-			// But this can mess with the code, so the first activity is ignored.
+			// But this can mess with the indentation of following pages, so this the first one will be ignored.
 			if (!$firstActivity) {
 				$moduleName = $activity->getModuleName();
 				if ($moduleName == "page") {
@@ -298,7 +274,7 @@ function checkForBooks($moodleObject) {
 						else {
 							$previousIndent = $previousActivity->getIndent();
 						}
-						if ($activity->getIndent() == $previousIndent) {
+						if ($activity->getIndent() == $previousIndent || $activity->getIndent() == $previousIndent + 1) {
 							$pageSequence++;
 							if ($pageSequence >= 2) {
 								if ($pageSequence == 2) {
@@ -309,33 +285,28 @@ function checkForBooks($moodleObject) {
 								}
 								$activity->setBook(true);
 								$activity->setBookContextID($bookContextID);
-								$activity->setBookSubChapter(false);
-							}
-							$subChapter = false;
-						}
-						else if ($activity->getIndent() == $previousIndent + 1) {
-							$pageSequence++;
-							if ($pageSequence >= 2) {
-								if ($pageSequence == 2) {
-									$bookContextID = $previousActivity->getContextID();
-									$previousActivity->setBook(true);
-									$previousActivity->setBookContextID($bookContextID);
-									$previousActivity->setBookSubChapter(false);
+								if ($activity->getIndent() == $previousIndent + 1) {
+									$activity->setBookSubChapter(true);
+									$subChapter = true;
 								}
-								$activity->setBook(true);
-								$activity->setBookContextID($bookContextID);
-								$activity->setBookSubChapter(true);
+								else if ($activity->getIndent() == $previousIndent) {
+									$activity->setBookSubChapter(false);
+									$subChapter = false;
+								}
 							}
-							$subChapter = true;
 						}
 						else {
-							$pageSequence = 1;
+							$pageSequence = 0;
 							$subChapter = false;
 						}
 					}
+					else {
+						$pageSequence++;
+					}
 				}
 				else {
-					$pageSequence = 1;
+					$pageSequence = 0;
+					$previousActivity = null;
 					$subChapter = false;
 				}
 				$previousActivity = $activity;
@@ -373,31 +344,66 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 			$moduleName = $activity->getModuleName();
 			if ($moduleName == "page") {
 				$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
-				$olatFiles = getDirectoryList($olatFilesPath);
+				$olatFiles = listFolderFiles($olatFilesPath);
+				$htmlString = $activity->getContent();
+				
+				// Converts the <a> tags to a page in the current course (if present)
 				foreach ($olatFiles as $olatFile) {
-					$htmlString = $activity->getContent();
-					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile) . '(.*?)&quot;(.*?)&gt;/ism';
+					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
 							foreach ($msection->getActivity() as $mactivity) {
-								if (method_exists($mactivity, "getContentFile") && $mactivity->getContentFile() == $olatFile) {
-									if ($books) {
-										if ($mactivity->getBook()) {
+								if ($mactivity->getModuleName() == "page") {
+									if ($mactivity->getContentFile() == $olatFile) {
+										if ($books) {
+											if ($mactivity->getBook()) {
 											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
 										}
 										else {
 											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
 										}
 									}
-									else {
-										$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+										else {
+											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+										}
+										$content = $activity->getContent();
+										$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
+										$activity->setContent($activityContent);
 									}
-									$content = $activity->getContent();
-									$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
-									$activity->setContent($activityContent);
 								}
 							}
+						}
+					}
+				}
+				
+				// Converts the javascript: nodes to matching Moodle activities (if they are present)
+				foreach ($object->getSection() as $jsection) {
+					foreach ($jsection->getActivity() as $jactivity) {
+						$javaPattern = '/&lt;a href=&quot;javascript:.*?gotonode\(' . $jactivity->getActivityID() . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
+						$javaPattern2 = '/&lt;a href=&quot;javascript:.*?gotonode\(' . (string) ($jactivity->getActivityID() + 50000000000000) . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
+						preg_match($javaPattern, $htmlString, $javaMatches);
+						preg_match($javaPattern2, $htmlString, $javaMatches2);
+						if (!empty($javaMatches) || !empty($javaMatches2)) {
+							if ($books) {
+								if ($jactivity->getBook()) {
+									$javaReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($jactivity->getBookContextID() - 1) . '*' . $jactivity->getChapterID() . '@$&quot;$1&gt;$2&lt;/a&gt;';
+								}
+								else {
+									$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$&quot;$1&gt;$2&lt;/a&gt;';
+								}
+							}
+							else {
+								$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$&quot;$1&gt;$2&lt;/a&gt;';
+							}
+							$contentJava = $activity->getContent();
+							if (!empty($javaMatches)) {
+								$activityContentJava = preg_replace($javaPattern, $javaReplace, $contentJava);
+							}
+							else if (!empty($javaMatches2)) {
+								$activityContentJava = preg_replace($javaPattern2, $javaReplace, $contentJava);
+							}
+							$activity->setContent($activityContentJava);
 						}
 					}
 				}
