@@ -92,4 +92,102 @@ function clean($string) {
 	return preg_replace('/-+/', '-', $string);
 }
 
+// This is mainly for quizzes, to see if an XML node exists.
+// If it does, the data will be fetched.
+//
+// PARAMETERS
+// -> Anything
+function getDataIfExists() {
+	// We accept an unknown number of arguments
+	$args = func_get_args();
+
+	// If there are no arguments, nothing will happen.
+	if (!count($args)) {
+    trigger_error('getDataIfExists() expects a minimum of 1 argument', E_USER_WARNING);
+    return NULL;
+  }
+	
+	// The object we are working with
+	$baseObj = array_shift($args);
+	
+	// Check if it's actually an object
+  if (!is_object($baseObj)) {
+		trigger_error('getDataIfExists(): first argument must be an object', E_USER_WARNING);
+		return NULL;
+	}
+
+  // Loop subsequent arguments, check they are valid and get their value(s)
+  foreach ($args as $arg) {
+		if (substr($arg, -2) == '()') { // method
+			$arg = substr($arg, 0, -2);
+			if (!method_exists($baseObj, $arg)) {
+				return NULL;
+			}
+			else {
+				$baseObj = $baseObj->$arg();
+			}
+    }
+		else { // property
+			if (!isset($baseObj->$arg)) {
+				return NULL;
+			}
+			else {
+				$baseObj = $baseObj->$arg;
+			}
+    }
+  }
+  // If we get to this point $baseObj will contain the item referenced by the supplied chain
+  return $baseObj;
+}
+
+function getQuestionType($input) {
+  $length = (strrpos($input, ':') - 1) - strpos($input, ':');
+  return substr($input, strpos($input, ':') + 1, $length);
+}
+
+// Quotation for FIB or MCQ can be either allCorrect or perAnswer
+// Function returns also the results form xpath!
+function getQuotationType($item) {
+  // XML structure is different when quatation is different (ALL/PER correct answer)
+  $results = $item->xpath('resprocessing/respcondition[setvar and not(conditionvar/other)]');
+  if (count($results[0]->conditionvar->and) > 0) {
+    $quotation = 'allCorrect';
+  } else {
+    $quotation = 'perAnswer';
+  }
+
+  return array('quotation' => $quotation,
+    'results' => $results
+  );
+}
+
+// Function for fetching Feedback, Hints & SolutionFeedback
+function qtici_fetchFeedback(&$object, $item) {
+  $hint = $item->xpath('itemfeedback/hint');
+  $object->setHint(isset($hint[0]->hintmaterial->material->mattext) ? (string) $hint[0]->hintmaterial->material->mattext : null);
+  $solutionFeedback = $item->xpath('itemfeedback/solution');
+  $object->setSolutionFeedback(isset($solutionFeedback[0]->solutionmaterial->material->mattext) ? (string) $solutionFeedback[0]->solutionmaterial->material->mattext : null);
+
+  $feedbackitems = $item->xpath('itemfeedback[material[1]]');
+  foreach ($feedbackitems as $feedbackitem) {
+    $feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
+    $object->setFeedback($feedbackObject);
+  }
+}
+
+function checkIfExistAndCast($input) {
+
+  if (is_bool($input)) {
+    if ($input == FALSE) {
+      $input = 0;
+    }
+  }
+
+  if ($input == '' || $input == NULL) {
+    $input = NULL;
+  }
+
+  return $input;
+}
+
 ?>
