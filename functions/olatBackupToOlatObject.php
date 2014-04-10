@@ -72,6 +72,25 @@ function olatBackupToOlatObject($path) {
 				// Saving the rootdir so we can get files out of it later and remove it.
 				$course->setRootdir($expath);
 				
+				// Some structures contain learning objectives
+				if ((string) $item->rootNode->type == "st") {
+					$chapterLearningObject = $xpath->xpath("//*[ident = " . (string) $item->rootNode->ident . "]/learningObjectives");
+					foreach ($chapterLearningObject as $chapterLearningObjectItem) {
+						$chapterLearningObjectItems = (string) $chapterLearningObjectItem;
+					}
+					if (isset($chapterLearningObjectItems)) {
+						$chapterObject = new ChapterPage(htmlspecialchars($chapterLearningObjectItems, ENT_QUOTES, "UTF-8"), "LEARNINGOBJECTIVES");
+						$chapterObject->setChapterID("12345");
+						$chapterObject->setType("sp");
+						$chapterObject->setShortTitle("Learning objectives");
+						$chapterObject->setLongTitle("Learning objectives");
+						$chapterObject->setIndentation(0);
+						$chapterObject->setSubType("page");
+						
+						$course->setChapter($chapterObject);
+					}
+				}
+				
 				// Chapters
 				$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
 				foreach ($chapters as $child) {
@@ -150,6 +169,7 @@ function olatBackupToOlatObject($path) {
 								$chapterObject = new ChapterPage($emptyHTML);
 								$chapterObject->setSubType("emptypage");
 							}
+							
 							unset($chapterPageItem);
 							break;
 
@@ -300,6 +320,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 						$subjectObject = new SubjectPage($emptyHTML);
 						$subjectObject->setSubjectSubType("emptypage");
 					}
+					
 					unset($subjectPageItem);
 					break;
 					
