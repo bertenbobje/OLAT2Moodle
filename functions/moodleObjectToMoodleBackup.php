@@ -614,7 +614,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						break;
 					
 					case "folder":
-						$activityActivityChildXml->addChild('display', 1);
+						$activityActivityChildXml->addChild('display', 0);
 						$activityActivityChildXml->addChild('showexpanded', 1);
 						$activityActivityChildXml->addChild('revision', 1);
 						break;
@@ -863,7 +863,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							break;
 						
 						case "folder":
-							$activityActivityChildXml->addChild('display', 1);
+							$activityActivityChildXml->addChild('display', 0);
 							$activityActivityChildXml->addChild('showexpanded', 1);
 							$activityActivityChildXml->addChild('revision', 1);
 							break;
