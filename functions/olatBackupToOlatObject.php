@@ -83,9 +83,9 @@ function olatBackupToOlatObject($path) {
 						case "iqself":
 						case "iqsurv":
 							$ok = 1;
-							$chapterObject = new ChapterTest;
+							$chapterObject = new ChapterTest();
 							$testFolder = $expath . "/export/" . $child->ident;
-							$chapterObject = quizParse($chapterObject, $testFolder);
+							$chapterObject = quizParse($chapterObject, $testFolder, "chapter");
 							break;
 						
 						// Enrollment
@@ -237,9 +237,9 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				case "iqself":
 				case "iqsurv":
 					$ok = 1;
-					$subjectObject = new SubjectTest;
+					$subjectObject = new SubjectTest();
 					$testFolder = $pathCourse . "/export/" . $schild->ident;
-					$subjectObject = quizParse($subjectObject, $testFolder);
+					$subjectObject = quizParse($subjectObject, $testFolder, "subject");
 					break;
 				
 				// Enrollment
@@ -362,10 +362,12 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 // PARAMETERS
 // -> $object = the Test object (chapter or subject)
 //      $path = Path to quiz folder (/coursefolder/[ident]/)
+//  $olatType = 
 //
-function quizParse($object, $path) {
-	$qObject = $object;
-	
+function quizParse($object, $path, $olatType) {
+
+	$QObject = $object;
+
 	// Unpack the repo.zip archive
 	$testZip = new ZipArchive;
 	if ($testZip->open($path . "/repo.zip")) {
@@ -373,13 +375,81 @@ function quizParse($object, $path) {
 		$testZip->close();
 	}
 	
+	// Load the important XML files in a SimpleXMLElement
 	$repoXml = simplexml_load_file($path . "/repo.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
-	$qtiXml = simplexml_load_file($path . "/repo/qti.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
 	
-	var_dump($repoXml);
-	var_dump($qtiXml);
+	$filename = $path . "/repo/qti.xml";
+	$qtiXml = simplexml_load_file($filename, 'SimpleXMLElement', LIBXML_NOCDATA);
 	
-	return $qObject;
+	$qtiSections = $qtiXml->assessment->section;
+  $qtiCategories = array();
+	
+	$qtiTestDescription = (string) getDataIfExists($qtiXml, 'assessment', 'objectives', 'material', 'mattext');
+	if (!empty($qtiTestDescription)) {
+		$pos = strpos('<categories>', $qtiTestDescription);
+		// Check if categories are defined inside description
+		if ($pos) {
+			$end = strpos('</categories>', $qtiTestDescription);
+			$tag_list = substr($qtiTestDescription, $pos + strlen('<categories>'), $end);
+			$tag_array = explode(',', $tag_list);
+			
+			$qtiTestDescription = substr($qtiTestDescription, 0, $pos);
+			$qtiCategories += $tag_array;
+		}
+	}
+	else {
+		$qtiTestDescription = "";
+	}
+
+	if ($olatType == "chapter") {
+		$testObject = new ChapterTest;
+	}
+	else {
+		$testObject = new SubjectTest;
+	}
+	$testObject->setTitle((string) getDataIfExists($qtiXml, 'assessment', 'attributes()', 'title'));
+	$testObject->setDescription($qtiTestDescription);
+	$testObject->setDuration((string) getDataIfExists($qtiXml, 'assessment', 'duration'));
+	$testObject->setPassing_score((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));
+  $testObject->setBundle('qtici_test');
+	$testObject->saveCategories($qtiCategories);
+
+  // Loop through each section
+  foreach ($qtiSections as $qtiSection) {
+    $sectionObject = new QuizSection((string) getDataIfExists($qtiSections, 'attributes()', 'ident'), (string) getDataIfExists($qtiSections, 'attributes()', 'title'), (string) getDataIfExists($qtiSections, 'objectives', 'material', 'mattext'), (string) getDataIfExists($qtiSections, 'selection_ordering', 'order', 'attributes()', 'order_type'));
+    $testObject->setSection($sectionObject);
+		
+    // Loop through each item
+    $qtiItems = getDataIfExists($qtiSections, 'item');
+    foreach ($qtiItems as $qtiItem) {
+      // Each question type has be treated differently
+      $questionType = getQuestionType($qtiItem->attributes()->ident);
+			if ($questionType == "MCQ") {
+				$QObject = new MultipleChoiceQuestion;
+			}
+			if ($questionType == "SCQ") {
+				$QObject = new SingleChoiceQuestion;
+			}
+			if ($questionType == "FIB") {
+				$QObject = new FillInBlanks;
+			}
+      $QObject->parseXML($qtiItem);
+
+      $question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
+      if ($questionType === 'FIB') {
+        // For FIB
+        $question = (string) getDataIfExists($qtiItem, 'presentation', 'flow', 'material', 'mattext');
+        $content = unserialize($QObject->content);
+        $content = checkIfExistAndCast($content, $filename);
+        $QObject->setContent($content);
+      }
+      $question2 = checkIfExistAndCast($question, $filename);
+      $QObject->setQuestion($question2);
+
+      $sectionObject->setItem($QObject);
+    }
+  }
+	return $QObject;
 }
 
 ?>
