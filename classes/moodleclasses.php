@@ -153,6 +153,7 @@ class Activity {
 	protected $moduleName;
 	protected $contextID;
 	protected $sectionID;
+	protected $olatType;
 	protected $name;
 	protected $indent;
 	protected $book;
@@ -209,6 +210,14 @@ class Activity {
 	
 	public function getSectionID() {
 		return $this->sectionID;
+	}
+	
+	public function setOlatType($olatType) {
+		$this->olatType = $olatType;
+	}
+	
+	public function getOlatType() {
+		return $this->olatType;
 	}
 	
 	public function setName($name) {

@@ -78,7 +78,7 @@ function olatBackupToOlatObject($path) {
 					foreach ($chapterLearningObject as $chapterLearningObjectItem) {
 						$chapterLearningObjectItems = (string) $chapterLearningObjectItem;
 					}
-					if (isset($chapterLearningObjectItems)) {
+					if (isset($chapterLearningObjectItems) && !empty($chapterLearningObjectItems)) {
 						$chapterObject = new ChapterPage(htmlspecialchars($chapterLearningObjectItems, ENT_QUOTES, "UTF-8"), "LEARNINGOBJECTIVES");
 						$chapterObject->setChapterID("12345");
 						$chapterObject->setType("sp");

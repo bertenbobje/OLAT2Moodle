@@ -63,6 +63,7 @@ function olatObjectToMoodleObject($olatObject) {
 			$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() - 50000000000000));
 			$moodleActivity->setSectionID($olatChapter->getChapterID());
 			$moodleActivity->setModuleName($moduleName);
+			$moodleActivity->setOlatType($ctype);
 			$moodleActivity->setName($olatChapter->getShortTitle());
 			$moodleActivity->setIndent($olatChapter->getIndentation());
 			$moodleActivity->setBook(false);
@@ -112,6 +113,7 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setActivityID($olatSubject->getSubjectID());
 				$moodleActivity->setSectionID($olatChapter->getChapterID());
 				$moodleActivity->setModuleName($moduleName);
+				$moodleActivity->setOlatType($stype);
 				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
 				$moodleActivity->setIndent($olatSubject->getSubjectIndentation());
 				$moodleActivity->setBook(false);
@@ -178,6 +180,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			$moodleActivity->setActivityID($sub->getSubjectID());
 			$moodleActivity->setSectionID($olatChapter->getChapterID());
 			$moodleActivity->setModuleName($moduleName);
+			$moodleActivity->setOlatType($type);
 			$moodleActivity->setName($sub->getSubjectShortTitle());
 			$moodleActivity->setIndent($sub->getSubjectIndentation());
 			$moodleActivity->setBook(false);
@@ -264,7 +267,7 @@ function checkForBooks($moodleObject) {
 		foreach ($section->getActivity() as $activity) {
 			// The first activity will always be the first indent, and could never become a book.
 			// But this can mess with the indentation of following pages, so this the first one will be ignored.
-			if (!$firstActivity) {
+			if (!$firstActivity || $activity->getOlatType() == "sp") {
 				$moduleName = $activity->getModuleName();
 				if ($moduleName == "page") {
 					if (isset($previousActivity)) {
