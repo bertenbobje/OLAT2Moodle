@@ -227,9 +227,9 @@ function moodleFixHTML($html, $page) {
 	$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($fixhtmlMedia2, ENT_QUOTES));
 	$errors = libxml_get_errors();
 	if (!empty($errors)) {
-		echo "<p style='color:darkorange;'>WARNING - HTML errors found in " . $page . ", this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
+		echo "<p style='color:darkorange;'>WARNING - HTML errors found in '" . utf8_decode($page) . "', this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
 		foreach ($errors as $error) {
-			echo "<li>" . $error->message . "</li>";
+			echo "<li>" . $error->message . " on line " . $error->line . "</li>";
 		}
 		echo "</ul></p>";
 	}
