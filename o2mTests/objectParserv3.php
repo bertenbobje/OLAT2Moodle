@@ -151,4 +151,23 @@ function parseQTIToObject($filename, $folderID) {
   return $testObject;
 }
 
+/**
+ * Returns the text description without the categories and an array by ref. with them
+ */
+function _qtici_get_testDescription($string, &$categories) {
+  $pos = strpos('<categories>', $string);
+  $description = $string;
+  // Check if categories are defined inside description
+  if ($pos) {
+    $end = strpos('</categories>', $string);
+    $tag_list = substr($string, $pos + strlen('<categories>'), $end);
+    $tag_array = explode(',', $tag_list);
+    
+    $description = substr($string, 0, $pos);
+    $categories += $tag_array;
+  }
+  
+  return $description;
+}
+
 ?>
