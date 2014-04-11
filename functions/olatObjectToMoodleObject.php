@@ -29,7 +29,7 @@ function olatObjectToMoodleObject($olatObject) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage()), $olatChapter->getContentFile());
+						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage(), $olatChapter->getLongTitle()), $olatChapter->getContentFile());
 						break;
 					case "emptypage":
 						$ok = 1;
@@ -79,7 +79,7 @@ function olatObjectToMoodleObject($olatObject) {
 						case "page":
 							$ok = 1;
 							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage()), $olatSubject->getSubjectContentFile());
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage(), $olatSubject->getSubjectLongTitle()), $olatSubject->getSubjectContentFile());
 							break;
 						case "emptypage":
 							$ok = 1;
@@ -146,7 +146,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage()), $sub->getSubjectContentFile());
+						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage(), $sub->getSubjectLongTitle()), $sub->getSubjectContentFile());
 						break;
 					case "emptypage":
 						$ok = 1;
@@ -199,7 +199,8 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 //
 // PARAMETERS
 // -> $html = The HTML file (as string)
-function moodleFixHTML($html) {
+//    $page = The HTML file name.
+function moodleFixHTML($html, $page) {
 	// Removes everything before <body> and after </body>
 	$patternRemoveStart = '/^.+&lt;body&gt;/ism';
 	$replaceRemoveStart = '';
@@ -208,45 +209,81 @@ function moodleFixHTML($html) {
 	$patternRemoveEnd = '/&lt;\/body&gt;.+$/ism';
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
-	
-	// <a> references
-	$patternReferences = '/&lt;a href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
-	$replaceReferences = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
-	$fixhtmlReferences = preg_replace($patternReferences, $replaceReferences, $fixhtmlRemoveStart);
-	
-	// <a> references part II
-	$patternReferences2 = '/&lt;a target=&quot;_blank&quot; href=&quot;((?!http:\/\/)(?!javascript:).+?)&quot;(.*?)&lt;\/a&gt;/ism';
-	$replaceReferences2 = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;$2&lt;/a&gt;';
-	$fixhtmlReferences2 = preg_replace($patternReferences2, $replaceReferences2, $fixhtmlReferences);
-	
-	// Un-reference the HTML files
-	$patternUnreference = '/&lt;a href=&quot;@@PLUGINFILE@@\/(.+?\.html?.*?)&quot;(.*?)&lt;\/a&gt;/ism';
-	$replaceUnreference = '&lt;a href=&quot;$1&quot;$2&lt;/a&gt;';
-	$fixhtmlUnreference = preg_replace($patternUnreference, $replaceUnreference, $fixhtmlReferences2);
-	
+
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
 	// Media files (Object)
 	$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
 	$replaceMedia = $mediaReplace;
-	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlUnreference);
+	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
 	// Media files (BPlayer)
 	$patternMedia2 = '/&lt;script.+?Bplayer.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
-	// Images
-	$patternImages = '/src=&quot;(?!http:\/\/)(?!javascript:)(.+?)&quot;/ism';
-	$replaceImages = 'src=&quot;@@PLUGINFILE@@/$1&quot;';
-	$fixhtmlImages = preg_replace($patternImages, $replaceImages, $fixhtmlMedia2);
+	$dom = new DOMDocument;
+	$errorState = libxml_use_internal_errors(TRUE);
+	$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($fixhtmlMedia2, ENT_QUOTES));
+	$errors = libxml_get_errors();
+	if (!empty($errors)) {
+		echo "<p style='color:darkorange;'>WARNING - HTML errors found in " . $page . ", this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
+		foreach ($errors as $error) {
+			echo "<li>" . $error->message . "</li>";
+		}
+		echo "</ul></p>";
+	}
+	
+	// Fix the references in <img> and <a> tags that don't lead to an external page
+	foreach ($dom->getElementsByTagName('img') as $inode) {
+		$srcValue = $inode->getAttribute('src');
+		if (substr($srcValue, 0, 7)  !== "http://" 
+		 && substr($srcValue, 0, 8)  !== "https://") {
+			$inode->setAttribute('src', '@@PLUGINFILE@@/' . $srcValue);
+		}
+	}
+	
+	foreach ($dom->getElementsByTagName('a') as $anode) {
+		if ($anode->hasAttribute('href')) {
+			$hrefValue = $anode->getAttribute('href');
+			if (substr($hrefValue, 0, 7)  !== "http://" 
+			 && substr($hrefValue, 0, 8)  !== "https://" 
+			 && substr($hrefValue, 0, 15) !== "@@PLUGINFILE@@/") {
+				$anode->setAttribute('href', '@@PLUGINFILE@@/' . $hrefValue);
+			}
+		}
+	}
 	
 	// Spaces in filenames
-	$patternSpaces = '/(?:&lt;a href=&quot;@@PLUGINFILE@@\/|\G)\S*\K (?=(?:(?!&quot;|&gt;).)*?&quot;)/ism';
-	$replaceSpaces = '%20';
-	$fixhtmlSpaces = preg_replace($patternSpaces, $replaceSpaces, $fixhtmlImages);
+	foreach ($dom->getElementsByTagName('a') as $anode) {
+		if ($anode->hasAttribute('href')) {
+			$hrefValue = $anode->getAttribute('href');
+			$anode->setAttribute('href', str_replace(" ", "%20", $hrefValue));
+		}
+	}
 	
-	return $fixhtmlSpaces;
+	foreach ($dom->getElementsByTagName('img') as $inode) {
+		$srcValue = $inode->getAttribute('src');
+		$inode->setAttribute('src', str_replace(" ", "%20", $srcValue));
+	}
+	
+	// Strips all the <a> tags for everything except 'href' (except if 'href' doesn't exist)
+	// This is to not break the regex later on for Moodle references
+	foreach ($dom->getElementsByTagName('a') as $anode) {
+		if ($anode->hasAttribute('href')) {
+			foreach ($anode->attributes as $anodea) {
+				if ($anodea->name !== 'href') {
+					$anode->removeAttribute($anodea->name);
+				}
+			}
+		}
+	}
+	
+	libxml_use_internal_errors($errorState);
+	$fixedHTML = $dom->saveHTML();
+	libxml_clear_errors();
+	
+	return htmlspecialchars($fixedHTML, ENT_QUOTES, "UTF-8");
 }
 
 // Checks if there are scenarios with two or more pages in a row,
@@ -352,7 +389,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				
 				// Converts the <a> tags to a page in the current course (if present)
 				foreach ($olatFiles as $olatFile) {
-					$htmlPattern = '/&lt;a href=&quot;' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
+					$htmlPattern = '/&lt;a href=&quot;.*?' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {

@@ -21,7 +21,7 @@ function olatBackupToOlatObject($path) {
 	$fileName = $_FILES["file"]["name"];
 	$fileExtension = substr($fileName, strrpos($fileName, "."));
 	if ($fileExtension != ".zip") {
-		echo "<p style='color:red;'>ERROR - " . $fileExtension . " uploaded, .zip expected</p>";
+		echo "<p style='color:red;'>ERROR - " . $fileExtension . " uploaded, .zip expected</p><a href='index.php'>Go to start page</a>";
 		return null;
 	}
 	else {
@@ -46,7 +46,7 @@ function olatBackupToOlatObject($path) {
 				$zip->close();
 			}
 			else {
-				echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p>";
+				echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p><a href='index.php'>Go to start page</a>";
 				return null;
 			}
 			
@@ -152,7 +152,7 @@ function olatBackupToOlatObject($path) {
 										$chapterObject->setSubType("page");
 									}
 									else {
-										echo "<p style='color:red;'> WARNING - " . $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
+										echo "<p style='color:darkorange;'>WARNING - " . $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
 										$ok = 0;
 									}
 								}
@@ -222,12 +222,12 @@ function olatBackupToOlatObject($path) {
 				return $course;
 			}
 			else {
-				echo "<p style='color:red;'>ERROR - Error reading XML, are you sure you uploaded an OLAT export .zip?</p>";
+				echo "<p style='color:red;'>ERROR - Error reading XML, are you sure you uploaded an OLAT export .zip?</p><a href='index.php'>Go to start page</a>";
 				return null;
 			}
 		}
 		else {
-			echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p>";
+			echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p><a href='index.php'>Go to start page</a>";
 			return null;
 		}
 	}
@@ -303,7 +303,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 								$subjectObject->setSubjectSubType("page");
 							}
 							else {
-								echo "<p style='color:red;'> WARNING - " . $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
+								echo "<p style='color:darkorange;'>WARNING - " . $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
 								$ok = 0;
 							}
 						}
