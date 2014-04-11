@@ -6,7 +6,7 @@ ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_depth', -1);
 
- $filename = "C:/Users/Bert/Desktop/Nederlandistik/export/88745243341268/repo/qti.xml";
+ $filename = "qti.xml";
  if (file_exists($filename)) {
     $xml = new SimpleXMLElement($filename, null, true);
   } else {
