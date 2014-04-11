@@ -47,7 +47,6 @@ ini_set('xdebug.var_display_max_depth', -1);
 			if ($questionType == "FIB")
 				$QObject = new FillInQuestion;
       $QObject->parseXML($item);
-      var_dump($QObject);
       // Replace video and audio in possibilities
       /*$possibilities = $QObject->getPossibilities();
       foreach ($possibilities as $poss) {
@@ -68,44 +67,8 @@ ini_set('xdebug.var_display_max_depth', -1);
 
       $sectionObject->setItem($QObject);
     }
-		var_dump($sectionObject);
   }
-	
-function getDataIfExists() {
-  // We accept an unknown number of arguments
-  $args = func_get_args();
-
-  if (!count($args)) {
-    trigger_error('getDataIfExists() expects a minimum of 1 argument', E_USER_WARNING);
-    return NULL;
-  }
-
-  // The object we are working with
-  $baseObj = array_shift($args);
-
-  // Check it actually is an object
-  if (!is_object($baseObj)) {
-    trigger_error('getDataIfExists(): first argument must be an object', E_USER_WARNING);
-    return NULL;
-  }
-
-  // Loop subsequent arguments, check they are valid and get their value(s)
-  foreach ($args as $arg) {
-    $arg = $arg;
-    if (substr($arg, -2) == '()') { // method
-      $arg = substr($arg, 0, -2);
-      if (!method_exists($baseObj, $arg))
-        return NULL;
-      $baseObj = $baseObj->$arg();
-    } else { // property
-      if (!isset($baseObj->$arg))
-        return NULL;
-      $baseObj = $baseObj->$arg;
-    }
-  }
-  // If we get here $baseObj will contain the item referenced by the supplied chain
-  return $baseObj;
-}
+  var_dump($testObject);
 
 function getQuestionType($input) {
   $length = (strrpos($input, ':') - 1) - strpos($input, ':');
