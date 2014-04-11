@@ -1,5 +1,6 @@
 <?php
 require_once("classes/olatClassesQuiz.php");
+require_once("classes/exercises/FillInQuestion.php");
 require_once("functions.inc");
 
 ini_set('xdebug.var_display_max_data', -1);
