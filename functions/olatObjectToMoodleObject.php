@@ -248,6 +248,7 @@ function moodleFixHTML($html, $page) {
 			$hrefValue = $anode->getAttribute('href');
 			if (substr($hrefValue, 0, 7)  !== "http://" 
 			 && substr($hrefValue, 0, 8)  !== "https://" 
+			 && substr($hrefValue, 0, 11) !== "javascript:"
 			 && substr($hrefValue, 0, 15) !== "@@PLUGINFILE@@/") {
 				$anode->setAttribute('href', '@@PLUGINFILE@@/' . $hrefValue);
 			}
@@ -389,7 +390,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				
 				// Converts the <a> tags to a page in the current course (if present)
 				foreach ($olatFiles as $olatFile) {
-					$htmlPattern = '/&lt;a href=&quot;.*?' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
+					$htmlPattern = '/&lt;a href=&quot;(?:@@PLUGINFILE\/|.*?)' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
@@ -420,8 +421,8 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				// Converts the javascript: nodes to matching Moodle activities (if they are present)
 				foreach ($object->getSection() as $jsection) {
 					foreach ($jsection->getActivity() as $jactivity) {
-						$javaPattern = '/&lt;a href=&quot;javascript:.*?gotonode\(' . $jactivity->getActivityID() . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
-						$javaPattern2 = '/&lt;a href=&quot;javascript:.*?gotonode\(' . (string) ($jactivity->getActivityID() + 50000000000000) . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
+						$javaPattern = '/&lt;a href=&quot;javascript:parent\.gotonode\(' . $jactivity->getActivityID() . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
+						$javaPattern2 = '/&lt;a href=&quot;javascript:parent\.gotonode\(' . (string) ($jactivity->getActivityID() + 50000000000000) . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
 						preg_match($javaPattern, $htmlString, $javaMatches);
 						preg_match($javaPattern2, $htmlString, $javaMatches2);
 						if (!empty($javaMatches) || !empty($javaMatches2)) {
