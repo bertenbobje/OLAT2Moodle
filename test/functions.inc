@@ -3,6 +3,84 @@
 /**
  * @file - Diverse functions
  */
+ 
+/**
+ * FUNCTIONS THAT ARE ACTUALLY BEING CALLED BY THE QUIZ PARSER
+ */
+
+/**
+ * Returns the text description without the categories and an array by ref. with them
+ */
+function _qtici_get_testDescription($string, &$categories) {
+  $pos = strpos('<categories>', $string);
+  $description = $string;
+  // Check if categories are defined inside description
+  if ($pos) {
+    $end = strpos('</categories>', $string);
+    $tag_list = substr($string, $pos + strlen('<categories>'), $end);
+    $tag_array = explode(',', $tag_list);
+    
+    $description = substr($string, 0, $pos);
+    $categories += $tag_array;
+  }
+  
+  return $description;
+}
+
+function getDataIfExists() {
+  // We accept an unknown number of arguments
+  $args = func_get_args();
+
+  if (!count($args)) {
+    trigger_error('getDataIfExists() expects a minimum of 1 argument', E_USER_WARNING);
+    return NULL;
+  }
+
+  // The object we are working with
+  $baseObj = array_shift($args);
+
+  // Check it actually is an object
+  if (!is_object($baseObj)) {
+    trigger_error('getDataIfExists(): first argument must be an object', E_USER_WARNING);
+    return NULL;
+  }
+
+  // Loop subsequent arguments, check they are valid and get their value(s)
+  foreach ($args as $arg) {
+    $arg = $arg;
+    if (substr($arg, -2) == '()') { // method
+      $arg = substr($arg, 0, -2);
+      if (!method_exists($baseObj, $arg))
+        return NULL;
+      $baseObj = $baseObj->$arg();
+    } else { // property
+      if (!isset($baseObj->$arg))
+        return NULL;
+      $baseObj = $baseObj->$arg;
+    }
+  }
+  // If we get here $baseObj will contain the item referenced by the supplied chain
+  return $baseObj;
+}
+
+function checkIfExistAndCast($input, $path = '') {
+
+  if (is_bool($input)) {
+    if ($input == FALSE) {
+      $input = 0;
+    }
+  }
+
+  if ($input == '' || $input == NULL) {
+    $input = NULL;
+  }
+
+  return $input;
+}
+
+/**
+ * OTHER FUNCTIONS (MAY BE REMOVED)
+ */
 
 function strpos_r($haystack, $needle) {
   if (strlen($needle) > strlen($haystack))
@@ -14,28 +92,6 @@ function strpos_r($haystack, $needle) {
     $haystack = substr($haystack, 0, $seek);
   }
   return $seeks;
-}
-
-function checkIfExistAndCast($input, $path = '', $folderID = '') {
-
-  if (is_bool($input)) {
-    if ($input == FALSE) {
-      $input = 0;
-    }
-  }
-
-  if ($input == '' || $input == NULL) {
-    $input = NULL;
-  }
-  else {
-    if (is_string($input)) {
-      $input = _formatHTML($input);
-      $path = str_replace('qti.xml', '', $path);
-      _qtici_replaceVideo($input, $path);
-    }
-  }
-
-  return $input;
 }
 
 function getSecondsFromDuration($input) {
@@ -550,25 +606,6 @@ function _qtici_getCorrectPossibilityForItem($itemid) {
   }
 
   return $return;
-}
-
-/**
- * Returns the text description without the categories and an array by ref. with them
- */
-function _qtici_get_testDescription($string, &$categories) {
-  $pos = strpos('<categories>', $string);
-  $description = $string;
-  // Check if categories are defined inside description
-  if ($pos) {
-    $end = strpos('</categories>', $string);
-    $tag_list = substr($string, $pos + strlen('<categories>'), $end);
-    $tag_array = explode(',', $tag_list);
-    
-    $description = substr($string, 0, $pos);
-    $categories += $tag_array;
-  }
-  
-  return $description;
 }
 
 /**
