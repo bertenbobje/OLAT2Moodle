@@ -72,7 +72,7 @@ function checkDoubleFileReference($zippedzip) {
 		$diff = array_count_values($dirdump);
 		foreach ($diff as $key=>$val) {
 			if ($val != 1) {
-				echo "<p style='color:red;'>WARNING - The coursefolder directory contains duplicate files, these will be discarded. 
+				echo "<p style='color:darkorange;'>WARNING - The coursefolder directory contains duplicate files, these will be discarded. 
 						Some content may not load in Moodle as a result. The discarded content is named: " . $key . "</p>";
 			}
 		}

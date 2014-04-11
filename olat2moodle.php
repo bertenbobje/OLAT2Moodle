@@ -72,11 +72,11 @@ if (isset($_FILES["file"])) {
 		}
 	}
 	else {
-		echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><br><a href='index.php'>Go to start page</a>";
+		echo "<p style='color:red;'>ERROR - No file uploaded.</p><a href='index.php'>Go to start page</a>";
 	}
 }
 else {
-	echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><br><a href='index.php'>Go to start page</a>";
+	echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><a href='index.php'>Go to start page</a>";
 }
 
 echo '

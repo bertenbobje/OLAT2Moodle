@@ -279,12 +279,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityModuleName = $activity->getModuleName();
 						switch ($activityModuleName) {
 							case "page":
-								// There can be a lot of possibilities for matching filenames, because of
-								// strange characters (u umlauts) and spaces.
+								// There can be a lot of possibilities for matching filenames, because of strange characters (umlauts)
 								if (strpos($activity->getContent(), $olatFile) !== false
-													|| strpos($activity->getContent(), str_replace(' ', '%20', $olatFile)) !== false
-													|| strpos(utf8_decode($activity->getContent()), htmlentities(htmlentities($olatFile))) !== false
-													|| strpos(utf8_decode($activity->getContent()), htmlentities(htmlentities(str_replace(' ', '%20', $olatFile)))) !== false) {
+													|| strpos(urldecode($activity->getContent()), $olatFile) !== false) {
 									$fileOK = 1;
 									$filesXmlChild = $filesXml->addChild('file');
 									$filesXmlChild->addAttribute('id', $fileID);
@@ -353,7 +350,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 			}
 		}
 		else {
-			echo "<p style='color:red;'>WARNING - Couldn't copy file: " . $olatFile . "</p><br>";
+			echo "<p style='color:orange;'>WARNING - Couldn't copy file: " . $olatFile . "</p><br>";
 			$fileError++;
 		}
 	}
@@ -447,7 +444,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$dom->loadXml($filesXml->asXML());
 	file_put_contents($path . "/files.xml", $dom->saveXML());
 	if ($fileError != 0) {
-		echo "<p style='color:red;'>WARNING - " . $fileError . " file(s) failed to copy</p>";
+		echo "<p style='color:orange;'>WARNING - " . $fileError . " file(s) failed to copy</p>";
 	}
 	echo "<p>OK - Files copied</p>";
 	
