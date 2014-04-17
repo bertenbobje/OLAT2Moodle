@@ -202,7 +202,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 //    $page = The HTML file name.
 function moodleFixHTML($html, $page) {
 	// Removes everything before <body> and after </body>
-	$patternRemoveStart = '/^.+&lt;body&gt;/ism';
+	$patternRemoveStart = '/^.+?&lt;body&gt;/ism';
 	$replaceRemoveStart = '';
 	$fixhtmlRemoveStart = preg_replace($patternRemoveStart, $replaceRemoveStart, $html);
 	
@@ -218,7 +218,7 @@ function moodleFixHTML($html, $page) {
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
 	// Media files (BPlayer)
-	$patternMedia2 = '/&lt;script.+?Bplayer.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
+	$patternMedia2 = '/&lt;script.+?BPlayer.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
