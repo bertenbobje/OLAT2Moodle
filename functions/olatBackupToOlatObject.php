@@ -448,7 +448,7 @@ function quizParse($object, $path, $olatType) {
       $QObject->setQuestion($question2);
       $sectionObject->setItem($QObject);
     }
-		var_dump($testObject);
+//		var_dump($testObject);
   }
 	return $testObject;
 }
