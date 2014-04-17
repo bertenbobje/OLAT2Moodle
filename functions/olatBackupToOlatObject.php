@@ -85,7 +85,8 @@ function olatBackupToOlatObject($path) {
 							$ok = 1;
 							$chapterObject = new ChapterTest();
 							$testFolder = $expath . "/export/" . $child->ident;
-							$chapterObject = quizParse($chapterObject, $testFolder, "chapter");
+							$newChapterObject = quizParse($chapterObject, $testFolder, "chapter");
+							$chapterObject = $newChapterObject;
 							break;
 						
 						// Enrollment
@@ -239,7 +240,8 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 					$ok = 1;
 					$subjectObject = new SubjectTest();
 					$testFolder = $pathCourse . "/export/" . $schild->ident;
-					$subjectObject = quizParse($subjectObject, $testFolder, "subject");
+					$newSubjectObject = quizParse($subjectObject, $testFolder, "subject");
+					$subjectObject = $newSubjectObject;
 					break;
 				
 				// Enrollment
@@ -362,7 +364,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 // PARAMETERS
 // -> $object = the Test object (chapter or subject)
 //      $path = Path to quiz folder (/coursefolder/[ident]/)
-//  $olatType = 
+//  $olatType = Either chapter or subject
 //
 function quizParse($object, $path, $olatType) {
 
@@ -376,10 +378,10 @@ function quizParse($object, $path, $olatType) {
 	}
 	
 	// Load the important XML files in a SimpleXMLElement
-	$repoXml = simplexml_load_file($path . "/repo.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
+	$repoXml = new SimpleXMLElement($path . "/repo.xml", null, true);
 	
 	$filename = $path . "/repo/qti.xml";
-	$qtiXml = simplexml_load_file($filename, 'SimpleXMLElement', LIBXML_NOCDATA);
+	$qtiXml = new SimpleXMLElement($filename, null, true);
 	
 	$qtiSections = $qtiXml->assessment->section;
   $qtiCategories = array();
@@ -434,7 +436,6 @@ function quizParse($object, $path, $olatType) {
 				$QObject = new FillInBlanks;
 			}
       $QObject->parseXML($qtiItem);
-
       $question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
       if ($questionType === 'FIB') {
         // For FIB
@@ -445,11 +446,11 @@ function quizParse($object, $path, $olatType) {
       }
       $question2 = checkIfExistAndCast($question, $filename);
       $QObject->setQuestion($question2);
-
       $sectionObject->setItem($QObject);
     }
+		var_dump($testObject);
   }
-	return $QObject;
+	return $testObject;
 }
 
 ?>
