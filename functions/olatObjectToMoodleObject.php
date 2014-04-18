@@ -304,7 +304,7 @@ function checkForBooks($moodleObject) {
 		$firstActivity = true;
 		foreach ($section->getActivity() as $activity) {
 			// The first activity will always be the first indent, and could never become a book.
-			// But this can mess with the indentation of following pages, so this the first one will be ignored.
+			// But this can mess with the indentation of following pages, so this the first one will be ignored (except when it's a page itself).
 			if (!$firstActivity || $activity->getOlatType() == "sp") {
 				$moduleName = $activity->getModuleName();
 				if ($moduleName == "page") {
