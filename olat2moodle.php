@@ -14,7 +14,7 @@ require_once("functions/moodleObjectToMoodleBackup.php");
 
 // To make sure that every action can happen, even with bigger files.
 ini_set('max_execution_time', 300);
-ini_set('memory_limit', '-1');
+//ini_set('memory_limit', '-1');
 
 ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
