@@ -418,14 +418,14 @@ function olatQuizParse($object, $path, $olatType) {
 
   // Loop through each section
   foreach ($qtiSections as $qtiSection) {
-    $sectionObject = new QuizSection((string) getDataIfExists($qtiSections, 'attributes()', 'ident'), 
-						(string) getDataIfExists($qtiSections, 'attributes()', 'title'), 
-						(string) getDataIfExists($qtiSections, 'objectives', 'material', 'mattext'), 
-						(string) getDataIfExists($qtiSections, 'selection_ordering', 'order', 'attributes()', 'order_type'));
+    $sectionObject = new QuizSection((string) getDataIfExists($qtiSection, 'attributes()', 'ident'), 
+						(string) getDataIfExists($qtiSection, 'attributes()', 'title'), 
+						(string) getDataIfExists($qtiSection, 'objectives', 'material', 'mattext'), 
+						(string) getDataIfExists($qtiSection, 'selection_ordering', 'order', 'attributes()', 'order_type'));
     $testObject->setSection($sectionObject);
 		
     // Loop through each item
-    $qtiItems = getDataIfExists($qtiSections, 'item');
+    $qtiItems = getDataIfExists($qtiSection, 'item');
     foreach ($qtiItems as $qtiItem) {
       // Each question type has be treated differently
       $questionType = getQuestionType($qtiItem->attributes()->ident);

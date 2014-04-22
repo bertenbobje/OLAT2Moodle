@@ -1,5 +1,7 @@
 <?php
 
+require_once("functions/general.php");
+
 /**********************************************************
 /* Collection of objects for storing OLAT data.
 /**********************************************************
