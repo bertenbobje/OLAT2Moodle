@@ -1294,7 +1294,7 @@ class Item {
     $this->setObjective((string) getDataIfExists($item, 'objectives', 'material', 'mattext'));
     $this->setDescription((string) getDataIfExists($item, 'objectives', 'material', 'mattext'));
 
-    qtici_fetchFeedback($this, $item);
+    fetchFeedback($this, $item);
   }
 
   /**

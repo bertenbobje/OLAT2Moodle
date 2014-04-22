@@ -23,6 +23,13 @@ function olatObjectToMoodleObject($olatObject) {
 		$ctype = $olatChapter->getType();
 		$ok = 0;
 		switch ($ctype) {
+			case "iqtest":
+			case "iqself":
+			case "iqsurv":
+				$ok = 1;
+				$moduleName = "quiz";
+				$moodleActivity = new ActivityQuiz();
+				break;
 			case "sp":
 			case "st":
 				switch ($olatChapter->getSubType()) {
@@ -72,6 +79,13 @@ function olatObjectToMoodleObject($olatObject) {
 			$stype = $olatSubject->getSubjectType();
 			$ok = 0;
 			switch ($stype) {
+				case "iqtest":
+				case "iqself":
+				case "iqsurv":
+					$ok = 1;
+					$moduleName = "quiz";
+					$moodleActivity = new ActivityQuiz();
+					break;
 				case "sp":
 				case "st":
 					switch ($olatSubject->getSubjectSubType()) {
@@ -138,6 +152,13 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 		$type = $sub->getSubjectType();
 		$ok = 0;
 		switch ($type) {
+			case "iqtest":
+			case "iqself":
+			case "iqsurv":
+				$ok = 1;
+				$moduleName = "quiz";
+				$moodleActivity = new ActivityQuiz();
+				break;
 			case "sp":
 			case "st":
 				switch ($sub->getSubjectSubType()) {

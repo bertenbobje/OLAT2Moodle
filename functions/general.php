@@ -162,7 +162,7 @@ function getQuotationType($item) {
 }
 
 // Function for fetching Feedback, Hints & SolutionFeedback
-function qtici_fetchFeedback(&$object, $item) {
+function fetchFeedback(&$object, $item) {
   $hint = $item->xpath('itemfeedback/hint');
   $object->setHint(isset($hint[0]->hintmaterial->material->mattext) ? (string) $hint[0]->hintmaterial->material->mattext : null);
   $solutionFeedback = $item->xpath('itemfeedback/solution');
@@ -173,21 +173,6 @@ function qtici_fetchFeedback(&$object, $item) {
     $feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
     $object->setFeedback($feedbackObject);
   }
-}
-
-function checkIfExistAndCast($input) {
-
-  if (is_bool($input)) {
-    if ($input == FALSE) {
-      $input = 0;
-    }
-  }
-
-  if ($input == '' || $input == NULL) {
-    $input = NULL;
-  }
-
-  return $input;
 }
 
 ?>
