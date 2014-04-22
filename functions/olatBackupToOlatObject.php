@@ -1,6 +1,7 @@
 <?php
 
 require("vendor/autoload.php");
+$logger = new Katzgrau\KLogger\Logger(__DIR__ . '/logs');
 
 require_once("classes/olatclasses.php");
 
@@ -369,8 +370,8 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 //  $olatType = Either chapter or subject
 //
 function olatQuizParse($object, $path, $olatType, $olat) {
+	global $logger;
 	$QObject = $object;
-	$logger = new Katzgrau\KLogger\Logger(__DIR__ . '/logs' . (string) rand(1, 100000));
 	$logger->debug("Current type of quiz: " . $olat);
 	// Unpack the repo.zip archive
 	$testZip = new ZipArchive;
