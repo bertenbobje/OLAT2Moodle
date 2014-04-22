@@ -1,5 +1,7 @@
 <?php
 
+require("vendor/autoload.php");
+
 require_once("classes/olatclasses.php");
 
 require_once("functions/general.php");
@@ -85,7 +87,7 @@ function olatBackupToOlatObject($path) {
 							$ok = 1;
 							$chapterObject = new ChapterTest();
 							$testFolder = $expath . "/export/" . $child->ident;
-							$newChapterObject = olatQuizParse($chapterObject, $testFolder, "chapter");
+							$newChapterObject = olatQuizParse($chapterObject, $testFolder, "chapter", $child->type);
 							$chapterObject = $newChapterObject;
 							break;
 						
@@ -240,7 +242,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 					$ok = 1;
 					$subjectObject = new SubjectTest();
 					$testFolder = $pathCourse . "/export/" . $schild->ident;
-					$newSubjectObject = olatQuizParse($subjectObject, $testFolder, "subject");
+					$newSubjectObject = olatQuizParse($subjectObject, $testFolder, "subject", $schild->type);
 					$subjectObject = $newSubjectObject;
 					break;
 				
@@ -366,16 +368,18 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 //      $path = Path to quiz folder (/coursefolder/[ident]/)
 //  $olatType = Either chapter or subject
 //
-function olatQuizParse($object, $path, $olatType) {
-
+function olatQuizParse($object, $path, $olatType, $olat) {
 	$QObject = $object;
-
+	$logger = new Katzgrau\KLogger\Logger(__DIR__ . '/logs' . (string) rand(1, 100000));
+	$logger->debug("Current type of quiz: " . $olat);
 	// Unpack the repo.zip archive
 	$testZip = new ZipArchive;
 	if ($testZip->open($path . "/repo.zip")) {
 		$testZip->extractTo($path . "/repo");
+		$ok = 1;
 		$testZip->close();
 	}
+	$logger->debug("Zip successful?: " . $ok . "->" . $path . "/repo");
 	
 	// Load the important XML files in a SimpleXMLElement
 	$repoXml = new SimpleXMLElement($path . "/repo.xml", null, true);
@@ -383,8 +387,12 @@ function olatQuizParse($object, $path, $olatType) {
 	$filename = $path . "/repo/qti.xml";
 	$qtiXml = new SimpleXMLElement($filename, null, true);
 	
+	$logger->debug("repoXml XML variable", (array) $qtiXml);
+	
 	$qtiSections = $qtiXml->assessment->section;
   $qtiCategories = array();
+	
+	$logger->debug("repoXml XML variable", (array) $qtiSections);
 	
 	$qtiTestDescription = (string) getDataIfExists($qtiXml, 'assessment', 'objectives', 'material', 'mattext');
 	if (!empty($qtiTestDescription)) {
@@ -415,7 +423,7 @@ function olatQuizParse($object, $path, $olatType) {
 	$testObject->setPassing_score((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));
   $testObject->setBundle('qtici_test');
 	$testObject->saveCategories($qtiCategories);
-
+	$logger->debug("OK1");
   // Loop through each section
   foreach ($qtiSections as $qtiSection) {
     $sectionObject = new QuizSection((string) getDataIfExists($qtiSections, 'attributes()', 'ident'), 
@@ -423,9 +431,10 @@ function olatQuizParse($object, $path, $olatType) {
 						(string) getDataIfExists($qtiSections, 'objectives', 'material', 'mattext'), 
 						(string) getDataIfExists($qtiSections, 'selection_ordering', 'order', 'attributes()', 'order_type'));
     $testObject->setSection($sectionObject);
-		
+		$logger->debug("OK2");
     // Loop through each item
     $qtiItems = getDataIfExists($qtiSections, 'item');
+		$logger->debug(count($qtiItems));
     foreach ($qtiItems as $qtiItem) {
       // Each question type has be treated differently
       $questionType = getQuestionType($qtiItem->attributes()->ident);
@@ -438,7 +447,9 @@ function olatQuizParse($object, $path, $olatType) {
 			if ($questionType == "FIB") {
 				$QObject = new FillInBlanks;
 			}
+			$logger->debug($questionType);
       $QObject->parseXML($qtiItem);
+			$logger->debug("OK5");
       $question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
       if ($questionType == 'FIB') {
         // For FIB
