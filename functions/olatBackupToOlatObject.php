@@ -85,7 +85,7 @@ function olatBackupToOlatObject($path) {
 							$ok = 1;
 							$chapterObject = new ChapterTest();
 							$testFolder = $expath . "/export/" . $child->ident;
-							$newChapterObject = quizParse($chapterObject, $testFolder, "chapter");
+							$newChapterObject = olatQuizParse($chapterObject, $testFolder, "chapter");
 							$chapterObject = $newChapterObject;
 							break;
 						
@@ -240,7 +240,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 					$ok = 1;
 					$subjectObject = new SubjectTest();
 					$testFolder = $pathCourse . "/export/" . $schild->ident;
-					$newSubjectObject = quizParse($subjectObject, $testFolder, "subject");
+					$newSubjectObject = olatQuizParse($subjectObject, $testFolder, "subject");
 					$subjectObject = $newSubjectObject;
 					break;
 				
@@ -359,14 +359,14 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 	}
 }
 
-// Reads out the Quiz files and puts them in their respective objects.
+// Reads out the Quiz (QTI) files and puts them in their respective objects.
 //
 // PARAMETERS
 // -> $object = the Test object (chapter or subject)
 //      $path = Path to quiz folder (/coursefolder/[ident]/)
 //  $olatType = Either chapter or subject
 //
-function quizParse($object, $path, $olatType) {
+function olatQuizParse($object, $path, $olatType) {
 
 	$QObject = $object;
 
@@ -418,7 +418,10 @@ function quizParse($object, $path, $olatType) {
 
   // Loop through each section
   foreach ($qtiSections as $qtiSection) {
-    $sectionObject = new QuizSection((string) getDataIfExists($qtiSections, 'attributes()', 'ident'), (string) getDataIfExists($qtiSections, 'attributes()', 'title'), (string) getDataIfExists($qtiSections, 'objectives', 'material', 'mattext'), (string) getDataIfExists($qtiSections, 'selection_ordering', 'order', 'attributes()', 'order_type'));
+    $sectionObject = new QuizSection((string) getDataIfExists($qtiSections, 'attributes()', 'ident'), 
+						(string) getDataIfExists($qtiSections, 'attributes()', 'title'), 
+						(string) getDataIfExists($qtiSections, 'objectives', 'material', 'mattext'), 
+						(string) getDataIfExists($qtiSections, 'selection_ordering', 'order', 'attributes()', 'order_type'));
     $testObject->setSection($sectionObject);
 		
     // Loop through each item
@@ -437,18 +440,15 @@ function quizParse($object, $path, $olatType) {
 			}
       $QObject->parseXML($qtiItem);
       $question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
-      if ($questionType === 'FIB') {
+      if ($questionType == 'FIB') {
         // For FIB
         $question = (string) getDataIfExists($qtiItem, 'presentation', 'flow', 'material', 'mattext');
         $content = unserialize($QObject->content);
-        $content = checkIfExistAndCast($content, $filename);
         $QObject->setContent($content);
       }
-      $question2 = checkIfExistAndCast($question, $filename);
-      $QObject->setQuestion($question2);
+      $QObject->setQuestion($question);
       $sectionObject->setItem($QObject);
     }
-//		var_dump($testObject);
   }
 	return $testObject;
 }

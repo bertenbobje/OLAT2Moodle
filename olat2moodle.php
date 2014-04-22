@@ -13,8 +13,8 @@ require_once("functions/olatObjectToMoodleObject.php");
 require_once("functions/moodleObjectToMoodleBackup.php");
 
 // To make sure that every action can happen, even with bigger files.
-//ini_set('max_execution_time', 300);
-//ini_set('memory_limit', '-1');
+ini_set('max_execution_time', 300);
+ini_set('memory_limit', '-1');
 
 //ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
@@ -50,12 +50,12 @@ if (isset($_FILES["file"])) {
 			
 			echo "<p>===MOODLE OBJECT===</p>";
 			// Converts the OLAT Object to a Moodle object.
-			//$moodleObject = olatObjectToMoodleObject($olatObject, $books);
+			$moodleObject = olatObjectToMoodleObject($olatObject, $books);
 			//var_dump($moodleObject);
 			echo "<p>OK - Moodle Object created</p>";
 
 			if ($books) {
-				//$moodleObject = checkForBooks($moodleObject);
+				$moodleObject = checkForBooks($moodleObject);
 				//var_dump($moodleObject);
 				echo "<p style='color:green;'>OK - Books marked</p>";
 			}
@@ -65,10 +65,10 @@ if (isset($_FILES["file"])) {
 
 			echo "<br><p>===MOODLE BACKUP===</p>";
 			// Uses the Moodle Object to make a Moodle backup .mbz file.
-			//$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat);
+			$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat);
 			echo "<p>OK - Moodle backup .mbz created</p><br>";
 
-			//echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";
+			echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";
 		}
 	}
 	else {
