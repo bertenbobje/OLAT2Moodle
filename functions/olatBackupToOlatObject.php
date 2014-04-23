@@ -392,11 +392,11 @@ function olatQuizParse($object, $path, $olatType) {
 		// Check if categories are defined inside description
 		if ($pos) {
 			$end = strpos('</categories>', $qtiTestDescription);
-			$tag_list = substr($qtiTestDescription, $pos + strlen('<categories>'), $end);
-			$tag_array = explode(',', $tag_list);
+			$tagList = substr($qtiTestDescription, $pos + strlen('<categories>'), $end);
+			$tagArray = explode(',', $tagList);
 			
 			$qtiTestDescription = substr($qtiTestDescription, 0, $pos);
-			$qtiCategories += $tag_array;
+			$qtiCategories += $tagArray;
 		}
 	}
 	else {
@@ -412,8 +412,7 @@ function olatQuizParse($object, $path, $olatType) {
 	$testObject->setTitle((string) getDataIfExists($qtiXml, 'assessment', 'attributes()', 'title'));
 	$testObject->setDescription($qtiTestDescription);
 	$testObject->setDuration((string) getDataIfExists($qtiXml, 'assessment', 'duration'));
-	$testObject->setPassing_score((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));
-  $testObject->setBundle('qtici_test');
+	$testObject->setPassingScore((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));
 	$testObject->saveCategories($qtiCategories);
 
   // Loop through each section
@@ -422,7 +421,7 @@ function olatQuizParse($object, $path, $olatType) {
 						(string) getDataIfExists($qtiSection, 'attributes()', 'title'), 
 						(string) getDataIfExists($qtiSection, 'objectives', 'material', 'mattext'), 
 						(string) getDataIfExists($qtiSection, 'selection_ordering', 'order', 'attributes()', 'order_type'));
-    $testObject->setSection($sectionObject);
+    $testObject->setQuizSection($sectionObject);
 		
     // Loop through each item
     $qtiItems = getDataIfExists($qtiSection, 'item');
