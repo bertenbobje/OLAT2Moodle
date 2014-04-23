@@ -150,11 +150,13 @@ function getQuestionType($input) {
 function getQuotationType($item) {
   // XML structure is different when quatation is different (ALL/PER correct answer)
   $results = $item->xpath('resprocessing/respcondition[setvar and not(conditionvar/other)]');
+	$quotation = "xxxxx";
+	if (!empty($results[0])) {
   if (count($results[0]->conditionvar->and) > 0) {
     $quotation = 'allCorrect';
   } else {
     $quotation = 'perAnswer';
-  }
+  }}
 
   return array('quotation' => $quotation,
     'results' => $results

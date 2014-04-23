@@ -316,48 +316,20 @@ class ChapterWiki extends Chapter {
 ///////////////////////////////////////////////////////////
 class ChapterTest extends Chapter {
 
-  public $id;
-  public $olat_testid;
-  public $title;
-  public $description;
-  public $duration;
-  public $passing_score;
-  public $published;
-  public $answers_in;
-  public $answers_out;
-  public $show_answer;
-  public $check_answer;
-  public $date;
-  public $course;
-  public $topic;
-  public $level;
-  public $objective;
-  public $sections = array();
+  protected $title;
+  protected $description;
+  protected $duration;
+  protected $passingScore;
+  protected $quizSections = array();
 
-  function __construct() {
+  function __construct() {}
 
-  }
-
-  function myConstruct($id, $olat_testid, $title, $description, $duration, $passing_score, $published, $answers_in, $answers_out, $show_answer, $check_answer, $date, $course, $topic, $level, $objective, $sections) {
-    $this->id = $id;
-    //Only one bundle for the moment
-    $this->bundle = 'simple_test';
-    $this->olat_testid = $olat_testid;
+  function myConstruct($title, $description, $duration, $passingScore, $quizSections) {
     $this->title = $title;
     $this->description = $description;
     $this->duration = $duration;
-    $this->passing_score = $passing_score;
-    $this->published = $published;
-    $this->answers_in = $answers_in;
-    $this->answers_out = $answers_out;
-    $this->show_answer = $show_answer;
-    $this->check_answer = $check_answer;
-    $this->date = $date;
-    $this->course = $course;
-    $this->topic = $topic;
-    $this->level = $level;
-    $this->objective = $objective;
-    $this->sections = $sections;
+    $this->passingScore = $passingScore;
+    array_push($this->quizSections, $quizSections);
   }
 
   public function setTitle($title) {
@@ -368,50 +340,6 @@ class ChapterTest extends Chapter {
     return $this->title;
   }
 
-  public function setDuration($duration) {
-    $this->duration = $duration;
-  }
-
-  public function getDuration() {
-    return $this->duration;
-  }
-
-  public function setObjective($objective) {
-    $this->objective = $objective;
-  }
-
-  public function getObjective() {
-    return $this->objective;
-  }
-
-  public function setSection($sections) {
-    array_push($this->sections, $sections);
-  }
-
-  public function getSections() {
-    return $this->sections;
-  }
-
-  public function getId() {
-    return $this->id;
-  }
-
-  public function setId($id) {
-    $this->id = $id;
-  }
-
-  public function getOlat_testid() {
-    return $this->olat_testid;
-  }
-
-  public function setOlat_testid($olat_testid) {
-    $this->olat_testid = $olat_testid;
-  }
-
-  public function getDescription() {
-    return $this->description;
-  }
-
   public function setDescription($string) {
     $description = array(
       'value' => $string,
@@ -420,123 +348,31 @@ class ChapterTest extends Chapter {
 
     $this->description = serialize($description);
   }
-
-  public function getPassing_score() {
-    return $this->passing_score;
+	
+  public function setDuration($duration) {
+    $this->duration = $duration;
   }
 
-  public function setPassing_score($passing_score) {
-    $this->passing_score = $passing_score;
+  public function getDuration() {
+    return $this->duration;
   }
 
-  public function getPublished() {
-    return $this->published;
+  public function getPassingScore() {
+    return $this->passingScore;
   }
 
-  public function setPublished($published) {
-    $this->published = $published;
+  public function setPassingScore($passingScore) {
+    $this->passingScore = $passingScore;
+  }
+	
+  public function setQuizSection($quizSections) {
+    array_push($this->quizSections, $quizSections);
   }
 
-  public function getAnswers_in() {
-    return $this->answers_in;
+  public function getQuizSections() {
+    return $this->quizSections;
   }
-
-  public function setAnswers_in($answers_in) {
-    $this->answers_in = $answers_in;
-  }
-
-  public function getAnswers_out() {
-    return $this->answers_out;
-  }
-
-  public function setAnswers_out($answers_out) {
-    $this->answers_out = $answers_out;
-  }
-
-  public function getShow_answer() {
-    return $this->show_answer;
-  }
-
-  public function setShow_answer($show_answer) {
-    $this->show_answer = $show_answer;
-  }
-
-  public function getCheck_answer() {
-    return $this->check_answer;
-  }
-
-  public function setCheck_answer($check_answer) {
-    $this->check_answer = $check_answer;
-  }
-
-  public function getDate() {
-    return $this->date;
-  }
-
-  public function setDate($date) {
-    $this->date = $date;
-  }
-
-  public function getCourse() {
-    return $this->course;
-  }
-
-  public function setCourse($course) {
-    $this->course = $course;
-  }
-
-  public function getTopic() {
-    return $this->topic;
-  }
-
-  public function setTopic($topic) {
-    $this->topic = $topic;
-  }
-
-  public function getLevel() {
-    return $this->level;
-  }
-
-  public function setLevel($level) {
-    $this->level = $level;
-  }
-
-  public function setBundle($bundle) {
-    $this->bundle = $bundle;
-  }
-
-  /**
-   * Functions and queries of this class
-   */
-
-	/**
-   * Implementation of test checking
-   */
-  public function checkTestAnswers($form, $form_state, $itemids) {
-    $items = qtici_item_entity_load_multiple($itemids);
-
-    $aantaljuist = 0;
-    $maximum = 0;
-
-    foreach ($items as $id) {
-      $item = qtici_itemType_entity_load($id->id);
-      //unset the attempts session
-      if (isset($_SESSION['exercise']['attempts']['item_' . $item->id])) {
-        unset($_SESSION['exercise']['attempts']['item_' . $item->id]);
-      }
-
-      $maximum += $item->score;
-      $returnArray = $item->checkAnswerForTest($form, $form_state);
-
-      $aantaljuist += $returnArray["score"];
-    }
-
-    $return["score"] = $aantaljuist;
-    $return["max"] = $maximum;
-
-    return $return;
-  }
-  
+	
   /**
    * Saves the categories of a test
    */
@@ -591,7 +427,6 @@ class ChapterTest extends Chapter {
   }
 }
 	
-
 
 ///////////////////////////////////////////////////////////
 // SUBJECT ////////////////////////////////////////////////
@@ -801,50 +636,22 @@ class SubjectWiki extends Subject {
 ///////////////////////////////////////////////////////////
 // SUBJECT TEST ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////
-class SubjectTest extends Subject {
+class SibjectTest extends Subject {
 
-  public $id;
-  public $olat_testid;
-  public $title;
-  public $description;
-  public $duration;
-  public $passing_score;
-  public $published;
-  public $answers_in;
-  public $answers_out;
-  public $show_answer;
-  public $check_answer;
-  public $date;
-  public $course;
-  public $topic;
-  public $level;
-  public $objective;
-  public $sections = array();
+  protected $title;
+  protected $description;
+  protected $duration;
+  protected $passingScore;
+  protected $quizSections = array();
 
-  function __construct() {
+  function __construct() {}
 
-  }
-
-  function myConstruct($id, $olat_testid, $title, $description, $duration, $passing_score, $published, $answers_in, $answers_out, $show_answer, $check_answer, $date, $course, $topic, $level, $objective, $sections) {
-    $this->id = $id;
-    //Only one bundle for the moment
-    $this->bundle = 'simple_test';
-    $this->olat_testid = $olat_testid;
+  function myConstruct($title, $description, $duration, $passingScore, $quizSections) {
     $this->title = $title;
     $this->description = $description;
     $this->duration = $duration;
-    $this->passing_score = $passing_score;
-    $this->published = $published;
-    $this->answers_in = $answers_in;
-    $this->answers_out = $answers_out;
-    $this->show_answer = $show_answer;
-    $this->check_answer = $check_answer;
-    $this->date = $date;
-    $this->course = $course;
-    $this->topic = $topic;
-    $this->level = $level;
-    $this->objective = $objective;
-    $this->sections = $sections;
+    $this->passingScore = $passingScore;
+    array_push($this->quizSections, $quizSections);
   }
 
   public function setTitle($title) {
@@ -855,50 +662,6 @@ class SubjectTest extends Subject {
     return $this->title;
   }
 
-  public function setDuration($duration) {
-    $this->duration = $duration;
-  }
-
-  public function getDuration() {
-    return $this->duration;
-  }
-
-  public function setObjective($objective) {
-    $this->objective = $objective;
-  }
-
-  public function getObjective() {
-    return $this->objective;
-  }
-
-  public function setSection($sections) {
-    array_push($this->sections, $sections);
-  }
-
-  public function getSections() {
-    return $this->sections;
-  }
-
-  public function getId() {
-    return $this->id;
-  }
-
-  public function setId($id) {
-    $this->id = $id;
-  }
-
-  public function getOlat_testid() {
-    return $this->olat_testid;
-  }
-
-  public function setOlat_testid($olat_testid) {
-    $this->olat_testid = $olat_testid;
-  }
-
-  public function getDescription() {
-    return $this->description;
-  }
-
   public function setDescription($string) {
     $description = array(
       'value' => $string,
@@ -907,123 +670,31 @@ class SubjectTest extends Subject {
 
     $this->description = serialize($description);
   }
-
-  public function getPassing_score() {
-    return $this->passing_score;
+	
+  public function setDuration($duration) {
+    $this->duration = $duration;
   }
 
-  public function setPassing_score($passing_score) {
-    $this->passing_score = $passing_score;
+  public function getDuration() {
+    return $this->duration;
   }
 
-  public function getPublished() {
-    return $this->published;
+  public function getPassingScore() {
+    return $this->passingScore;
   }
 
-  public function setPublished($published) {
-    $this->published = $published;
+  public function setPassingScore($passingScore) {
+    $this->passingScore = $passingScore;
+  }
+	
+  public function setQuizSection($quizSections) {
+    array_push($this->quizSections, $quizSections);
   }
 
-  public function getAnswers_in() {
-    return $this->answers_in;
+  public function getQuizSections() {
+    return $this->quizSections;
   }
-
-  public function setAnswers_in($answers_in) {
-    $this->answers_in = $answers_in;
-  }
-
-  public function getAnswers_out() {
-    return $this->answers_out;
-  }
-
-  public function setAnswers_out($answers_out) {
-    $this->answers_out = $answers_out;
-  }
-
-  public function getShow_answer() {
-    return $this->show_answer;
-  }
-
-  public function setShow_answer($show_answer) {
-    $this->show_answer = $show_answer;
-  }
-
-  public function getCheck_answer() {
-    return $this->check_answer;
-  }
-
-  public function setCheck_answer($check_answer) {
-    $this->check_answer = $check_answer;
-  }
-
-  public function getDate() {
-    return $this->date;
-  }
-
-  public function setDate($date) {
-    $this->date = $date;
-  }
-
-  public function getCourse() {
-    return $this->course;
-  }
-
-  public function setCourse($course) {
-    $this->course = $course;
-  }
-
-  public function getTopic() {
-    return $this->topic;
-  }
-
-  public function setTopic($topic) {
-    $this->topic = $topic;
-  }
-
-  public function getLevel() {
-    return $this->level;
-  }
-
-  public function setLevel($level) {
-    $this->level = $level;
-  }
-
-  public function setBundle($bundle) {
-    $this->bundle = $bundle;
-  }
-
-  /**
-   * Functions and queries of this class
-   */
-
-	/**
-   * Implementation of test checking
-   */
-  public function checkTestAnswers($form, $form_state, $itemids) {
-    $items = qtici_item_entity_load_multiple($itemids);
-
-    $aantaljuist = 0;
-    $maximum = 0;
-
-    foreach ($items as $id) {
-      $item = qtici_itemType_entity_load($id->id);
-      //unset the attempts session
-      if (isset($_SESSION['exercise']['attempts']['item_' . $item->id])) {
-        unset($_SESSION['exercise']['attempts']['item_' . $item->id]);
-      }
-
-      $maximum += $item->score;
-      $returnArray = $item->checkAnswerForTest($form, $form_state);
-
-      $aantaljuist += $returnArray["score"];
-    }
-
-    $return["score"] = $aantaljuist;
-    $return["max"] = $maximum;
-
-    return $return;
-  }
-  
+	
   /**
    * Saves the categories of a test
    */
@@ -1076,68 +747,6 @@ class SubjectTest extends Subject {
       }
     }
   }
-}
-	
-
-///////////////////////////////////////////////////////////
-// FOLDER /////////////////////////////////////////////////
-///////////////////////////////////////////////////////////
-class Folder {
-
-	protected $fileName;
-	protected $fileLocation;
-	protected $fileSize;
-	protected $fileType;
-	protected $fileModified;
-
-	public function __construct($fileName = "", $fileLocation = "", $fileSize = "", $fileType = "", $fileModified = "") {
-		$this->fileName = $fileName;
-		$this->fileLocation = $fileLocation;
-		$this->fileSize = $fileSize;
-		$this->fileType = $fileType;
-		$this->fileModified = $fileModified;
-	}
-	
-	public function setFileName($fileName) {
-		$this->fileName = $fileName;
-	}
-	
-	public function getFileName() {
-		return $this->fileName;
-	}
-
-	public function setFileLocation($fileLocation) {
-		$this->fileLocation = $fileLocation;
-	}
-	
-	public function getFileLocation() {
-		return $this->fileLocation;
-	}
-
-	public function setFileSize($fileSize) {
-		$this->fileSize = $fileSize;
-	}
-	
-	public function getFileSize() {
-		return $this->fileSize;
-	}
-
-	public function setFileType($fileType) {
-		$this->fileType = $fileType;
-	}
-	
-	public function getFileType() {
-		return $this->fileType;
-	}
-
-	public function setFileModified($fileModified) {
-		$this->fileModified = $fileModified;
-	}
-	
-	public function getFileModified() {
-		return $this->fileModified;
-	}
-	
 }
 
 
@@ -1643,11 +1252,13 @@ class FillInBlanks extends Item {
           }
           if ($element->getName() == 'matimage') {
             // Save image
-            $newFile = file_save_upload((string) $element['uri'], array('file_validate_extensions' => array($allowed)));
-            $newFile = file_move($newFile, 'public://');
-            $newFile->status = 1; // Make permanent
-            $newFile = file_save($newFile);
-            $content .= ':img' . $newFile->fid . 'fid:';
+						echo (string) $element['uri'] . "<br>";
+            //$newFile = file_save_upload((string) $element['uri'], array('file_validate_extensions' => array($allowed)));
+           // $newFile = file_move($newFile, 'public://');
+           // $newFile->status = 1; // Make permanent
+           // $newFile = file_save($newFile);
+           // $content .= ':img' . $newFile->fid . 'fid:';
+					 $content = "test";
           }
         }
       }
