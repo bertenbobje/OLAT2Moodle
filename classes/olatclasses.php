@@ -856,17 +856,11 @@ class Item {
 		$this->setSolutionFeedback(isset($solutionFeedback[0]->solutionmaterial->material->mattext) ? (string) $solutionFeedback[0]->solutionmaterial->material->mattext : null);
 		$feedbackitems = $item->xpath('itemfeedback[material[1]]');
 		foreach ($feedbackitems as $feedbackitem) {
-			$feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
+			var_dump($feedbackitem);
+			//$feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
+			$feedbackObject = new Feedback((string) getDataIfExists($feedbackitem, 'attributes()', 'ident'), (string) getDataIfExists($feedbackitem, 'material', 'mattext'));
 			$this->setFeedback($feedbackObject);
 		}
-  }
-
-  /**
-   * Checks if answer (defined per exercise)
-   */
-  public function checkAnswer($form_state) {
-    $returnArray = array();
-    return $returnArray;
   }
 	
 }
@@ -949,7 +943,6 @@ class SingleChoiceQuestion extends Item {
     }
     // For SCQ we only need to handle answers, the rest of the data is generic to all items
     foreach ($item->presentation->response_lid->render_choice->children() as $flow_label) {
-      $possibility = new Possibility();
       $content['value'] = (string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext');
       $content['format'] = (string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext', 'texttype');
       if (empty($content['format'])) {
@@ -960,7 +953,12 @@ class SingleChoiceQuestion extends Item {
       if (in_array($ident, $correct)) {
         $is_correct = 1;
       }
-      $possibility->myConstruct(NULL, $ident, ElementTypes::RADIOBUTTON, NULL, serialize($content), NULL, $is_correct, NULL);
+			$possibility = new Possibility(
+						$ident,
+						ElementTypes::RADIOBUTTON,
+						serialize($content),
+						$is_correct
+			);
       $this->setPossibility($possibility);
     }
 
@@ -1067,7 +1065,6 @@ class MultipleChoiceQuestion extends Item {
  
     // Get answers
     foreach ($item->presentation->response_lid->render_choice->children() as $child) {
-      $possibility = new Possibility();
       $content['value'] = (string) getDataIfExists($child, 'response_label', 'material', 'mattext');
       $content['format'] = (string) getDataIfExists($child, 'response_label', 'material', 'mattext', 'texttype');
       if (empty($content['format'])) {
@@ -1078,7 +1075,12 @@ class MultipleChoiceQuestion extends Item {
       if (in_array($ident, $correct)) {
         $is_correct = 1;
       }
-      $possibility->myConstruct(NULL, $ident, ElementTypes::CHECKBOX, NULL, serialize($content), NULL, $is_correct, NULL);
+			$possibility = new Possibility(
+							$ident,
+							ElementTypes::CHECKBOX,
+							serialize($content),
+							$is_correct
+			);
       $this->setPossibility($possibility);
     }
 
@@ -1219,7 +1221,6 @@ class FillInBlanks extends Item {
       elseif ($child->getName() == 'response_str') { // TEXTBOX
         $ident = (int) getDataIfExists($child, 'attributes()', 'ident');
         $content .= ':text' . $ident . 'box:';
-        $possibility = new Possibility();
         $answer = NULL;
         if ($ident && !empty($answers[$ident])) {
           if (is_object($answers[$ident])) {
@@ -1231,7 +1232,12 @@ class FillInBlanks extends Item {
         }
         $dumbAns['value'] = $answer;
         $dumbAns['format'] = 'full_html';
-        $possibility->myConstruct(NULL, (string) getDataIfExists($child, 'attributes()', 'ident'), ElementTypes::TEXTBOX, NULL, serialize($dumbAns), NULL, NULL, NULL);
+				$possibility = new Possibility(
+								(string) getDataIfExists($child, 'attributes()', 'ident'),
+								ElementTypes::TEXTBOX,
+								serialize($dumbAns),
+								NULL
+				);
         $this->setPossibility($possibility);
       }
     }
@@ -1320,27 +1326,10 @@ class QuizSection {
 class Feedback {
 
   protected $id;
-  protected $itemid;
-  protected $possibilityid;
-  protected $feedback_possibility;
-  protected $feedback_positive;
-  protected $feedback_negative;
-  protected $hint;
-  protected $solution_feedback;
-
-  function __construct() {
-    
-  }
-
-  function myConstruct($id, $itemid, $possibilityid, $feedback_possibility, $feedback_positive, $feedback_negative, $hint, $solution_feedback) {
+  protected $feedback;
+  function __construct($id, $feedback) {
     $this->id = $id;
-    $this->itemid = $itemid;
-    $this->possibilityid = $possibilityid;
-    $this->feedback_possibility = $feedback_possibility;
-    $this->feedback_positive = $feedback_positive;
-    $this->feedback_negative = $feedback_negative;
-    $this->hint = $hint;
-    $this->solution_feedback = $solution_feedback;
+		$this->feedback = $feedback;
   }
 
   public function getId() {
@@ -1351,61 +1340,13 @@ class Feedback {
     $this->id = $id;
   }
 
-  public function getItemid() {
-    return $this->itemid;
-  }
-
-  public function setItemid($itemid) {
-    $this->itemid = $itemid;
-  }
-
-  public function getPossibilityid() {
-    return $this->possibilityid;
-  }
-
-  public function setPossibilityid($possibilityid) {
-    $this->possibilityid = $possibilityid;
-  }
-
-  public function getFeedback_possibility() {
-    return $this->feedback_possibility;
-  }
-
-  public function setFeedback_possibility($feedback_possibility) {
-    $this->feedback_possibility = $feedback_possibility;
-  }
-
-  public function getFeedback_positive() {
-    return $this->feedback_positive;
-  }
-
-  public function setFeedback_positive($feedback_positive) {
-    $this->feedback_positive = $feedback_positive;
-  }
-
-  public function getFeedback_negative() {
-    return $this->feedback_negative;
-  }
-
-  public function setFeedback_negative($feedback_negative) {
-    $this->feedback_negative = $feedback_negative;
-  }
-
-  public function getHint() {
-    return $this->hint;
-  }
-
-  public function setHint($hint) {
-    $this->hint = $hint;
-  }
-
-  public function getSolution_feedback() {
-    return $this->solution_feedback;
-  }
-
-  public function setSolution_feedback($solution_feedback) {
-    $this->solution_feedback = $solution_feedback;
-  }
+  public function getFeedback() {
+		return $this->feedback;
+	}
+	
+	public function setFeedback($feedback) {
+		$this->feedback = $feedback;
+	}
 }
 
 class ElementTypes {
@@ -1419,36 +1360,15 @@ class ElementTypes {
 class Possibility  {
 
   protected $id;
-  protected $ident;
-  protected $type;
   protected $possibility; // Type of possibility: radio, checkbox, textbox
-  protected $itemid;
   protected $answer; // Content of the possibility
-  protected $ordering;
   protected $is_correct;
-  protected $score;
 
-  public function __construct() {
-
-  }
-
-  function myConstruct($id, $ident, $possibility, $itemid, $answer, $ordering, $is_correct, $score) {
+  public function __construct($id, $possibility, $answer, $is_correct) {
     $this->id = $id;
-    $this->ident = $ident;
     $this->possibility = $possibility;
-    $this->itemid = $itemid;
     $this->answer = $answer;
-    $this->ordering = $ordering;
     $this->is_correct = $is_correct;
-    $this->score = $score;
-  }
-
-  public function getIdent() {
-    return $this->ident;
-  }
-
-  public function setIdent($ident) {
-    $this->ident = $ident;
   }
 
   public function getId() {
@@ -1467,14 +1387,6 @@ class Possibility  {
     return $this->possibility;
   }
 
-  public function getItemid() {
-    return $this->itemid;
-  }
-
-  public function setItemid($itemid) {
-    $this->itemid = $itemid;
-  }
-
   public function getAnswer() {
     return $this->answer;
   }
@@ -1483,28 +1395,12 @@ class Possibility  {
     $this->answer = $answer;
   }
 
-  public function getOrdering() {
-    return $this->ordering;
-  }
-
-  public function setOrdering($ordering) {
-    $this->ordering = $ordering;
-  }
-
   public function getIs_correct() {
     return $this->is_correct;
   }
 
   public function setIs_correct($is_correct) {
     $this->is_correct = $is_correct;
-  }
-
-  public function getScore() {
-    return $this->score;
-  }
-
-  public function setScore($score) {
-    $this->score = $score;
   }
 }
 
