@@ -148,7 +148,7 @@ function getQuestionType($input) {
 // Quotation for FIB or MCQ can be either allCorrect or perAnswer
 // Function returns also the results form xpath!
 function getQuotationType($item) {
-  // XML structure is different when quatation is different (ALL/PER correct answer)
+  // XML structure is different when quotation is different (ALL/PER correct answer)
   $results = $item->xpath('resprocessing/respcondition[setvar and not(conditionvar/other)]');
 	$quotation = "xxxxx";
 	if (!empty($results[0])) {
@@ -161,20 +161,6 @@ function getQuotationType($item) {
   return array('quotation' => $quotation,
     'results' => $results
   );
-}
-
-// Function for fetching Feedback, Hints & SolutionFeedback
-function fetchFeedback(&$object, $item) {
-  $hint = $item->xpath('itemfeedback/hint');
-  $object->setHint(isset($hint[0]->hintmaterial->material->mattext) ? (string) $hint[0]->hintmaterial->material->mattext : null);
-  $solutionFeedback = $item->xpath('itemfeedback/solution');
-  $object->setSolutionFeedback(isset($solutionFeedback[0]->solutionmaterial->material->mattext) ? (string) $solutionFeedback[0]->solutionmaterial->material->mattext : null);
-
-  $feedbackitems = $item->xpath('itemfeedback[material[1]]');
-  foreach ($feedbackitems as $feedbackitem) {
-    $feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
-    $object->setFeedback($feedbackObject);
-  }
 }
 
 ?>

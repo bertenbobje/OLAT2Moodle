@@ -386,41 +386,32 @@ function olatQuizParse($object, $path, $olatType) {
 	$qtiSections = $qtiXml->assessment->section;
   $qtiCategories = array();
 	
-	$qtiTestDescription = (string) getDataIfExists($qtiXml, 'assessment', 'objectives', 'material', 'mattext');
-	if (!empty($qtiTestDescription)) {
-		$pos = strpos('<categories>', $qtiTestDescription);
-		// Check if categories are defined inside description
-		if ($pos) {
-			$end = strpos('</categories>', $qtiTestDescription);
-			$tagList = substr($qtiTestDescription, $pos + strlen('<categories>'), $end);
-			$tagArray = explode(',', $tagList);
-			
-			$qtiTestDescription = substr($qtiTestDescription, 0, $pos);
-			$qtiCategories += $tagArray;
-		}
-	}
-	else {
-		$qtiTestDescription = "";
-	}
-
 	if ($olatType == "chapter") {
 		$testObject = new ChapterTest;
 	}
 	else {
 		$testObject = new SubjectTest;
 	}
+	
 	$testObject->setTitle((string) getDataIfExists($qtiXml, 'assessment', 'attributes()', 'title'));
-	$testObject->setDescription($qtiTestDescription);
+	
+	$qtiDescription = (string) getDataIfExists($qtiXml, 'assessment', 'objectives', 'material', 'mattext');
+	$qtiDescription = str_replace("<![CDATA[", "", $qtiDescription);
+	$qtiDescription = str_replace("]]>", "", $qtiDescription);
+	$testObject->setDescription(htmlspecialchars($qtiDescription, ENT_QUOTES, "UTF-8"));
+	
 	$testObject->setDuration((string) getDataIfExists($qtiXml, 'assessment', 'duration'));
 	$testObject->setPassingScore((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));
-	$testObject->saveCategories($qtiCategories);
 
   // Loop through each section
   foreach ($qtiSections as $qtiSection) {
-    $sectionObject = new QuizSection((string) getDataIfExists($qtiSection, 'attributes()', 'ident'), 
+    $sectionObject = new QuizSection(
+						(string) getDataIfExists($qtiSection, 'attributes()', 'ident'), 
 						(string) getDataIfExists($qtiSection, 'attributes()', 'title'), 
 						(string) getDataIfExists($qtiSection, 'objectives', 'material', 'mattext'), 
-						(string) getDataIfExists($qtiSection, 'selection_ordering', 'order', 'attributes()', 'order_type'));
+						(string) getDataIfExists($qtiSection, 'selection_ordering', 'order', 'attributes()', 'order_type'),
+						(string) getDataIfExists($qtiSection, 'selection_ordering', 'selection', 'selection_number')
+		);
     $testObject->setQuizSection($sectionObject);
 		
     // Loop through each item
@@ -442,7 +433,7 @@ function olatQuizParse($object, $path, $olatType) {
       if ($questionType == 'FIB') {
         // For FIB
         $question = (string) getDataIfExists($qtiItem, 'presentation', 'flow', 'material', 'mattext');
-        $content = unserialize($QObject->content);
+				$content = unserialize($QObject->content);
         $QObject->setContent($content);
       }
       $QObject->setQuestion($question);
