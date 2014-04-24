@@ -856,7 +856,6 @@ class Item {
 		$this->setSolutionFeedback(isset($solutionFeedback[0]->solutionmaterial->material->mattext) ? (string) $solutionFeedback[0]->solutionmaterial->material->mattext : null);
 		$feedbackitems = $item->xpath('itemfeedback[material[1]]');
 		foreach ($feedbackitems as $feedbackitem) {
-			var_dump($feedbackitem);
 			//$feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
 			$feedbackObject = new Feedback((string) getDataIfExists($feedbackitem, 'attributes()', 'ident'), (string) getDataIfExists($feedbackitem, 'material', 'mattext'));
 			$this->setFeedback($feedbackObject);
