@@ -107,6 +107,67 @@ class Course {
 }
 
 ///////////////////////////////////////////////////////////
+// FOLDER /////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class Folder {
+
+	protected $fileName;
+	protected $fileLocation;
+	protected $fileSize;
+	protected $fileType;
+	protected $fileModified;
+
+	public function __construct($fileName = "", $fileLocation = "", $fileSize = "", $fileType = "", $fileModified = "") {
+		$this->fileName = $fileName;
+		$this->fileLocation = $fileLocation;
+		$this->fileSize = $fileSize;
+		$this->fileType = $fileType;
+		$this->fileModified = $fileModified;
+	}
+	
+	public function setFileName($fileName) {
+		$this->fileName = $fileName;
+	}
+	
+	public function getFileName() {
+		return $this->fileName;
+	}
+
+	public function setFileLocation($fileLocation) {
+		$this->fileLocation = $fileLocation;
+	}
+	
+	public function getFileLocation() {
+		return $this->fileLocation;
+	}
+
+	public function setFileSize($fileSize) {
+		$this->fileSize = $fileSize;
+	}
+	
+	public function getFileSize() {
+		return $this->fileSize;
+	}
+
+	public function setFileType($fileType) {
+		$this->fileType = $fileType;
+	}
+	
+	public function getFileType() {
+		return $this->fileType;
+	}
+
+	public function setFileModified($fileModified) {
+		$this->fileModified = $fileModified;
+	}
+	
+	public function getFileModified() {
+		return $this->fileModified;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
 // CHAPTER ////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 class Chapter {
@@ -340,13 +401,8 @@ class ChapterTest extends Chapter {
     return $this->title;
   }
 
-  public function setDescription($string) {
-    $description = array(
-      'value' => $string,
-      'format' => 'full_html',
-    );
-
-    $this->description = serialize($description);
+  public function setDescription($description) {
+		$this->description = $description;
   }
 	
   public function setDuration($duration) {
@@ -376,55 +432,6 @@ class ChapterTest extends Chapter {
   /**
    * Saves the categories of a test
    */
-  public function saveCategories($categories) {
-    
-    foreach ($categories as $cat) {
-      // Check if tag already exists
-      $terms = taxonomy_get_term_by_name($cat);
-      if (!empty($terms)) {
-        // Save already existing tag in taxonomy_entity_index
-        $query = db_insert('taxonomy_entity_index');
-        $query->fields(array('entity_type', 'bundle', 'entity_id', 'revision_id', 'field_name', 'delta', 'tid'));
-
-        foreach ($terms as $term) {
-          $query->values(array(
-            'entity_type' => 'qtici_test',
-            'bundle' => 'qtici_test',
-            'entity_id' => $this->id,
-            'revision_id' => $this->id,
-            'field_name' => $term['field_name'],
-            'delta' => $term['delta'],
-            'tid' => $term['tid'],
-          ));
-        }
-
-        $query->execute();
-      }
-      else {
-        global $vid;
-        global $field_name;
-        // Save new tag
-        $term = new stdClass();
-        $term->name = $cat;
-        $term->vid = $vid;
-        $term->field_name = $field_name;
-        taxonomy_term_save($term);
-        // Save the term in taxonomy_entity_index
-        $query = db_insert('taxonomy_entity_index');
-        $query->fields(array('entity_type', 'bundle', 'entity_id', 'revision_id', 'field_name', 'delta', 'tid'));
-        $query->values(array(
-          'entity_type' => 'qitic_test',
-          'bundle' => 'qtici_test',
-          'entity_id' => $this->id,
-          'revision_id' => $this->id,
-          'field_name' => $term['field_name'],
-          'delta' => $term['delta'],
-          'tid' => $term['tid'],
-        ));
-        $query->execute();
-      }
-    }
-  }
 }
 	
 
@@ -636,7 +643,7 @@ class SubjectWiki extends Subject {
 ///////////////////////////////////////////////////////////
 // SUBJECT TEST ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////
-class SibjectTest extends Subject {
+class SubjectTest extends Subject {
 
   protected $title;
   protected $description;
@@ -662,13 +669,8 @@ class SibjectTest extends Subject {
     return $this->title;
   }
 
-  public function setDescription($string) {
-    $description = array(
-      'value' => $string,
-      'format' => 'full_html',
-    );
-
-    $this->description = serialize($description);
+  public function setDescription($description) {
+		$this->description = $description;
   }
 	
   public function setDuration($duration) {
@@ -694,59 +696,6 @@ class SibjectTest extends Subject {
   public function getQuizSections() {
     return $this->quizSections;
   }
-	
-  /**
-   * Saves the categories of a test
-   */
-  public function saveCategories($categories) {
-    
-    foreach ($categories as $cat) {
-      // Check if tag already exists
-      $terms = taxonomy_get_term_by_name($cat);
-      if (!empty($terms)) {
-        // Save already existing tag in taxonomy_entity_index
-        $query = db_insert('taxonomy_entity_index');
-        $query->fields(array('entity_type', 'bundle', 'entity_id', 'revision_id', 'field_name', 'delta', 'tid'));
-
-        foreach ($terms as $term) {
-          $query->values(array(
-            'entity_type' => 'qtici_test',
-            'bundle' => 'qtici_test',
-            'entity_id' => $this->id,
-            'revision_id' => $this->id,
-            'field_name' => $term['field_name'],
-            'delta' => $term['delta'],
-            'tid' => $term['tid'],
-          ));
-        }
-
-        $query->execute();
-      }
-      else {
-        global $vid;
-        global $field_name;
-        // Save new tag
-        $term = new stdClass();
-        $term->name = $cat;
-        $term->vid = $vid;
-        $term->field_name = $field_name;
-        taxonomy_term_save($term);
-        // Save the term in taxonomy_entity_index
-        $query = db_insert('taxonomy_entity_index');
-        $query->fields(array('entity_type', 'bundle', 'entity_id', 'revision_id', 'field_name', 'delta', 'tid'));
-        $query->values(array(
-          'entity_type' => 'qitic_test',
-          'bundle' => 'qtici_test',
-          'entity_id' => $this->id,
-          'revision_id' => $this->id,
-          'field_name' => $term['field_name'],
-          'delta' => $term['delta'],
-          'tid' => $term['tid'],
-        ));
-        $query->execute();
-      }
-    }
-  }
 }
 
 
@@ -761,19 +710,19 @@ class SibjectTest extends Subject {
 class Item {
 
   protected $ident;
-  public $type;
-  public $title;
-  public $objective;
-  public $feedback = array();
-  public $hint;
-  public $solutionFeedback;
-  public $max_attempts;
-  public $possibilities = array();
-  public $question;
-  public $id;
-  public $content;
-  public $sectionid;
-  public $description;
+  protected $type;
+  protected $title;
+  protected $objective;
+  protected $feedback = array();
+  protected $hint;
+  protected $solutionFeedback;
+  protected $max_attempts;
+  protected $possibilities = array();
+  protected $question;
+  protected $id;
+	public $content;
+  protected $sectionid;
+  protected $description;
 
   public function __construct() {
 
@@ -791,12 +740,8 @@ class Item {
     return $this->description;
   }
 
-  public function setDescription($string) {
-    $description = array(
-      'value' => $string,
-      'format' => 'full_html',
-    );
-    $this->description = serialize($description);
+  public function setDescription($description) {
+    $this->description = $description;
   }
 
   public function getSectionid() {
@@ -886,8 +831,8 @@ class Item {
   public function getPossibilities() {
     return $this->possibilities;
   }
-
-  public function setContent($content) {
+	
+	public function setContent($content) {
     $this->content = serialize($content);
   }
 
@@ -905,7 +850,15 @@ class Item {
     $this->setObjective((string) getDataIfExists($item, 'objectives', 'material', 'mattext'));
     $this->setDescription((string) getDataIfExists($item, 'objectives', 'material', 'mattext'));
 
-    fetchFeedback($this, $item);
+		$hint = $item->xpath('itemfeedback/hint');
+		$this->setHint(isset($hint[0]->hintmaterial->material->mattext) ? (string) $hint[0]->hintmaterial->material->mattext : null);
+		$solutionFeedback = $item->xpath('itemfeedback/solution');
+		$this->setSolutionFeedback(isset($solutionFeedback[0]->solutionmaterial->material->mattext) ? (string) $solutionFeedback[0]->solutionmaterial->material->mattext : null);
+		$feedbackitems = $item->xpath('itemfeedback[material[1]]');
+		foreach ($feedbackitems as $feedbackitem) {
+			$feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
+			$this->setFeedback($feedbackObject);
+		}
   }
 
   /**
@@ -920,9 +873,9 @@ class Item {
 
 class SingleChoiceQuestion extends Item {
 
-  public $answer;
-  public $score;
-  public $randomOrder;
+  protected $answer;
+  protected $score;
+  protected $randomOrder;
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_SCQ');
@@ -1018,10 +971,10 @@ class SingleChoiceQuestion extends Item {
 
 class MultipleChoiceQuestion extends Item {
 
-  public $quotation;
-  public $answers = array();
-  public $score;
-  public $randomOrder;
+  protected $quotation;
+  protected $answers = array();
+  protected $score;
+  protected $randomOrder;
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_MCQ');
@@ -1160,9 +1113,10 @@ class MultipleChoiceQuestion extends Item {
 
 class FillInBlanks extends Item {
 
-  public $quotation;
-  public $answers = array();
-  public $score;
+  protected $quotation;
+  protected $answers = array();
+  protected $score;
+	public $content;
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_FIB');
@@ -1281,8 +1235,8 @@ class FillInBlanks extends Item {
         $this->setPossibility($possibility);
       }
     }
-    $this->setContent(html_entity_decode($content));
-
+		$this->setContent(html_entity_decode($content));
+		
     parent::parseXML($item);
   }
 
@@ -1290,30 +1244,20 @@ class FillInBlanks extends Item {
 
 class QuizSection {
 
-  //public $ident;
-  public $id;
-  public $testid;
-  public $title;
-  public $objective;
-  public $description;
-  public $ordering;
-  public $items = array();
+  protected $id;
+  protected $title;
+  protected $objective;
+  protected $description;
+  protected $ordering;
+	protected $amount;
+  protected $items = array();
 
-  function __construct() {
-    
-  }
-
-  function myConstruct($id) {
+  function __construct($id, $title, $description, $ordering, $amount) {
     $this->id = $id;
-  }
-
-  function myFullConstruct($section) {
-    $this->id = $section->id;
-    $this->testid = $section->testid;
-    $this->title = $section->title;
-    $this->description = $section->description;
-    $this->ordering = $section->ordering;
-    $this->items = NULL;
+    $this->title = $title;
+    $this->description = $description;
+    $this->ordering = $ordering;
+		$this->amount = $amount;
   }
 
   public function getId() {
@@ -1322,14 +1266,6 @@ class QuizSection {
 
   public function setId($id) {
     $this->id = $id;
-  }
-
-  public function getTestid() {
-    return $this->testid;
-  }
-
-  public function setTestid($testid) {
-    $this->testid = $testid;
   }
 
   public function setTitle($title) {
@@ -1363,6 +1299,14 @@ class QuizSection {
   public function getOrdering() {
     return $this->ordering;
   }
+	
+	public function setAmount($amount) {
+    $this->amount = $amount;
+  }
+
+  public function getAmount() {
+    return $this->amount;
+  }
 
   public function setItem($item) {
     array_push($this->items, $item);
@@ -1375,14 +1319,14 @@ class QuizSection {
 
 class Feedback {
 
-  public $id;
-  public $itemid;
-  public $possibilityid;
-  public $feedback_possibility;
-  public $feedback_positive;
-  public $feedback_negative;
-  public $hint;
-  public $solution_feedback;
+  protected $id;
+  protected $itemid;
+  protected $possibilityid;
+  protected $feedback_possibility;
+  protected $feedback_positive;
+  protected $feedback_negative;
+  protected $hint;
+  protected $solution_feedback;
 
   function __construct() {
     
@@ -1474,15 +1418,15 @@ class ElementTypes {
 
 class Possibility  {
 
-  public $id;
-  public $ident;
-  public $type;
-  public $possibility; // Type of possibility: radio, checkbox, textbox
-  public $itemid;
-  public $answer; // Content of the possibility
-  public $ordering;
-  public $is_correct;
-  public $score;
+  protected $id;
+  protected $ident;
+  protected $type;
+  protected $possibility; // Type of possibility: radio, checkbox, textbox
+  protected $itemid;
+  protected $answer; // Content of the possibility
+  protected $ordering;
+  protected $is_correct;
+  protected $score;
 
   public function __construct() {
 
