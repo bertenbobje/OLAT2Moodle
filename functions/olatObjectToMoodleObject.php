@@ -36,7 +36,7 @@ function olatObjectToMoodleObject($olatObject) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage(), $olatChapter->getLongTitle()), $olatChapter->getContentFile());
+						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage(), $olatChapter->getLongTitle(), "page"), $olatChapter->getContentFile());
 						break;
 					case "emptypage":
 						$ok = 1;
@@ -93,7 +93,7 @@ function olatObjectToMoodleObject($olatObject) {
 						case "page":
 							$ok = 1;
 							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage(), $olatSubject->getSubjectLongTitle()), $olatSubject->getSubjectContentFile());
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage(), $olatSubject->getLongTitle(), "page"), $olatSubject->getSubjectContentFile());
 							break;
 						case "emptypage":
 							$ok = 1;
@@ -167,7 +167,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage(), $sub->getSubjectLongTitle()), $sub->getSubjectContentFile());
+						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage(), $sub->getLongTitle(), "page"), $sub->getSubjectContentFile());
 						break;
 					case "emptypage":
 						$ok = 1;
@@ -226,8 +226,10 @@ function quizMigration($olatObject) {
 				$olatObject->getPassingScore()
 	);
 	foreach ($olatObject->getQuizSections() as $qs) {
+		$id = substr($qs->getId(), 7);
+		$id = substr($id, strrpos($id, "_") + 1);
 		$quizPage = new QuizPage(
-					substr($qs->getId(), 7),
+					$id,
 					$qs->getTitle(),
 					htmlspecialchars($qs->getDescription(), ENT_QUOTES, "UTF-8"),
 					$qs->getOrdering(),
@@ -235,7 +237,7 @@ function quizMigration($olatObject) {
 		);
 		foreach ($qs->getItems() as $qsi) {
 			$quotation = ($qsi->getType() != "SCQ" ? $qsi->getQuotation() : NULL);
-			$content = ($qsi->getType() == "FIB" ? $qsi->getContent() : NULL);
+			$content = ($qsi->getType() == "FIB" ? 	moodleFixHTML(htmlspecialchars($qsi->getContent(), ENT_QUOTES, "UTF-8"), $olatObject->getLongTitle(), "quiz") : NULL);
 			$media = ($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL);
 			$quizQuestion = new QuizQuestion(
 						substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1),
@@ -244,7 +246,7 @@ function quizMigration($olatObject) {
 						$quotation,
 						$qsi->getScore(),
 						htmlspecialchars($qsi->getDescription(), ENT_QUOTES, "UTF-8"),
-						moodleFixQuiz(htmlspecialchars($qsi->getQuestion(), ENT_QUOTES, "UTF-8")),
+						moodleFixHTML(htmlspecialchars($qsi->getQuestion(), ENT_QUOTES, "UTF-8"), $olatObject->getLongTitle(), "quiz"),
 						$qsi->getHint(),
 						$qsi->getSolutionFeedback(),
 						$qsi->getMax_attempts(),
@@ -279,7 +281,8 @@ function quizMigration($olatObject) {
 // PARAMETERS
 // -> $html = The HTML file (as string)
 //    $page = The title of the activity that contains the HTML file
-function moodleFixHTML($html, $title) {
+//    $type = Type of HTML to fix (page or quiz)
+function moodleFixHTML($html, $title, $type) {
 	// Removes everything before <body> and after </body>
 	$patternRemoveStart = '/^.+?&lt;body&gt;/ism';
 	$replaceRemoveStart = '';
@@ -292,12 +295,22 @@ function moodleFixHTML($html, $title) {
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
 	// Media files (Object)
-	$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
+	if ($type == "page") {
+		$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
+	}
+	else {
+		$patternMedia = '/&lt;object.*?file\=media\/(.+?)&quot;.*?&lt;\/object&gt;/ism';
+	}
 	$replaceMedia = $mediaReplace;
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
 	// Media files (BPlayer)
-	$patternMedia2 = '/&lt;script.?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
+	if ($type == "page") {
+		$patternMedia2 = '/&lt;script.?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
+	}
+	else {
+		$patternMedia2 = '/&lt;script.?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.+?&lt;\/script&gt;/ism';
+	}
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
@@ -316,6 +329,10 @@ function moodleFixHTML($html, $title) {
 	// Fix the references in <img> and <a> tags that don't lead to an external page
 	foreach ($dom->getElementsByTagName('img') as $inode) {
 		$srcValue = $inode->getAttribute('src');
+		// Removed the media/ before the file if it exists (for quizzes)
+		if (substr($srcValue, 0, 6) == "media/" && $type == "quiz") {
+			$srcValue = substr($srcValue, 6);
+		}
 		if (substr($srcValue, 0, 7)  !== "http://" 
 		 && substr($srcValue, 0, 8)  !== "https://") {
 			$inode->setAttribute('src', '@@PLUGINFILE@@/' . $srcValue);

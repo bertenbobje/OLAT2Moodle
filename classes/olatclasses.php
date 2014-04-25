@@ -491,7 +491,7 @@ class Subject {
 		return $this->shortTitle;
 	}
 	
-	public function setSubjectLongTitle($longTitle) {
+	public function setLongTitle($longTitle) {
 		if (empty($longtitle)) {
 			$this->longTitle = $this->shortTitle;
 		}
@@ -500,7 +500,7 @@ class Subject {
 		}
 	}
 	
-	public function getSubjectLongTitle() {
+	public function getLongTitle() {
 		return $this->longTitle;
 	}
 	
