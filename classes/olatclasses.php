@@ -869,6 +869,7 @@ class SingleChoiceQuestion extends Item {
   protected $answer;
   protected $score;
   protected $randomOrder;
+	protected $images = array();
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_SCQ');
@@ -898,6 +899,14 @@ class SingleChoiceQuestion extends Item {
     return $this->answer;
   }
 
+  public function setImages($images) {
+    array_push($this->images, $images);
+  }
+
+  public function getImages() {
+    return $this->images;
+  }
+	
   public function setScore($score) {
     $this->score = $score;
   }
@@ -942,20 +951,13 @@ class SingleChoiceQuestion extends Item {
     }
     // For SCQ we only need to handle answers, the rest of the data is generic to all items
     foreach ($item->presentation->response_lid->render_choice->children() as $flow_label) {
-      $content['value'] = (string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext');
-      $content['format'] = (string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext', 'texttype');
-      if (empty($content['format'])) {
-        $content['format'] = 'full_html';
-      }
-      $ident = (int) getDataIfExists($flow_label, 'response_label', 'attributes()', 'ident');
-      $is_correct = 0;
-      if (in_array($ident, $correct)) {
-        $is_correct = 1;
-      }
+			$ident = (int) getDataIfExists($flow_label, 'response_label', 'attributes()', 'ident');
+      $is_correct = ((in_array($ident, $correct)) ? true : false);
+			
 			$possibility = new Possibility(
 						$ident,
 						ElementTypes::RADIOBUTTON,
-						serialize($content),
+						(string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext'),
 						$is_correct
 			);
       $this->setPossibility($possibility);
@@ -972,6 +974,7 @@ class MultipleChoiceQuestion extends Item {
   protected $answers = array();
   protected $score;
   protected $randomOrder;
+	protected $images = array();
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_MCQ');
@@ -1009,6 +1012,14 @@ class MultipleChoiceQuestion extends Item {
   public function getAnswer() {
     return $this->answers;
   }
+	
+  public function setImages($images) {
+    array_push($this->images, $images);
+  }
+
+  public function getImages() {
+    return $this->images;
+  }
 
   public function setScore($score) {
     $this->score = $score;
@@ -1018,6 +1029,8 @@ class MultipleChoiceQuestion extends Item {
     return $this->score;
   }
 
+	
+	
   public function setRandomOrder($randomOrder) {
     if ($randomOrder == 'Yes') {
       $this->randomOrder = TRUE;
@@ -1063,22 +1076,15 @@ class MultipleChoiceQuestion extends Item {
     }
  
     // Get answers
-    foreach ($item->presentation->response_lid->render_choice->children() as $child) {
-      $content['value'] = (string) getDataIfExists($child, 'response_label', 'material', 'mattext');
-      $content['format'] = (string) getDataIfExists($child, 'response_label', 'material', 'mattext', 'texttype');
-      if (empty($content['format'])) {
-        $content['format'] = 'full_html';
-      }
-      $ident = (int) getDataIfExists($child, 'response_label', 'attributes()', 'ident');
-      $is_correct = 0;
-      if (in_array($ident, $correct)) {
-        $is_correct = 1;
-      }
+    foreach ($item->presentation->response_lid->render_choice->children() as $flow_label) {
+			$ident = (int) getDataIfExists($flow_label, 'response_label', 'attributes()', 'ident');
+      $is_correct = ((in_array($ident, $correct)) ? true : false);
+			
 			$possibility = new Possibility(
-							$ident,
-							ElementTypes::CHECKBOX,
-							serialize($content),
-							$is_correct
+						$ident,
+						ElementTypes::RADIOBUTTON,
+						(string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext'),
+						$is_correct
 			);
       $this->setPossibility($possibility);
     }
@@ -1118,6 +1124,7 @@ class FillInBlanks extends Item {
   protected $answers = array();
   protected $score;
 	public $content;
+	protected $images = array();
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_FIB');
@@ -1154,6 +1161,14 @@ class FillInBlanks extends Item {
 
   public function getAnswer() {
     return $this->answers;
+  }
+	
+  public function setImages($images) {
+    array_push($this->images, $images);
+  }
+
+  public function getImages() {
+    return $this->images;
   }
 
   public function setScore($score) {
@@ -1192,8 +1207,8 @@ class FillInBlanks extends Item {
           'value' => (string) $result->conditionvar->or->varequal,
           'score' => (string) $result->setvar,
         );
-        $this->setAnswer($answers);
       }
+			$this->setAnswer($answers);
     }
 
     $content = '';
@@ -1201,19 +1216,14 @@ class FillInBlanks extends Item {
       // MATERIAL can have the mattext or matimage elements (text/image)
       if ($child->getName() == 'material') {
         $materialArray = $child->xpath('*');
+				$images = array();
         foreach ($materialArray as $element) {
           if ($element->getName() == 'mattext') {
             $content .= (string) $element;
           }
           if ($element->getName() == 'matimage') {
             // Save image
-						echo (string) $element['uri'] . "<br>";
-            //$newFile = file_save_upload((string) $element['uri'], array('file_validate_extensions' => array($allowed)));
-           // $newFile = file_move($newFile, 'public://');
-           // $newFile->status = 1; // Make permanent
-           // $newFile = file_save($newFile);
-           // $content .= ':img' . $newFile->fid . 'fid:';
-					 $content = "test";
+						$this->setImages((string) $element['uri']);
           }
         }
       }
