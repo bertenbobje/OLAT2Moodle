@@ -405,6 +405,10 @@ class ChapterTest extends Chapter {
 		$this->description = $description;
   }
 	
+	public function getDescription() {
+		return $this->description;
+  }
+	
   public function setDuration($duration) {
     $this->duration = $duration;
   }
@@ -673,6 +677,10 @@ class SubjectTest extends Subject {
 		$this->description = $description;
   }
 	
+	public function getDescription() {
+		return $this->description;
+  }
+	
   public function setDuration($duration) {
     $this->duration = $duration;
   }
@@ -851,9 +859,9 @@ class Item {
     $this->setDescription((string) getDataIfExists($item, 'objectives', 'material', 'mattext'));
 
 		$hint = $item->xpath('itemfeedback/hint');
-		$this->setHint(isset($hint[0]->hintmaterial->material->mattext) ? (string) $hint[0]->hintmaterial->material->mattext : null);
+		$this->setHint(isset($hint[0]->hintmaterial->material->mattext) ? str_replace(array("\r", "\n"), '', (string) $hint[0]->hintmaterial->material->mattext) : null);
 		$solutionFeedback = $item->xpath('itemfeedback/solution');
-		$this->setSolutionFeedback(isset($solutionFeedback[0]->solutionmaterial->material->mattext) ? (string) $solutionFeedback[0]->solutionmaterial->material->mattext : null);
+		$this->setSolutionFeedback(isset($solutionFeedback[0]->solutionmaterial->material->mattext) ? str_replace(array("\r", "\n"), '', (string) $solutionFeedback[0]->solutionmaterial->material->mattext) : null);
 		$feedbackitems = $item->xpath('itemfeedback[material[1]]');
 		foreach ($feedbackitems as $feedbackitem) {
 			//$feedbackObject = new Feedback((string) $feedbackitem->attributes()->ident, (string) $feedbackitem->material->mattext);
@@ -869,7 +877,7 @@ class SingleChoiceQuestion extends Item {
   protected $answer;
   protected $score;
   protected $randomOrder;
-	protected $images = array();
+	protected $media = array();
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_SCQ');
@@ -899,12 +907,12 @@ class SingleChoiceQuestion extends Item {
     return $this->answer;
   }
 
-  public function setImages($images) {
-    array_push($this->images, $images);
+  public function setMedia($media) {
+    array_push($this->media, $media);
   }
 
-  public function getImages() {
-    return $this->images;
+  public function getMedia() {
+    return $this->media;
   }
 	
   public function setScore($score) {
@@ -974,7 +982,7 @@ class MultipleChoiceQuestion extends Item {
   protected $answers = array();
   protected $score;
   protected $randomOrder;
-	protected $images = array();
+	protected $media = array();
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_MCQ');
@@ -1013,12 +1021,12 @@ class MultipleChoiceQuestion extends Item {
     return $this->answers;
   }
 	
-  public function setImages($images) {
-    array_push($this->images, $images);
+  public function setMedia($media) {
+    array_push($this->media, $media);
   }
 
-  public function getImages() {
-    return $this->images;
+  public function getMedia() {
+    return $this->media;
   }
 
   public function setScore($score) {
@@ -1124,7 +1132,7 @@ class FillInBlanks extends Item {
   protected $answers = array();
   protected $score;
 	public $content;
-	protected $images = array();
+	protected $media = array();
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_FIB');
@@ -1163,12 +1171,12 @@ class FillInBlanks extends Item {
     return $this->answers;
   }
 	
-  public function setImages($images) {
-    array_push($this->images, $images);
+  public function setMedia($media) {
+    array_push($this->media, $media);
   }
 
-  public function getImages() {
-    return $this->images;
+  public function getMedia() {
+    return $this->media;
   }
 
   public function setScore($score) {
@@ -1216,14 +1224,14 @@ class FillInBlanks extends Item {
       // MATERIAL can have the mattext or matimage elements (text/image)
       if ($child->getName() == 'material') {
         $materialArray = $child->xpath('*');
-				$images = array();
+				$media = array();
         foreach ($materialArray as $element) {
           if ($element->getName() == 'mattext') {
             $content .= (string) $element;
           }
           if ($element->getName() == 'matimage') {
             // Save image
-						$this->setImages((string) $element['uri']);
+						$this->setMedia((string) $element['uri']);
           }
         }
       }
@@ -1299,12 +1307,12 @@ class QuizSection {
     return $this->objective;
   }
 
-  public function getDescription() {
-    return $this->description;
-  }
-
   public function setDescription($description) {
     $this->description = $description;
+  }
+	
+	public function getDescription() {
+		return $this->description;
   }
 
   public function setOrdering($ordering) {

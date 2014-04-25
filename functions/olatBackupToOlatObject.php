@@ -398,7 +398,7 @@ function olatQuizParse($object, $path, $olatType) {
 	$qtiDescription = (string) getDataIfExists($qtiXml, 'assessment', 'objectives', 'material', 'mattext');
 	$qtiDescription = str_replace("<![CDATA[", "", $qtiDescription);
 	$qtiDescription = str_replace("]]>", "", $qtiDescription);
-	$testObject->setDescription(htmlspecialchars($qtiDescription, ENT_QUOTES, "UTF-8"));
+	$testObject->setDescription($qtiDescription);
 	
 	$testObject->setDuration((string) getDataIfExists($qtiXml, 'assessment', 'duration'));
 	$testObject->setPassingScore((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));

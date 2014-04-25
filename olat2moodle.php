@@ -45,18 +45,18 @@ if (isset($_FILES["file"])) {
 		$olatObject = olatBackupToOlatObject($_FILES["file"]["tmp_name"]);
 		if ($olatObject !== null) {
 			echo "<br><p>===OLAT OBJECT===</p>";
-			var_dump($olatObject);
+			//var_dump($olatObject);
 			echo "<p>OK - OLAT Object created</p><br>";
 			
 			echo "<p>===MOODLE OBJECT===</p>";
 			// Converts the OLAT Object to a Moodle object.
-			//$moodleObject = olatObjectToMoodleObject($olatObject, $books);
-			//var_dump($moodleObject);
+			$moodleObject = olatObjectToMoodleObject($olatObject, $books);
+			var_dump($moodleObject);
 			echo "<p>OK - Moodle Object created</p>";
 
 			if ($books) {
-				//$moodleObject = checkForBooks($moodleObject);
-				//var_dump($moodleObject);
+				$moodleObject = checkForBooks($moodleObject);
+				var_dump($moodleObject);
 				echo "<p style='color:green;'>OK - Books marked</p>";
 			}
 

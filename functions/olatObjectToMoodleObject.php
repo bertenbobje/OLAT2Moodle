@@ -28,7 +28,7 @@ function olatObjectToMoodleObject($olatObject) {
 			case "iqsurv":
 				$ok = 1;
 				$moduleName = "quiz";
-				$moodleActivity = new ActivityQuiz();
+				$moodleActivity = quizMigration($olatChapter);
 				break;
 			case "sp":
 			case "st":
@@ -84,7 +84,7 @@ function olatObjectToMoodleObject($olatObject) {
 				case "iqsurv":
 					$ok = 1;
 					$moduleName = "quiz";
-					$moodleActivity = new ActivityQuiz();
+					$moodleActivity = quizMigration($olatSubject);
 					break;
 				case "sp":
 				case "st":
@@ -157,7 +157,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			case "iqsurv":
 				$ok = 1;
 				$moduleName = "quiz";
-				$moodleActivity = new ActivityQuiz();
+				$moodleActivity = quizMigration($sub);
 				break;
 			case "sp":
 			case "st":
@@ -210,6 +210,64 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			}
 		}
 	}
+}
+
+// Reads out the quizzes and parses them to the Moodle object
+//
+// PARAMETERS
+// -> $olatObject = The OLAT Object
+function quizMigration($olatObject) {
+	$act = new ActivityQuiz(
+				$olatObject->getDescription(),
+				$olatObject->getDuration(),
+				$olatObject->getPassingScore()
+	);
+	foreach ($olatObject->getQuizSections() as $qs) {
+		$quizPage = new QuizPage(
+					substr($qs->getId(), 7),
+					$qs->getTitle(),
+					htmlspecialchars($qs->getDescription(), ENT_QUOTES, "UTF-8"),
+					$qs->getOrdering(),
+					$qs->getAmount()
+		);
+		foreach ($qs->getItems() as $qsi) {
+			$quotation = ($qsi->getType() != "SCQ" ? $qsi->getQuotation() : NULL);
+			$content = ($qsi->getType() == "FIB" ? $qsi->getContent() : NULL);
+			$media = ($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL);
+			$quizQuestion = new QuizQuestion(
+						substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1),
+						$qsi->getTitle(),
+						$qsi->getType(),
+						$quotation,
+						$qsi->getScore(),
+						htmlspecialchars($qsi->getDescription(), ENT_QUOTES, "UTF-8"),
+						moodleFixQuiz(htmlspecialchars($qsi->getQuestion(), ENT_QUOTES, "UTF-8")),
+						$qsi->getHint(),
+						$qsi->getSolutionFeedback(),
+						$qsi->getMax_attempts(),
+						$content,
+						$media
+			);
+			foreach ($qsi->getPossibilities() as $qsip) {
+				$feedback = "";
+				foreach ($qsi->getFeedback() as $qsif) {
+					if ($qsip->getId() == $qsif->getId()) {
+						$feedback = $qsif->getFeedback();
+					}
+				}
+				$quizPossibility = new QuizPossibility(
+					$qsip->getId(),
+					$qsip->getAnswer(),
+					$qsip->getIs_correct(),
+					$feedback
+				);
+				$quizQuestion->setQPossibility($quizPossibility);
+			}
+			$quizPage->setPageQuestion($quizQuestion);
+		}
+		$act->setQuizPage($quizPage);
+	}
+	return $act;
 }
 
 // This cleans up the HTML files given by OLAT to make them work
@@ -432,6 +490,28 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 		}
 	}
 	return $object;
+}
+
+// This cleans up the quiz questions given by OLAT to make them work
+// in Moodle. This is almost the same as the moodleFixHTML function
+// but there are some core differences
+//
+// PARAMETERS
+// -> $question = The quiz question
+function moodleFixQuiz($question) {
+	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
+	
+	// Media files (Object)
+	$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
+	$replaceMedia = $mediaReplace;
+	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $question);
+	
+	// Media files (BPlayer)
+	$patternMedia2 = '/&lt;span.+?&lt;script.+?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.+?&lt;\/span&gt;/ism';
+	$replaceMedia2 = $mediaReplace;
+	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
+	
+	return $fixhtmlMedia2;
 }
 
 ?>
