@@ -17,10 +17,17 @@
 //                                            - ActivityURL
 //                                            - ActivityResource
 //                                            - ActivityBook
-//                                            - ActivityQuiz
 //                                            - ActivityWiki
 //                                            - ActivityLabel
-//
+//                                            - ActivityQuiz
+//                                                    |
+//                                                QuizPage
+//                                                    |
+//                                               QuizQuestion
+//                                                    |
+//                                             _ SCQ _|
+//                  - QuizFeedback _________  |_ MCQ _|
+//                  - QuizPossibility ______|-|- FIB _|
 
 ///////////////////////////////////////////////////////////
 // COURSE /////////////////////////////////////////////////
@@ -388,6 +395,370 @@ class ActivityLabel extends Activity {
 
 	public function __construct() {}
 	
+}
+
+///////////////////////////////////////////////////////////
+// ACTIVITY QUIZ //////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ActivityQuiz extends Activity {
+
+	protected $description;
+	protected $duration;
+	protected $passingScore;
+	protected $quizPages = array();
+
+	public function __construct($description, $duration, $passingScore) {
+		$this->description = $description;
+		$this->duration = $duration;
+		$this->passingScore = $passingScore;
+	}
+	
+	public function setDescription($description) {
+		$this->description = $description;
+	}
+	
+	public function getDescription() {
+		return $this->description;
+	}
+	
+	public function setDuration($duration) {
+		$this->duration = $duration;
+	}
+	
+	public function getDuration() {
+		return $this->duration;
+	}
+	
+	public function setPassingScore($passingScore) {
+		$this->passingScore = $passingScore;
+	}
+	
+	public function getPassingScore() {
+		return $this->passingScore;
+	}
+	
+	public function setQuizPage($quizPages) {
+		array_push($this->quizPages, $quizPages);
+	}
+	
+	public function getQuizPages() {
+		return $this->quizPages;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// QUIZ PAGE //////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class QuizPage {
+
+	protected $pageID;
+	protected $pageTitle;
+	protected $pageDescription;
+	protected $pageOrdering;
+	protected $pageAmount;
+	protected $pageQuestions = array();
+	
+	public function __construct($pageID, $pageTitle, $pageDescription, $pageOrdering, $pageAmount) {
+		$this->pageID = $pageID;
+		$this->pageTitle = $pageTitle;
+		$this->pageDescription = $pageDescription;
+		$this->pageOrdering = $pageOrdering;
+		$this->pageAmount = $pageAmount;
+	}
+	
+	public function setPageID($pageID) {
+		$this->pageID = $pageID;
+	}
+	
+	public function getPageID() {
+		return $this->pageID;
+	}
+	
+	public function setPageTitle($pageTitle) {
+		$this->pageTitle = $pageTitle;
+	}
+	
+	public function getPageTitle() {
+		return $this->pageTitle;
+	}
+	
+	public function setPageDescription($pageDescription) {
+		$this->pageDescription = $pageDescription;
+	}
+	
+	public function getPageDescription() {
+		return $this->pageDescription;
+	}
+	
+	public function setPageOrdering($pageOrdering) {
+		$this->pageOrdering = $pageOrdering;
+	}
+	
+	public function getPageOrdering() {
+		return $this->pageOrdering;
+	}
+	
+	public function setPageQuestion($pageQuestions) {
+		array_push($this->pageQuestions, $pageQuestions);
+	}
+	
+	public function getPageQuestions() {
+		return $this->pageQuestions;
+	}
+
+}
+
+///////////////////////////////////////////////////////////
+// QUIZ QUESTION //////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class QuizQuestion {
+	
+	protected $qID;
+	protected $qTitle;
+	protected $qType;
+	protected $qQuotation;
+	protected $qScore;
+	protected $qDescription;
+	protected $qQuestion;
+	protected $qHint;
+	protected $qSolutionFeedback;
+	protected $qMaxAttempts;
+	protected $qContent;						// For FIB questions
+	protected $qMedia = array();		// For FIB questions
+	protected $qPossibilities = array();
+	protected $qFeedback = array();
+	
+	public function __construct($qID, $qTitle, $qType, $qQuotation, $qScore, $qDescription, $qQuestion, $qHint, $qSolutionFeedback, $qMaxAttempts, $qContent = "", $qMedia = "") {
+		$this->qID = $qID;
+		$this->qTitle = $qTitle;
+		$this->qType = $qType;
+		$this->qQuotation = $qQuotation;
+		$this->qScore = $qScore;
+		$this->qDescription = $qDescription;
+		$this->qQuestion = $qQuestion;
+		$this->qHint = $qHint;
+		$this->qSolutionFeedback = $qSolutionFeedback;
+		$this->qMaxAttempts = $qMaxAttempts;
+		$this->qContent = $qContent;
+		$this->qMedia = $qMedia;
+	}
+	
+	public function setQID($qID) {
+		$this->qID = $qID;
+	}
+	
+	public function getQID() {
+		return $this->qID;
+	}
+	
+	public function setQTitle($qTitle) {
+		$this->qTitle = $qTitle;
+	}
+	
+	public function getQTitle() {
+		return $this->qTitle;
+	}
+	
+	public function setQType($qType) {
+		$this->qType = $qType;
+	}
+	
+	public function getQType() {
+		return $this->qType;
+	}
+	
+	public function setQQuotation($qQuotation) {
+		$this->qQuotation = $qQuotation;
+	}
+	
+	public function getQQuotation() {
+		return $this->qQuotation;
+	}
+	
+	public function setQScore($qScore) {
+		$this->qScore = $qScore;
+	}
+	
+	public function getQScore() {
+		return $this->qScore;
+	}
+	
+	public function setQDescription($qDescription) {
+		$this->qDescription = $qDescription;
+	}
+	
+	public function getQDescription() {
+		return $this->qDescription;
+	}
+	
+	public function setQQuestion($qQuestion) {
+		$this->qQuestion = $qQuestion;
+	}
+	
+	public function getQQuestion() {
+		return $this->qQuestion;
+	}
+	
+	public function setQHint($qHint) {
+		$this->qHint = $qHint;
+	}
+	
+	public function getQHint() {
+		return $this->qHint;
+	}
+	
+	public function setQSolutionFeedback($qSolutionFeedback) {
+		$this->qSolutionFeedback = $qSolutionFeedback;
+	}
+	
+	public function getQSolutionFeedback() {
+		return $this->qSolutionFeedback;
+	}
+	
+	public function setQMaxAttempts($qMaxAttempts) {
+		$this->qMaxAttempts = $qMaxAttempts;
+	}
+	
+	public function getQMaxAttempts() {
+		return $this->qMaxAttempts;
+	}
+	
+	public function setQContent($qContent) {
+		$this->qContent = $qContent;
+	}
+	
+	public function getQContent() {
+		return $this->qContent;
+	}
+	
+	public function setQMedia($qMedia) {
+		array_push($this->qMedia, $qMedia);
+	}
+	
+	public function getQMedia() {
+		return $this->qMedia;
+	}
+	
+	public function setQPossibility($qPossibilities) {
+		array_push($this->qPossibilities, $qPossibilities);
+	}
+	
+	public function getQPossibilities() {
+		return $this->qPossibilities;
+	}
+	
+	public function setQFeedback($qFeedback) {
+		array_push($this->qFeedback, $qFeedback);
+	}
+	
+	public function getQFeedback() {
+		return $this->qFeedback;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// SCQ (SINGLE CHOICE QUESTION) ///////////////////////////
+///////////////////////////////////////////////////////////
+class SCQ extends QuizQuestion {
+	
+}
+
+///////////////////////////////////////////////////////////
+// MCQ (MULTIPLE CHOICE QUESTION) /////////////////////////
+///////////////////////////////////////////////////////////
+class MCQ extends QuizQuestion {
+	
+}
+
+///////////////////////////////////////////////////////////
+// FIB (FILL IN BLANKS) ///////////////////////////////////
+///////////////////////////////////////////////////////////
+class FIB extends QuizQuestion {
+	
+}
+
+///////////////////////////////////////////////////////////
+// QUIZ FEEDBACK //////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class QuizFeedback {
+	
+	protected $qfID;
+	protected $qfFeedback;
+	
+	public function __construct($qfID, $qfFeedback) {
+		$this->qfID = $qfID;
+		$this->qfFeedback = $qfFeedback;
+	}
+	
+	public function setQFID($qfID) {
+		$this->qfID = $qfID;
+	}
+	
+	public function getQFID() {
+		return $this->qfID;
+	}
+	
+	public function setQFFeedback($qfFeedback) {
+		$this->qfFeedback = $qfFeedback;
+	}
+	
+	public function getQFFeedback() {
+		return $this->qfFeedback;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
+// QUIZ POSSIBILITY ///////////////////////////////////////
+///////////////////////////////////////////////////////////
+class QuizPossibility {
+
+	protected $qpID;
+	protected $qpAnswer;
+	protected $qpIsCorrect;
+	protected $qpFeedback;
+	
+	public function __construct($qpID, $qpAnswer, $qpIsCorrect, $qpFeedback) {
+		$this->qpID = $qpID;
+		$this->qpAnswer = $qpAnswer;
+		$this->qpIsCorrect = $qpIsCorrect;
+		$this->qpFeedback = $qpFeedback;
+	}
+	
+	public function setQPID($qpID) {
+		$this->qpID = $qpID;
+	}
+	
+	public function getQPID() {
+		return $this->qpID;
+	}
+	
+	public function setQPAnswer($qpAnswer) {
+		$this->qpAnswer = $qpAnswer;
+	}
+	
+	public function getQPAnswer() {
+		return $this->qpAnswer;
+	}
+	
+	public function setQPIsCorrect($qpIsCorrect) {
+		$this->qpIsCorrect = $qpIsCorrect;
+	}
+	
+	public function getQPIsCorrect() {
+		return $this->qpIsCorrect;
+	}
+	
+	public function setQPFeedback($qpFeedback) {
+		$this->qpFeedback = $qpFeedback;
+	}
+	
+	public function getQPFeedback() {
+		return $this->qpFeedback;
+	}
+
 }
 
 ?>

@@ -608,12 +608,14 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
 						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 						$activityActivityChildXml->addChild('revision', 1);
+						$activityActivityChildXml->addChild('timemodified', time());
 						break;
 					
 					case "folder":
 						$activityActivityChildXml->addChild('display', 0);
 						$activityActivityChildXml->addChild('showexpanded', 1);
 						$activityActivityChildXml->addChild('revision', 1);
+						$activityActivityChildXml->addChild('timemodified', time());
 						break;
 						
 					case "url":
@@ -621,6 +623,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityActivityChildXml->externalurl = $activity->getURL();
 						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 						$activityActivityChildXml->addChild('parameters', 'a:0:{}');
+						$activityActivityChildXml->addChild('timemodified', time());
 						break;
 						
 					case "resource":
@@ -630,6 +633,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
 						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
 						$activityActivityChildXml->addChild('revision', 1);
+						$activityActivityChildXml->addChild('timemodified', time());
 					
 					case "wiki":
 						$activityActivityChildXml->firstpagetitle = $activity->getName();
@@ -639,9 +643,55 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityActivityChildXml->addChild('editbegin', 0);
 						$activityActivityChildXml->addChild('editend', 0);
 						$activityActivityChildXml->addChild('subwikis');
-				}
+						$activityActivityChildXml->addChild('timemodified', time());
 				
-				$activityActivityChildXml->addChild('timemodified', time());
+					case "quiz":
+						$activityActivityChildXml->addChild('timeopen', 0);
+						$activityActivityChildXml->addChild('timeclose', 0);
+						$activityActivityChildXml->addChild('timelimit', 0);
+						$activityActivityChildXml->addChild('overduehandling', 'autoabandon');
+						$activityActivityChildXml->addChild('graceperiod', 0);
+						$activityActivityChildXml->addChild('preferredbehaviour', 'deferredfeedback');
+						$activityActivityChildXml->addChild('attempts_number', 0);
+						$activityActivityChildXml->addChild('attemptonlast', 0);
+						$activityActivityChildXml->addChild('grademethod', 1);
+						$activityActivityChildXml->addChild('decimalpoints', 2);
+						$activityActivityChildXml->addChild('questiondecimalpoints', -1);
+						$activityActivityChildXml->addChild('reviewattempt', 69904);
+						$activityActivityChildXml->addChild('reviewcorrectness', 4368);
+						$activityActivityChildXml->addChild('reviewmarks', 4368);
+						$activityActivityChildXml->addChild('reviewspecificfeedback', 4368);
+						$activityActivityChildXml->addChild('reviewgeneralfeedback', 4368);
+						$activityActivityChildXml->addChild('reviewrightanswer', 4368);
+						$activityActivityChildXml->addChild('reviewoverallfeedback', 4368);
+						$activityActivityChildXml->addChild('questionsperpage', 1);
+						$activityActivityChildXml->addChild('navmethod', 'free');
+						$activityActivityChildXml->addChild('shufflequestions', 0);
+						$activityActivityChildXml->addChild('shuffleanswers', 1);
+						$activityActivityChildXml->addChild('questions');
+						$activityActivityChildXml->addChild('sumgrades', '0.00000');
+						$activityActivityChildXml->addChild('grade', '10.00000');
+						$activityActivityChildXml->addChild('timecreated', 0);
+						$activityActivityChildXml->addChild('timemodified', time());
+						$activityActivityChildXml->addChild('password');
+						$activityActivityChildXml->addChild('subnet');
+						$activityActivityChildXml->addChild('browsersecurity', "-");
+						$activityActivityChildXml->addChild('delay1', 0);
+						$activityActivityChildXml->addChild('delay2', 0);
+						$activityActivityChildXml->addChild('showuserpicture', 0);
+						$activityActivityChildXml->addChild('showblocks', 0);
+						$activityActivityChildFeedbacksXml = $activityActivityChildXml->addChild('feedbacks');
+						$activityActivityChildFeedbacksFeedbackXml = $activityActivityChildXml->addChild('feedback');
+						$activityActivityChildFeedbacksFeedbackXml->addAttribute('id', 3);
+						$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktext');
+						$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktextformat', 1);
+						$activityActivityChildFeedbacksFeedbackXml->addChild('mingrade', '0.00000');
+						$activityActivityChildFeedbacksFeedbackXml->addChild('maxgrade', '11.00000');
+						$activityActivityChildXml->addChild('overrides');
+						$activityActivityChildXml->addChild('grades');
+						$activityActivityChildXml->addChild('attempts');
+						break;
+				}
 					
 				$dom->loadXML($activityActivityXml->asXML());
 				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
@@ -857,12 +907,14 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
 							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 							$activityActivityChildXml->addChild('revision', 1);
+							$activityActivityChildXml->addChild('timemodified', time());
 							break;
 						
 						case "folder":
 							$activityActivityChildXml->addChild('display', 0);
 							$activityActivityChildXml->addChild('showexpanded', 1);
 							$activityActivityChildXml->addChild('revision', 1);
+							$activityActivityChildXml->addChild('timemodified', time());
 							break;
 							
 						case "url":
@@ -870,6 +922,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$activityActivityChildXml->externalurl = $activity->getURL();
 							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 							$activityActivityChildXml->addChild('parameters', 'a:0:{}');
+							$activityActivityChildXml->addChild('timemodified', time());
 							break;
 							
 						case "resource":
@@ -879,6 +932,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
 							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
 							$activityActivityChildXml->addChild('revision', 1);
+							$activityActivityChildXml->addChild('timemodified', time());
 							break;
 						
 						case "wiki":
@@ -889,10 +943,56 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$activityActivityChildXml->addChild('editbegin', 0);
 							$activityActivityChildXml->addChild('editend', 0);
 							$activityActivityChildXml->addChild('subwikis');
+							$activityActivityChildXml->addChild('timemodified', time());
+							break;
+						
+						case "quiz":
+							$activityActivityChildXml->addChild('timeopen', 0);
+							$activityActivityChildXml->addChild('timeclose', 0);
+							$activityActivityChildXml->addChild('timelimit', 0);
+							$activityActivityChildXml->addChild('overduehandling', 'autoabandon');
+							$activityActivityChildXml->addChild('graceperiod', 0);
+							$activityActivityChildXml->addChild('preferredbehaviour', 'deferredfeedback');
+							$activityActivityChildXml->addChild('attempts_number', 0);
+							$activityActivityChildXml->addChild('attemptonlast', 0);
+							$activityActivityChildXml->addChild('grademethod', 1);
+							$activityActivityChildXml->addChild('decimalpoints', 2);
+							$activityActivityChildXml->addChild('questiondecimalpoints', -1);
+							$activityActivityChildXml->addChild('reviewattempt', 69904);
+							$activityActivityChildXml->addChild('reviewcorrectness', 4368);
+							$activityActivityChildXml->addChild('reviewmarks', 4368);
+							$activityActivityChildXml->addChild('reviewspecificfeedback', 4368);
+							$activityActivityChildXml->addChild('reviewgeneralfeedback', 4368);
+							$activityActivityChildXml->addChild('reviewrightanswer', 4368);
+							$activityActivityChildXml->addChild('reviewoverallfeedback', 4368);
+							$activityActivityChildXml->addChild('questionsperpage', 1);
+							$activityActivityChildXml->addChild('navmethod', 'free');
+							$activityActivityChildXml->addChild('shufflequestions', 0);
+							$activityActivityChildXml->addChild('shuffleanswers', 1);
+							$activityActivityChildXml->addChild('questions');
+							$activityActivityChildXml->addChild('sumgrades', '0.00000');
+							$activityActivityChildXml->addChild('grade', '10.00000');
+							$activityActivityChildXml->addChild('timecreated', 0);
+							$activityActivityChildXml->addChild('timemodified', time());
+							$activityActivityChildXml->addChild('password');
+							$activityActivityChildXml->addChild('subnet');
+							$activityActivityChildXml->addChild('browsersecurity', "-");
+							$activityActivityChildXml->addChild('delay1', 0);
+							$activityActivityChildXml->addChild('delay2', 0);
+							$activityActivityChildXml->addChild('showuserpicture', 0);
+							$activityActivityChildXml->addChild('showblocks', 0);
+							$activityActivityChildFeedbacksXml = $activityActivityChildXml->addChild('feedbacks');
+							$activityActivityChildFeedbacksFeedbackXml = $activityActivityChildXml->addChild('feedback');
+							$activityActivityChildFeedbacksFeedbackXml->addAttribute('id', 3);
+							$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktext');
+							$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktextformat', 1);
+							$activityActivityChildFeedbacksFeedbackXml->addChild('mingrade', '0.00000');
+							$activityActivityChildFeedbacksFeedbackXml->addChild('maxgrade', '11.00000');
+							$activityActivityChildXml->addChild('overrides');
+							$activityActivityChildXml->addChild('grades');
+							$activityActivityChildXml->addChild('attempts');
 							break;
 					}
-					
-					$activityActivityChildXml->addChild('timemodified', time());
 				}
 				
 				$dom->loadXML($activityActivityXml->asXML());
