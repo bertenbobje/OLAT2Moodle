@@ -253,6 +253,14 @@ function quizMigration($olatObject) {
 						$content,
 						$media
 			);
+			
+			if ($qsi->getType() == "FIB") {
+				foreach ($qsi->getFeedback() as $qsif) {
+					$quizFeedback = new QuizFeedback($qsif->getId(), $qsif->getFeedback());
+					$quizQuestion->setQFeedback($quizFeedback);
+				}
+			}
+			
 			foreach ($qsi->getPossibilities() as $qsip) {
 				$feedback = "";
 				foreach ($qsi->getFeedback() as $qsif) {
@@ -548,28 +556,6 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 		}
 	}
 	return $object;
-}
-
-// This cleans up the quiz questions given by OLAT to make them work
-// in Moodle. This is almost the same as the moodleFixHTML function
-// but there are some core differences
-//
-// PARAMETERS
-// -> $question = The quiz question
-function moodleFixQuiz($question) {
-	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
-	
-	// Media files (Object)
-	$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
-	$replaceMedia = $mediaReplace;
-	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $question);
-	
-	// Media files (BPlayer)
-	$patternMedia2 = '/&lt;span.+?&lt;script.+?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.+?&lt;\/span&gt;/ism';
-	$replaceMedia2 = $mediaReplace;
-	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
-	
-	return $fixhtmlMedia2;
 }
 
 ?>
