@@ -102,7 +102,10 @@ function olatBackupToOlatObject($path) {
 						case "iqself":
 						case "iqsurv":
 							$ok = 1;
-							$chapterObject = new Chapter;
+							$chapterObject = new ChapterTest();
+							$testFolder = $expath . "/export/" . $child->ident;
+							$newChapterObject = olatQuizParse($chapterObject, $testFolder, "chapter");
+							$chapterObject = $newChapterObject;
 							break;
 						
 						// Enrollment
@@ -255,7 +258,10 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				case "iqself":
 				case "iqsurv":
 					$ok = 1;
-					$subjectObject = new Subject;
+					$subjectObject = new SubjectTest();
+					$testFolder = $pathCourse . "/export/" . $schild->ident;
+					$newSubjectObject = olatQuizParse($subjectObject, $testFolder, "subject");
+					$subjectObject = $newSubjectObject;
 					break;
 				
 				// Enrollment
@@ -372,6 +378,90 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 		}
 		$indentation--;
 	}
+}
+
+// Reads out the Quiz (QTI) files and puts them in their respective objects.
+//
+// PARAMETERS
+// -> $object = the Test object (chapter or subject)
+//      $path = Path to quiz folder (/coursefolder/[ident]/)
+//  $olatType = Either chapter or subject
+//
+function olatQuizParse($object, $path, $olatType) {
+
+	$QObject = $object;
+
+	// Unpack the repo.zip archive
+	$testZip = new ZipArchive;
+	if ($testZip->open($path . "/repo.zip")) {
+		$testZip->extractTo($path . "/repo");
+		$testZip->close();
+	}
+	
+	// Load the important XML files in a SimpleXMLElement
+	$repoXml = new SimpleXMLElement($path . "/repo.xml", null, true);
+	
+	$filename = $path . "/repo/qti.xml";
+	$qtiXml = new SimpleXMLElement($filename, null, true);
+	
+	$qtiSections = $qtiXml->assessment->section;
+  $qtiCategories = array();
+	
+	if ($olatType == "chapter") {
+		$testObject = new ChapterTest;
+	}
+	else {
+		$testObject = new SubjectTest;
+	}
+	
+	$testObject->setTitle((string) getDataIfExists($qtiXml, 'assessment', 'attributes()', 'title'));
+	
+	$qtiDescription = (string) getDataIfExists($qtiXml, 'assessment', 'objectives', 'material', 'mattext');
+	$qtiDescription = str_replace("<![CDATA[", "", $qtiDescription);
+	$qtiDescription = str_replace("]]>", "", $qtiDescription);
+	$testObject->setDescription($qtiDescription);
+	
+	$testObject->setDuration((string) getDataIfExists($qtiXml, 'assessment', 'duration'));
+	$testObject->setPassingScore((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));
+
+  // Loop through each section
+  foreach ($qtiSections as $qtiSection) {
+    $sectionObject = new QuizSection(
+						(string) getDataIfExists($qtiSection, 'attributes()', 'ident'), 
+						(string) getDataIfExists($qtiSection, 'attributes()', 'title'), 
+						(string) getDataIfExists($qtiSection, 'objectives', 'material', 'mattext'), 
+						(string) getDataIfExists($qtiSection, 'selection_ordering', 'order', 'attributes()', 'order_type'),
+						(string) getDataIfExists($qtiSection, 'selection_ordering', 'selection', 'selection_number')
+		);
+    $testObject->setQuizSection($sectionObject);
+		
+    // Loop through each item
+    $qtiItems = getDataIfExists($qtiSection, 'item');
+    foreach ($qtiItems as $qtiItem) {
+      // Each question type has be treated differently
+      $questionType = getQuestionType($qtiItem->attributes()->ident);
+			if ($questionType == "MCQ") {
+				$QObject = new MultipleChoiceQuestion;
+			}
+			if ($questionType == "SCQ") {
+				$QObject = new SingleChoiceQuestion;
+			}
+			if ($questionType == "FIB") {
+				$QObject = new FillInBlanks;
+			}
+      $QObject->parseXML($qtiItem);
+      $question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
+      if ($questionType == 'FIB') {
+        // For FIB
+        $question = (string) getDataIfExists($qtiItem, 'presentation', 'flow', 'material', 'mattext');
+				$content = unserialize($QObject->content);
+        $QObject->setContent($content);
+      }
+      $QObject->setQuestion($question);
+      $sectionObject->setItem($QObject);
+    }
+  }
+	return $testObject;
 }
 
 ?>
