@@ -369,7 +369,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				$subjectObject->setSubjectID(isset($schild->ident) ? (string) $schild->ident : null);
 				$subjectObject->setSubjectType(isset($schild->type) ? (string) $schild->type : null);
 				$subjectObject->setSubjectShortTitle(isset($schild->shortTitle) ? (string) $schild->shortTitle : null);
-				$subjectObject->setSubjectLongTitle(isset($schild->longTitle) ? (string) $schild->longTitle : null);
+				$subjectObject->setLongTitle(isset($schild->longTitle) ? (string) $schild->longTitle : null);
 				$subjectObject->setSubjectIndentation($indentation);
 				// Recursion for deeper children.
 				olatGetSubjects($subjectObject, $schild->ident, $xpath, $pathCourse, $indentation);
