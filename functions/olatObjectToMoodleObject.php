@@ -218,7 +218,7 @@ function moodleFixHTML($html, $title) {
 	$fixhtmlMedia = preg_replace($patternMedia, $replaceMedia, $fixhtmlRemoveEnd);
 	
 	// Media files (BPlayer)
-	$patternMedia2 = '/&lt;script.+?BPlayer.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
+	$patternMedia2 = '/&lt;script.?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
