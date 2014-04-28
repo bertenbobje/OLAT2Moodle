@@ -187,6 +187,104 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXmlSettingsSetting->addChild('name', 'questionbank');
 	$moodleBackupXmlSettingsSetting->addChild('value', '1');
 	
+	// questions.xml, the question bank.
+	// Whenever there is a quiz, this is where it will get the questions from.
+	// Every quiz page will have its own question bank that is available over the entire course,
+	// this means people can use all these question banks for other tests (like an exam).
+	$questionsXml = new SimpleXMLElement($header . "<question_categories></question_categories>");
+	$questionCategoryID = 1;
+	$questionID = 1;
+	$multichoiceID = 1;
+	$shortAnswerID = 1;
+	$answerID = 1;
+	foreach ($moodleObject->getSection() as $section) {
+		foreach ($section->getActivity() as $activity) {
+			if ($activity->getModuleName() == "quiz") {
+				foreach ($activity->getQuizPages() as $qp) {
+					$questionCategory = $questionsXml->addChild('question_category');
+					$questionCategory->addAttribute('id', $questionCategoryID);
+					$questionCategory->addChild('name', $activity->getName() . " - " . $qp->getPageTitle());
+					$questionCategory->addChild('contextid', $moodleObject->getID());
+					$questionCategory->addChild('contextlevel', 50);
+					$questionCategory->addChild('contextinstanceid', $moodleObject->getID());
+					$questionCategory->addChild('info', "Category for the " . $qp->getPageTitle() . " page from the " . $activity->getName() . " quiz.");
+					$questionCategory->addChild('infoformat', 0);
+					$questionCategory->addChild('stamp', 0);
+					$questionCategory->addChild('parent', 0);
+					$questionCategory->addChild('sortorder', 999);
+					$questionCategoryQuestions = $questionCategory->addChild('questions');
+					foreach ($qp->getPageQuestions() as $qpq) {
+						$questionCategoryQuestion = $questionCategoryQuestions->addChild('question');
+						$questionCategoryQuestion->addAttribute('id', $questionID);
+						switch ($qpq->getQType()) {
+							case "SCQ":
+							case "MCQ":
+								$type = "multichoice";
+								break;
+							case "FIB":
+								if (count($qpq->getQPossibilities()) == 1) {
+									$type = "shortanswer";
+								}
+								else {
+									$type = "multianswer";
+								}
+								break;
+						}
+						if ($type == "multichoice") {
+							$questionCategoryQuestion->addChild('parent', 0);
+							$questionCategoryQuestion->addChild('name', $qpq->getQTitle());
+							$questionCategoryQuestion->addChild('questiontext', $qpq->getQQuestion());
+							$questionCategoryQuestion->addChild('questiontextformat', 1);
+							$questionCategoryQuestion->addChild('generalfeedback');
+							$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
+							if ($qpq->getQScore() != "") {
+								$questionCategoryQuestion->addChild('defaultmark', (string) $qpq->getQScore() . "000000");
+							}
+							else {
+								$questionCategoryQuestion->addChild('defaultmark', "1.000000");
+							}
+							$questionCategoryQuestion->addChild('penalty', "0.3333333");
+							$questionCategoryQuestion->addChild('qtype', $type);
+							$questionCategoryQuestion->addChild('length', 1);
+							$questionCategoryQuestion->addChild('stamp', 0);
+							$questionCategoryQuestion->addChild('version', 0);
+							$questionCategoryQuestion->addChild('hidden', 0);
+							$questionCategoryQuestion->addChild('timecreated', time());
+							$questionCategoryQuestion->addChild('timemodified', time());
+							$questionCategoryQuestion->addChild('createdby', 2);
+							$questionCategoryQuestion->addChild('modifiedby', 2);
+							$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_' . $type . '_question');
+							$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
+							foreach ($qpq->getQPossibilities() as $qpqp) {
+								$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
+								$questionCategoryQuestionAnswer->addAttribute('id', $answerID);
+								$questionCategoryQuestionAnswer->addChild('answertext', "&lt;p&gt;" . $qpqp->getQPAnswer() . "&lt;/p&gt;");
+								$questionCategoryQuestionAnswer->addChild('answerformat', 1);
+								if ($qpqp->getQPIsCorrect()) {
+									$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+								}
+								else {
+									$questionCategoryQuestionAnswer->addChild('fraction', "-1.0000000");
+								}
+								if (!is_null($qpqp->getQPFeedback())) {
+									$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
+								}
+								else {
+									$questionCategoryQuestionAnswer->addChild('feedback');
+								}
+								$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
+							}
+							$answerID++;
+						}
+						$questionID++;
+					}
+					$questionCategoryID++;
+				}
+			}
+		}
+	}
+	$dom->loadXML($questionsXml->asXML());
+	file_put_contents($path . "/questions.xml", $dom->saveXML());
 	
 	////////////////////////////////////////////////////////////////////
 	// COURSE
@@ -1080,11 +1178,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	$dom->loadXML($outcomesXml->asXML());
 	file_put_contents($path . "/outcomes.xml", $dom->saveXML());
-	// questions.xml
-	$questionsXml = new SimpleXMLElement($header . "<question_categories></question_categories>");
-	
-	$dom->loadXML($questionsXml->asXML());
-	file_put_contents($path . "/questions.xml", $dom->saveXML());
+
 	// roles.xml
 	$rolesXml = new SimpleXMLElement($header . "<roles_definition></roles_definition>");
 	
@@ -1110,7 +1204,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - .zip created</p>";
 	}
 	catch (App_File_Zip_Exception $e) {
-		echo "<p>ERROR - .zip failed to create: " . $e . "</p>";
+		echo "<p style='color:red;'>ERROR - .zip failed to create: " . $e . "</p>";
 	}
 	
 	// Renames the .zip to .mbz (.mbz is just a renamed .zip anyway)
@@ -1118,7 +1212,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - .zip renamed to .mbz</p>";
 	}
 	else {
-		echo "<p>ERROR - .zip failed to rename</p>";
+		echo "<p style='color:red;'>ERROR - .zip failed to rename</p>";
 	}
 	
 	$moodleDownload = "/tmp/" . clean($moodleObject->getFullName()) . ".mbz";
@@ -1127,7 +1221,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - Course name given to .mbz file</p>";
 	}
 	else {
-		echo "<p>ERROR - .mbz failed to rename</p>";
+		echo "<p style='color:red;'>ERROR - .mbz failed to rename</p>";
 	}
 
 	// Remove both the OLAT and Moodle temporary directory
