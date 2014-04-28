@@ -239,8 +239,8 @@ function quizMigration($olatObject) {
 		);
 		foreach ($qs->getItems() as $qsi) {
 			$quotation = ($qsi->getType() != "SCQ" ? $qsi->getQuotation() : NULL);
-			$content = ($qsi->getType() == "FIB" ? 	moodleFixHTML(htmlspecialchars($qsi->getContent(), ENT_QUOTES, "UTF-8"), $olatObject->getLongTitle(), "quiz") : NULL);
 			$media = ($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL);
+			$question = ($qsi->getType() == "FIB" ? $qsi->getContent() : $qsi->getQuestion());
 			$quizQuestion = new QuizQuestion(
 						substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1),
 						$qsi->getTitle(),
@@ -248,11 +248,10 @@ function quizMigration($olatObject) {
 						$quotation,
 						$qsi->getScore(),
 						htmlspecialchars($qsi->getDescription(), ENT_QUOTES, "UTF-8"),
-						moodleFixHTML(htmlspecialchars($qsi->getQuestion(), ENT_QUOTES, "UTF-8"), $olatObject->getLongTitle(), "quiz"),
+						moodleFixHTML(htmlspecialchars($question, ENT_QUOTES, "UTF-8"), $olatObject->getLongTitle(), "quiz"),
 						$qsi->getHint(),
 						$qsi->getSolutionFeedback(),
 						$qsi->getMax_attempts(),
-						$content,
 						$media
 			);
 			
@@ -289,6 +288,7 @@ function quizMigration($olatObject) {
 				);
 				$quizQuestion->setQPossibility($quizPossibility);
 			}
+			$quizQuestion = quizMediaFiles($quizQuestion);
 			$quizPage->setPageQuestion($quizQuestion);
 		}
 		$act->setQuizPage($quizPage);
@@ -312,7 +312,7 @@ function moodleFixHTML($html, $title, $type) {
 	$patternRemoveEnd = '/&lt;\/body&gt;.+$/ism';
 	$replaceRemoveEnd = '';
 	$fixhtmlRemoveEnd = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixhtmlRemoveStart);
-
+	
 	$mediaReplace = '&lt;a href=&quot;@@PLUGINFILE@@/$1&quot;&gt;$1&lt;/a&gt;';
 	
 	// Media files (Object)
@@ -327,10 +327,10 @@ function moodleFixHTML($html, $title, $type) {
 	
 	// Media files (BPlayer)
 	if ($type == "page") {
-		$patternMedia2 = '/&lt;script.?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
+		$patternMedia2 = '/&lt;script&gt;.?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	}
 	else {
-		$patternMedia2 = '/&lt;script.?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.+?&lt;\/script&gt;/ism';
+		$patternMedia2 = '/&lt;script&gt;.?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.+?&lt;\/script&gt;/ism';
 	}
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
@@ -402,6 +402,35 @@ function moodleFixHTML($html, $title, $type) {
 	libxml_clear_errors();
 	
 	return htmlspecialchars($fixedHTML, ENT_QUOTES, "UTF-8");
+}
+
+// Media files don't show up in the question, they are just referenced to.
+// This function will check if there are media files, and adds them to the question.
+// so that they show up in Moodle.
+//
+// PARAMETERS
+// -> $quizQuestion = the QuizQuestion object
+function quizMediaFiles($quizQuestion) {
+	$qq = $quizQuestion;
+	if (!empty($qq->getQMedia())) {
+		$dom = new DOMDocument;
+		$errorState = libxml_use_internal_errors(TRUE);
+		$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($quizQuestion->getQQuestion(), ENT_QUOTES));
+		
+		$body = $dom->getElementsByTagName('body')->item(0);
+		foreach ($qq->getQMedia() as $qqm) {
+			$img = $dom->createElement('img');
+			$img->setAttribute("src", "@@PLUGINFILE@@/" . substr($qqm, 6));
+			$img->setAttribute("alt", "@@PLUGINFILE@@/" . substr($qqm, 6));
+			$body->insertBefore($img, $body->firstChild);
+		}
+		
+		libxml_use_internal_errors($errorState);
+		$fixedQuestion = $dom->saveHTML();
+		libxml_clear_errors();
+		$qq->setQQuestion(htmlspecialchars($fixedQuestion, ENT_QUOTES, "UTF-8"));
+	}
+	return $qq;
 }
 
 // Checks if there are scenarios with two or more pages in a row,

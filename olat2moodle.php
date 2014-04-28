@@ -16,7 +16,7 @@ require_once("functions/moodleObjectToMoodleBackup.php");
 ini_set('max_execution_time', 300);
 //ini_set('memory_limit', '-1');
 
-//ini_set('xdebug.var_display_max_data', -1);
+ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_depth', -1);
 
