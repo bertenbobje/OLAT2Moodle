@@ -227,7 +227,9 @@ function quizMigration($olatObject) {
 	);
 	foreach ($olatObject->getQuizSections() as $qs) {
 		$id = substr($qs->getId(), 7);
-		$id = substr($id, strrpos($id, "_") + 1);
+		if (strpos($id, "_") !== false) {
+			$id = substr($id, strrpos($id, "_") + 1);
+		}
 		$quizPage = new QuizPage(
 					$id,
 					$qs->getTitle(),
@@ -262,15 +264,26 @@ function quizMigration($olatObject) {
 			}
 			
 			foreach ($qsi->getPossibilities() as $qsip) {
-				$feedback = "";
+				$feedback = null;
 				foreach ($qsi->getFeedback() as $qsif) {
 					if ($qsip->getId() == $qsif->getId()) {
 						$feedback = $qsif->getFeedback();
 					}
 				}
+				// Strips the FIB answers for only the actual answer, not the layout
+				if ($qsi->getType() == "FIB") {
+					$pos1 = strpos($qsip->getAnswer(), '"');
+					$pos2 = strpos($qsip->getAnswer(), '"', $pos1 + 1);
+					$pos3 = strpos($qsip->getAnswer(), '"', $pos2 + 1);
+					$pos4 = strpos($qsip->getAnswer(), '"', $pos3 + 1);
+					$answer = substr($qsip->getAnswer(), $pos3 + 1, $pos4 - $pos3 - 1);
+				}
+				else {
+					$answer = $qsip->getAnswer();
+				}
 				$quizPossibility = new QuizPossibility(
 					$qsip->getId(),
-					$qsip->getAnswer(),
+					$answer,
 					$qsip->getIs_correct(),
 					$feedback
 				);
