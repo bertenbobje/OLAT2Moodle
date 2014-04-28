@@ -524,12 +524,11 @@ class QuizQuestion {
 	protected $qHint;
 	protected $qSolutionFeedback;
 	protected $qMaxAttempts;
-	protected $qContent;						// For FIB questions
 	protected $qMedia = array();		// For FIB questions
 	protected $qPossibilities = array();
 	protected $qFeedback = array();
 	
-	public function __construct($qID, $qTitle, $qType, $qQuotation, $qScore, $qDescription, $qQuestion, $qHint, $qSolutionFeedback, $qMaxAttempts, $qContent = "", $qMedia = "") {
+	public function __construct($qID, $qTitle, $qType, $qQuotation, $qScore, $qDescription, $qQuestion, $qHint, $qSolutionFeedback, $qMaxAttempts, $qMedia = "") {
 		$this->qID = $qID;
 		$this->qTitle = $qTitle;
 		$this->qType = $qType;
@@ -540,7 +539,6 @@ class QuizQuestion {
 		$this->qHint = $qHint;
 		$this->qSolutionFeedback = $qSolutionFeedback;
 		$this->qMaxAttempts = $qMaxAttempts;
-		$this->qContent = $qContent;
 		$this->qMedia = $qMedia;
 	}
 	
@@ -622,14 +620,6 @@ class QuizQuestion {
 	
 	public function getQMaxAttempts() {
 		return $this->qMaxAttempts;
-	}
-	
-	public function setQContent($qContent) {
-		$this->qContent = $qContent;
-	}
-	
-	public function getQContent() {
-		return $this->qContent;
 	}
 	
 	public function setQMedia($qMedia) {
