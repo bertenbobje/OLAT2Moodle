@@ -428,7 +428,8 @@ function moodleFixHTML($html, $title, $type) {
 // -> $quizQuestion = the QuizQuestion object
 function quizMediaFiles($quizQuestion) {
 	$qq = $quizQuestion;
-	if (!empty($qq->getQMedia())) {
+	$qqm = $qq->getQMedia();
+	if (!empty($qqm)) {
 		$dom = new DOMDocument;
 		$errorState = libxml_use_internal_errors(TRUE);
 		$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($quizQuestion->getQQuestion(), ENT_QUOTES));
