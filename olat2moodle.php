@@ -51,7 +51,7 @@ if (isset($_FILES["file"])) {
 			echo "<p>===MOODLE OBJECT===</p>";
 			// Converts the OLAT Object to a Moodle object.
 			$moodleObject = olatObjectToMoodleObject($olatObject, $books);
-			//var_dump($moodleObject);
+			var_dump($moodleObject);
 			echo "<p>OK - Moodle Object created</p>";
 
 			if ($books) {

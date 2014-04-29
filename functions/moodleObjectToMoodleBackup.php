@@ -192,47 +192,50 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// Every quiz page will have its own question bank that is available over the entire course,
 	// this means people can use all these question banks for other tests (like an exam).
 	$questionsXml = new SimpleXMLElement($header . "<question_categories></question_categories>");
-	$questionCategoryID = 1;
-	$questionID = 1;
-	$multichoiceID = 1;
+	$counter = 1;
+	$multiChoiceID = 1;
 	$shortAnswerID = 1;
-	$answerID = 1;
+	$multiAnswerID = 1;
 	foreach ($moodleObject->getSection() as $section) {
 		foreach ($section->getActivity() as $activity) {
 			if ($activity->getModuleName() == "quiz") {
 				foreach ($activity->getQuizPages() as $qp) {
 					$questionCategory = $questionsXml->addChild('question_category');
-					$questionCategory->addAttribute('id', $questionCategoryID);
-					$questionCategory->addChild('name', $activity->getName() . " - " . $qp->getPageTitle());
+					$questionCategory->addAttribute('id', $qp->getPageID());
+					$questionCategory->name = $counter . " - " . $activity->getName() . " - " . $qp->getPageTitle();
+					$counter++;
 					$questionCategory->addChild('contextid', $moodleObject->getID());
 					$questionCategory->addChild('contextlevel', 50);
 					$questionCategory->addChild('contextinstanceid', $moodleObject->getID());
-					$questionCategory->addChild('info', "Category for the " . $qp->getPageTitle() . " page from the " . $activity->getName() . " quiz.");
+					$questionCategory->info = "Category for the " . $qp->getPageTitle() . " page from the " . $activity->getName() . " quiz.";
 					$questionCategory->addChild('infoformat', 0);
 					$questionCategory->addChild('stamp', 0);
 					$questionCategory->addChild('parent', 0);
 					$questionCategory->addChild('sortorder', 999);
 					$questionCategoryQuestions = $questionCategory->addChild('questions');
 					foreach ($qp->getPageQuestions() as $qpq) {
-						$questionCategoryQuestion = $questionCategoryQuestions->addChild('question');
-						$questionCategoryQuestion->addAttribute('id', $questionID);
 						switch ($qpq->getQType()) {
 							case "SCQ":
 							case "MCQ":
-								$type = "multichoice";
+								$type = "multichoice";			// SCQ or MCQ > Becomes a Multichoice object in Moodle
 								break;
 							case "FIB":
 								if (count($qpq->getQPossibilities()) == 1) {
-									$type = "shortanswer";
+									$type = "shortanswer";		// FIB (1)  --> Becomes a Short Answer object in Moodle
 								}
 								else {
-									$type = "multianswer";
+									$type = "multianswer";		// FIB (2+) --> Becomes a Cloze object in Moodle
 								}
 								break;
 						}
-						if ($type == "multichoice") {
+						if ($type == "multianswer") {
+							questionBankMultiAnswer($questionCategoryQuestions, $qpq, $multiAnswerID, $shortAnswerID);
+						}
+						else {
+							$questionCategoryQuestion = $questionCategoryQuestions->addChild('question');
+							$questionCategoryQuestion->addAttribute('id', $qpq->getQID());
 							$questionCategoryQuestion->addChild('parent', 0);
-							$questionCategoryQuestion->addChild('name', $qpq->getQTitle());
+							$questionCategoryQuestion->name = $qpq->getQTitle();
 							$questionCategoryQuestion->addChild('questiontext', $qpq->getQQuestion());
 							$questionCategoryQuestion->addChild('questiontextformat', 1);
 							$questionCategoryQuestion->addChild('generalfeedback');
@@ -255,13 +258,23 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$questionCategoryQuestion->addChild('modifiedby', 2);
 							$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_' . $type . '_question');
 							$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
+							$amountCorrect = 0;
+							$amountIncorrect = 0;
+							foreach ($qpq->getQPossibilities() as $qpqp) {
+								if ($qpqp->getQPIsCorrect()) {
+									$amountCorrect++;
+								}
+								else {
+									$amountIncorrect++;
+								}
+							}
 							foreach ($qpq->getQPossibilities() as $qpqp) {
 								$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
-								$questionCategoryQuestionAnswer->addAttribute('id', $answerID);
-								$questionCategoryQuestionAnswer->addChild('answertext', "&lt;p&gt;" . $qpqp->getQPAnswer() . "&lt;/p&gt;");
+								$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID());
+								$questionCategoryQuestionAnswer->answertext = $qpqp->getQPAnswer();
 								$questionCategoryQuestionAnswer->addChild('answerformat', 1);
 								if ($qpqp->getQPIsCorrect()) {
-									$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+									$questionCategoryQuestionAnswer->addChild('fraction', (string) number_format(1 / $amountCorrect, 7, '.', ''));
 								}
 								else {
 									$questionCategoryQuestionAnswer->addChild('fraction', "-1.0000000");
@@ -274,11 +287,38 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 								}
 								$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
 							}
-							$answerID++;
+							$questionCategoryQuestionType = $questionCategoryQuestionPlugin->addChild($type);
+							switch ($type) {
+								case "multichoice":
+									$questionCategoryQuestionType->addAttribute('id', $multiChoiceID);
+									$questionCategoryQuestionType->addChild('layout', 0);
+									if ($qpq->getQType() == "SCQ") {
+										$questionCategoryQuestionType->addchild('single', 1);
+									}
+									else {
+										$questionCategoryQuestionType->addchild('single', 0);
+									}
+									$questionCategoryQuestionType->addchild('shuffleanswers', 1);
+									$questionCategoryQuestionType->addchild('correctfeedback', "");
+									$questionCategoryQuestionType->addchild('correctfeedbackformat', 1);
+									$questionCategoryQuestionType->addchild('partiallycorrectfeedback', "");
+									$questionCategoryQuestionType->addchild('partiallycorrectfeedbackformat');
+									$questionCategoryQuestionType->addchild('incorrectfeedback', "");
+									$questionCategoryQuestionType->addchild('incorrectfeedbackformat', 1);
+									$questionCategoryQuestionType->addchild('answernumbering', "none");
+									$questionCategoryQuestionType->addchild('shownumcorrect', 1);
+									$multiChoiceID++;
+									break;
+								case "shortanswer":
+									$questionCategoryQuestionType->addAttribute('id', $shortAnswerID);
+									$questionCategoryQuestionType->addChild('usecase', 0);
+									$shortAnswerID++;
+									break;
+							}
+							$questionCategoryQuestion->question_hints = $qpq->getQHint();
+							$questionCategoryQuestion->addChild('tags');
 						}
-						$questionID++;
 					}
-					$questionCategoryID++;
 				}
 			}
 		}
@@ -315,6 +355,17 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// course/inforef.xml
 	$courseInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
 	$courseInforefXml->addChild('roleref')->addChild('role')->addChild('id', $moodleObject->getID());
+	$courseInfoRefQuestions = $courseInforefXml->addChild('question_categoryref');
+	foreach ($moodleObject->getSection() as $section) {
+		foreach ($section->getActivity() as $activity) {
+			if ($activity->getModuleName() == "quiz") {
+				foreach ($activity->getQuizPages() as $qp) {
+					$courseInfoRefQuestionCat = $courseInfoRefQuestions->addChild('question_category');
+					$courseInfoRefQuestionCat->addChild('id', $qp->getPageID());
+				}
+			}
+		}
+	}
 	
 	$dom->loadXML($courseInforefXml->asXML());
 	file_put_contents($coursePath . "/inforef.xml", $dom->saveXML());
@@ -1231,6 +1282,93 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	echo "<p>OK - Moodle temp folder removed</p>";
 	
 	return $moodleDownload;
+}
+
+// When there is a multianswer question, every answer is
+// made as a new question. This function makes these questions.
+//
+// PARAMETERS
+// ->  $questions = The XML questions part of the question category
+//           $qpq = The OLAT QuizQuestion object
+// $multiAnswerID = The current multiAnswer ID
+// $shortAnswerID = The current shortAnswer ID
+function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnswerID) {
+	$questionCategoryQuestion = $questions->addChild('question');
+	$questionCategoryQuestion->addAttribute('id', $qpq->getQID());
+	$questionCategoryQuestion->addChild('parent', 0);
+	$questionCategoryQuestion->name = $qpq->getQTitle();
+	$questionCategoryQuestion->addChild('questiontext', $qpq->getQQuestion());
+	$questionCategoryQuestion->addChild('questiontextformat', 1);
+	$questionCategoryQuestion->addChild('generalfeedback');
+	$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
+	$questionCategoryQuestion->addChild('defaultmark', (string) count($qpq->getQPossibilities()) . ".0000000");
+	$questionCategoryQuestion->addChild('penalty', "0.3333333");
+	$questionCategoryQuestion->addChild('qtype', "multianswer");
+	$questionCategoryQuestion->addChild('length', 1);
+	$questionCategoryQuestion->addChild('stamp', 0);
+	$questionCategoryQuestion->addChild('version', 0);
+	$questionCategoryQuestion->addChild('hidden', 0);
+	$questionCategoryQuestion->addChild('timecreated', time());
+	$questionCategoryQuestion->addChild('timemodified', time());
+	$questionCategoryQuestion->addChild('createdby', 2);
+	$questionCategoryQuestion->addChild('modifiedby', 2);
+	$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_multianswer_question');
+	$questionCategoryQuestionPlugin->addChild('answers');
+	$questionCategoryQuestionMultiAnswer = $questionCategoryQuestionPlugin->addChild("multianswer");
+	$questionCategoryQuestionMultiAnswer->addAttribute('id', $multiAnswerID);
+	$multiAnswerID++;
+	$questionCategoryQuestionMultiAnswer->addChild('question', $qpq->getQID());
+	
+	$sequence = "";
+	foreach ($qpq->getQPossibilities() as $qpqp) {
+		$sequence .= $qpqp->getQPID() . ",";
+	}
+	$questionCategoryQuestionMultiAnswer->addChild('sequence', substr($sequence, 0, -1));
+	
+	$questionCategoryQuestion->addChild('question_hints', $qpq->getQHint());
+	$questionCategoryQuestion->addChild('tags');
+
+	foreach ($qpq->getQPossibilities() as $qpqp) {
+		$questionCategoryQuestion = $questions->addChild('question');
+		$questionCategoryQuestion->addAttribute('id', $qpqp->getQPID());
+		$questionCategoryQuestion->addChild('parent', $qpq->getQID());
+		$questionCategoryQuestion->name = $qpq->getQTitle();
+		$questionCategoryQuestion->addChild('questiontext', "{1:SHORTANSWER:=" . $qpqp->getQPAnswer() . "}");
+		$questionCategoryQuestion->addChild('questiontextformat', 1);
+		$questionCategoryQuestion->addChild('generalfeedback');
+		$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
+		$questionCategoryQuestion->addChild('defaultmark', "1.0000000");
+		$questionCategoryQuestion->addChild('penalty', "0.0000000");
+		$questionCategoryQuestion->addChild('qtype', "shortanswer");
+		$questionCategoryQuestion->addChild('length', 1);
+		$questionCategoryQuestion->addChild('stamp', 0);
+		$questionCategoryQuestion->addChild('version', 0);
+		$questionCategoryQuestion->addChild('hidden', 0);
+		$questionCategoryQuestion->addChild('timecreated', time());
+		$questionCategoryQuestion->addChild('timemodified', time());
+		$questionCategoryQuestion->addChild('createdby', 2);
+		$questionCategoryQuestion->addChild('modifiedby', 2);
+		$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_shortanswer_question');
+		$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
+		$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
+		$questionCategoryQuestionAnswer->addAttribute('id', (string) $qpqp->getQPID() . "0000000");
+		$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
+		$questionCategoryQuestionAnswer->addChild('answerformat', 0);
+		$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+		if (!is_null($qpqp->getQPFeedback())) {
+			$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
+		}
+		else {
+			$questionCategoryQuestionAnswer->addChild('feedback');
+		}
+		$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
+		$questionCategoryQuestionShortAnswer = $questionCategoryQuestionPlugin->addChild("shortanswer");
+		$questionCategoryQuestionShortAnswer->addAttribute('id', $shortAnswerID);
+		$shortAnswerID++;
+		$questionCategoryQuestionShortAnswer->addChild('usecase', 0);	
+		$questionCategoryQuestion->addChild('question_hints');
+		$questionCategoryQuestion->addChild('tags');
+	}
 }
 
 ?>
