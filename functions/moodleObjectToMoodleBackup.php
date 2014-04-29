@@ -1351,7 +1351,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_shortanswer_question');
 		$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
 		$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
-		$questionCategoryQuestionAnswer->addAttribute('id', (string) $qpqp->getQPID() . "0000000");
+		$questionCategoryQuestionAnswer->addAttribute('id', (string) $qpqp->getQPID() + 1);
 		$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
 		$questionCategoryQuestionAnswer->addChild('answerformat', 0);
 		$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
