@@ -241,14 +241,15 @@ function quizMigration($olatObject) {
 			$quotation = ($qsi->getType() != "SCQ" ? $qsi->getQuotation() : NULL);
 			$media = ($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL);
 			$question = ($qsi->getType() == "FIB" ? $qsi->getContent() : $qsi->getQuestion());
+			$question = htmlspecialchars(html_entity_decode($question), ENT_QUOTES, "UTF-8");
 			$quizQuestion = new QuizQuestion(
-						substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1),
+						(string) substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1),
 						$qsi->getTitle(),
 						$qsi->getType(),
 						$quotation,
 						$qsi->getScore(),
-						htmlspecialchars($qsi->getDescription(), ENT_QUOTES, "UTF-8"),
-						moodleFixHTML(htmlspecialchars($question, ENT_QUOTES, "UTF-8"), $olatObject->getLongTitle(), "quiz"),
+						htmlspecialchars(html_entity_decode($qsi->getDescription()), ENT_QUOTES, "UTF-8"),
+						moodleFixHTML($question, $olatObject->getLongTitle(), "quiz"),
 						$qsi->getHint(),
 						$qsi->getSolutionFeedback(),
 						$qsi->getMax_attempts(),
@@ -257,7 +258,7 @@ function quizMigration($olatObject) {
 			
 			if ($qsi->getType() == "FIB") {
 				foreach ($qsi->getFeedback() as $qsif) {
-					$quizFeedback = new QuizFeedback($qsif->getId(), $qsif->getFeedback());
+					$quizFeedback = new QuizFeedback($qsif->getId(), htmlspecialchars($qsif->getFeedback(), ENT_QUOTES, "UTF-8"));
 					$quizQuestion->setQFeedback($quizFeedback);
 				}
 			}
@@ -281,10 +282,10 @@ function quizMigration($olatObject) {
 					$answer = $qsip->getAnswer();
 				}
 				$quizPossibility = new QuizPossibility(
-					$qsip->getId(),
-					$answer,
+					(string) $qsip->getId(),
+					htmlspecialchars(html_entity_decode($answer), ENT_QUOTES, "UTF-8"),
 					$qsip->getIs_correct(),
-					$feedback
+					htmlspecialchars($feedback, ENT_QUOTES, "UTF-8")
 				);
 				$quizQuestion->setQPossibility($quizPossibility);
 			}
@@ -335,9 +336,19 @@ function moodleFixHTML($html, $title, $type) {
 	$replaceMedia2 = $mediaReplace;
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $replaceMedia2, $fixhtmlMedia);
 	
+	// Multiple FIB textboxes fix to Cloze (Moodle)
+	if ($type == "quiz") {
+		$patternFIB = "/:text(.+?)box:/ism";
+		$replaceFIB = " {#$1} ";
+		$fixhtmlFIB = preg_replace($patternFIB, $replaceFIB, $fixhtmlMedia2);
+	}
+	else {
+		$fixhtmlFIB = $fixhtmlMedia;
+	}
+	
 	$dom = new DOMDocument;
 	$errorState = libxml_use_internal_errors(TRUE);
-	$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($fixhtmlMedia2, ENT_QUOTES));
+	$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($fixhtmlFIB, ENT_QUOTES));
 	$errors = libxml_get_errors();
 	if (!empty($errors)) {
 		echo "<p style='color:darkorange;'>WARNING - HTML errors found in '" . utf8_decode($title) . "', this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
@@ -401,7 +412,12 @@ function moodleFixHTML($html, $title, $type) {
 	$fixedHTML = $dom->saveHTML();
 	libxml_clear_errors();
 	
-	return htmlspecialchars($fixedHTML, ENT_QUOTES, "UTF-8");
+	// Since DOM re-adds the useless tags (html, body, DOCTYPE), we remove them again
+	$htmlSpec = htmlspecialchars($fixedHTML, ENT_QUOTES, "UTF-8");
+	$fixEnd1 = preg_replace($patternRemoveStart, $replaceRemoveStart, $htmlSpec);
+	$fixEnd2 = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixEnd1);
+
+	return $fixEnd2;
 }
 
 // Media files don't show up in the question, they are just referenced to.
