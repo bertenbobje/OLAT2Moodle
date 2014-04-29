@@ -236,7 +236,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$questionCategoryQuestion->addAttribute('id', $qpq->getQID());
 							$questionCategoryQuestion->addChild('parent', 0);
 							$questionCategoryQuestion->name = $qpq->getQTitle();
-							$questionCategoryQuestion->addChild('questiontext', $qpq->getQQuestion());
+							$questionCategoryQuestion->addChild('questiontext', preg_replace("/ {#(.+?)} /ism", "", $qpq->getQQuestion()));
 							$questionCategoryQuestion->addChild('questiontextformat', 1);
 							$questionCategoryQuestion->addChild('generalfeedback');
 							$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
