@@ -593,7 +593,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 															$filesXmlChild->addAttribute('id', $fileID);
 															$filesXmlChild->addChild('contenthash', $fileSHA1);
 															$filesXmlChild->addChild('contextid', $moodleObject->getID());
-															$activity->setFile($fileID);
 															$filesXmlChild->addChild('component', "question");
 															$filesXmlChild->addChild('filearea', "questiontext");
 															$filesXmlChild->addChild('itemid', $qpq->getQID());
@@ -719,6 +718,11 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		$previousActivity = null;
 		// Page numbers (increases by one by every chapter of every single book)
 		$pageNum = 1;
+		
+		// IDs for quiz activities
+		$questionInstanceID = 1;
+		$feedbackID = 1;
+		
 		foreach ($section->getActivity() as $activity) {
 			// Books are collections of pages, so this is to make sure that all pages
 			// that could be bundled in a book will become a book.
@@ -755,6 +759,15 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityInforefXmlFileRefFile->addChild('id', $aFile);
 					}
 				}
+				
+				if ($activity->getModuleName() == "quiz") {
+					$activityInforefXmlQuestionRef = $activityInforefXml->addChild('question_categoryref');
+					foreach ($activity->getQuizPages() as $qp) {
+						$activityInforefXmlQuestion = $activityInforefXmlQuestionRef->addChild('question_category');
+						$activityInforefXmlQuestion->addChild('id', $qp->getPageID());
+					}
+				}
+				
 				$dom->loadXML($activityInforefXml->asXML());
 				file_put_contents($activityPath . "/inforef.xml", $dom->saveXML());
 				
@@ -777,110 +790,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				
 				// activities/[activity]_[x]/[activity].xml
 				$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
-				$activityActivityXml->addAttribute('id', $activity->getActivityID());
-				$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
-				$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
-				$activityActivityXml->addAttribute('contextid', $activity->getContextID());
-				$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
-				$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
-				$activityActivityChildXml->name = $activity->getName();
-				$activityActivityChildXml->intro = $activity->getName();
-				$activityActivityChildXml->addChild('introformat', 1);
+				noBookAddActivity($activityActivityXml, $activity, $questionInstanceID, $feedbackID);
 				
-				switch ($activity->getModuleName()) {
-					case "page":
-						$activityActivityChildXml->addChild('display', 5);
-						$activityActivityChildXml->addChild('content', $activity->getContent());
-						$activityActivityChildXml->addChild('contentformat', 1);
-						$activityActivityChildXml->addChild('legacyfiles', 0);
-						$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
-						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
-						$activityActivityChildXml->addChild('revision', 1);
-						$activityActivityChildXml->addChild('timemodified', time());
-						break;
-					
-					case "folder":
-						$activityActivityChildXml->addChild('display', 0);
-						$activityActivityChildXml->addChild('showexpanded', 1);
-						$activityActivityChildXml->addChild('revision', 1);
-						$activityActivityChildXml->addChild('timemodified', time());
-						break;
-						
-					case "url":
-						$activityActivityChildXml->addChild('display', 0);
-						$activityActivityChildXml->externalurl = $activity->getURL();
-						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
-						$activityActivityChildXml->addChild('parameters', 'a:0:{}');
-						$activityActivityChildXml->addChild('timemodified', time());
-						break;
-						
-					case "resource":
-						$activityActivityChildXml->addChild('display', 0);
-						$activityActivityChildXml->addChild('tobemigrated', 0);
-						$activityActivityChildXml->addChild('legacyfiles', 0);
-						$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
-						$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
-						$activityActivityChildXml->addChild('revision', 1);
-						$activityActivityChildXml->addChild('timemodified', time());
-					
-					case "wiki":
-						$activityActivityChildXml->firstpagetitle = $activity->getName();
-						$activityActivityChildXml->addChild('wikimode', 'collaborative');
-						$activityActivityChildXml->addChild('defaultformat', 'html');
-						$activityActivityChildXml->addChild('forceformat', 0);
-						$activityActivityChildXml->addChild('editbegin', 0);
-						$activityActivityChildXml->addChild('editend', 0);
-						$activityActivityChildXml->addChild('subwikis');
-						$activityActivityChildXml->addChild('timemodified', time());
-				
-					case "quiz":
-						$activityActivityChildXml->addChild('timeopen', 0);
-						$activityActivityChildXml->addChild('timeclose', 0);
-						$activityActivityChildXml->addChild('timelimit', 0);
-						$activityActivityChildXml->addChild('overduehandling', 'autoabandon');
-						$activityActivityChildXml->addChild('graceperiod', 0);
-						$activityActivityChildXml->addChild('preferredbehaviour', 'deferredfeedback');
-						$activityActivityChildXml->addChild('attempts_number', 0);
-						$activityActivityChildXml->addChild('attemptonlast', 0);
-						$activityActivityChildXml->addChild('grademethod', 1);
-						$activityActivityChildXml->addChild('decimalpoints', 2);
-						$activityActivityChildXml->addChild('questiondecimalpoints', -1);
-						$activityActivityChildXml->addChild('reviewattempt', 69904);
-						$activityActivityChildXml->addChild('reviewcorrectness', 4368);
-						$activityActivityChildXml->addChild('reviewmarks', 4368);
-						$activityActivityChildXml->addChild('reviewspecificfeedback', 4368);
-						$activityActivityChildXml->addChild('reviewgeneralfeedback', 4368);
-						$activityActivityChildXml->addChild('reviewrightanswer', 4368);
-						$activityActivityChildXml->addChild('reviewoverallfeedback', 4368);
-						$activityActivityChildXml->addChild('questionsperpage', 1);
-						$activityActivityChildXml->addChild('navmethod', 'free');
-						$activityActivityChildXml->addChild('shufflequestions', 0);
-						$activityActivityChildXml->addChild('shuffleanswers', 1);
-						$activityActivityChildXml->addChild('questions');
-						$activityActivityChildXml->addChild('sumgrades', '0.00000');
-						$activityActivityChildXml->addChild('grade', '10.00000');
-						$activityActivityChildXml->addChild('timecreated', 0);
-						$activityActivityChildXml->addChild('timemodified', time());
-						$activityActivityChildXml->addChild('password');
-						$activityActivityChildXml->addChild('subnet');
-						$activityActivityChildXml->addChild('browsersecurity', "-");
-						$activityActivityChildXml->addChild('delay1', 0);
-						$activityActivityChildXml->addChild('delay2', 0);
-						$activityActivityChildXml->addChild('showuserpicture', 0);
-						$activityActivityChildXml->addChild('showblocks', 0);
-						$activityActivityChildFeedbacksXml = $activityActivityChildXml->addChild('feedbacks');
-						$activityActivityChildFeedbacksFeedbackXml = $activityActivityChildXml->addChild('feedback');
-						$activityActivityChildFeedbacksFeedbackXml->addAttribute('id', 3);
-						$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktext');
-						$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktextformat', 1);
-						$activityActivityChildFeedbacksFeedbackXml->addChild('mingrade', '0.00000');
-						$activityActivityChildFeedbacksFeedbackXml->addChild('maxgrade', '11.00000');
-						$activityActivityChildXml->addChild('overrides');
-						$activityActivityChildXml->addChild('grades');
-						$activityActivityChildXml->addChild('attempts');
-						break;
-				}
-					
 				$dom->loadXML($activityActivityXml->asXML());
 				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
 				
@@ -985,6 +896,15 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						}
 					}
 				}
+				
+				if ($activity->getModuleName() == "quiz") {
+					$activityInforefXmlQuestionRef = $activityInforefXml->addChild('question_categoryref');
+					foreach ($activity->getQuizPages() as $qp) {
+						$activityInforefXmlQuestion = $activityInforefXmlQuestionRef->addChild('question_category');
+						$activityInforefXmlQuestion->addChild('id', $qp->getPageID());
+					}
+				}
+				
 				$dom->loadXML($activityInforefXml->asXML());
 				file_put_contents($activityPath . "/inforef.xml", $dom->saveXML());
 				
@@ -1076,111 +996,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				}
 				else if (!$currentlyBook) {
 					$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
-					$activityActivityXml->addAttribute('id', $activity->getActivityID());
-					$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
-					$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
-					$activityActivityXml->addAttribute('contextid', $activity->getContextID());
-					$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
-					$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
-					$activityActivityChildXml->name = $activity->getName();
-					$activityActivityChildXml->intro = $activity->getName();
-					$activityActivityChildXml->addChild('introformat', 1);
-					
-					switch ($activity->getModuleName()) {
-						case "page":
-							$activityActivityChildXml->addChild('display', 5);
-							$activityActivityChildXml->addChild('content', $activity->getContent());
-							$activityActivityChildXml->addChild('contentformat', 1);
-							$activityActivityChildXml->addChild('legacyfiles', 0);
-							$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
-							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
-							$activityActivityChildXml->addChild('revision', 1);
-							$activityActivityChildXml->addChild('timemodified', time());
-							break;
-						
-						case "folder":
-							$activityActivityChildXml->addChild('display', 0);
-							$activityActivityChildXml->addChild('showexpanded', 1);
-							$activityActivityChildXml->addChild('revision', 1);
-							$activityActivityChildXml->addChild('timemodified', time());
-							break;
-							
-						case "url":
-							$activityActivityChildXml->addChild('display', 0);
-							$activityActivityChildXml->externalurl = $activity->getURL();
-							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
-							$activityActivityChildXml->addChild('parameters', 'a:0:{}');
-							$activityActivityChildXml->addChild('timemodified', time());
-							break;
-							
-						case "resource":
-							$activityActivityChildXml->addChild('display', 0);
-							$activityActivityChildXml->addChild('tobemigrated', 0);
-							$activityActivityChildXml->addChild('legacyfiles', 0);
-							$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
-							$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
-							$activityActivityChildXml->addChild('revision', 1);
-							$activityActivityChildXml->addChild('timemodified', time());
-							break;
-						
-						case "wiki":
-							$activityActivityChildXml->firstpagetitle = $activity->getName();
-							$activityActivityChildXml->addChild('wikimode', 'collaborative');
-							$activityActivityChildXml->addChild('defaultformat', 'html');
-							$activityActivityChildXml->addChild('forceformat', 0);
-							$activityActivityChildXml->addChild('editbegin', 0);
-							$activityActivityChildXml->addChild('editend', 0);
-							$activityActivityChildXml->addChild('subwikis');
-							$activityActivityChildXml->addChild('timemodified', time());
-							break;
-						
-						case "quiz":
-							$activityActivityChildXml->addChild('timeopen', 0);
-							$activityActivityChildXml->addChild('timeclose', 0);
-							$activityActivityChildXml->addChild('timelimit', 0);
-							$activityActivityChildXml->addChild('overduehandling', 'autoabandon');
-							$activityActivityChildXml->addChild('graceperiod', 0);
-							$activityActivityChildXml->addChild('preferredbehaviour', 'deferredfeedback');
-							$activityActivityChildXml->addChild('attempts_number', 0);
-							$activityActivityChildXml->addChild('attemptonlast', 0);
-							$activityActivityChildXml->addChild('grademethod', 1);
-							$activityActivityChildXml->addChild('decimalpoints', 2);
-							$activityActivityChildXml->addChild('questiondecimalpoints', -1);
-							$activityActivityChildXml->addChild('reviewattempt', 69904);
-							$activityActivityChildXml->addChild('reviewcorrectness', 4368);
-							$activityActivityChildXml->addChild('reviewmarks', 4368);
-							$activityActivityChildXml->addChild('reviewspecificfeedback', 4368);
-							$activityActivityChildXml->addChild('reviewgeneralfeedback', 4368);
-							$activityActivityChildXml->addChild('reviewrightanswer', 4368);
-							$activityActivityChildXml->addChild('reviewoverallfeedback', 4368);
-							$activityActivityChildXml->addChild('questionsperpage', 1);
-							$activityActivityChildXml->addChild('navmethod', 'free');
-							$activityActivityChildXml->addChild('shufflequestions', 0);
-							$activityActivityChildXml->addChild('shuffleanswers', 1);
-							$activityActivityChildXml->addChild('questions');
-							$activityActivityChildXml->addChild('sumgrades', '0.00000');
-							$activityActivityChildXml->addChild('grade', '10.00000');
-							$activityActivityChildXml->addChild('timecreated', 0);
-							$activityActivityChildXml->addChild('timemodified', time());
-							$activityActivityChildXml->addChild('password');
-							$activityActivityChildXml->addChild('subnet');
-							$activityActivityChildXml->addChild('browsersecurity', "-");
-							$activityActivityChildXml->addChild('delay1', 0);
-							$activityActivityChildXml->addChild('delay2', 0);
-							$activityActivityChildXml->addChild('showuserpicture', 0);
-							$activityActivityChildXml->addChild('showblocks', 0);
-							$activityActivityChildFeedbacksXml = $activityActivityChildXml->addChild('feedbacks');
-							$activityActivityChildFeedbacksFeedbackXml = $activityActivityChildXml->addChild('feedback');
-							$activityActivityChildFeedbacksFeedbackXml->addAttribute('id', 3);
-							$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktext');
-							$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktextformat', 1);
-							$activityActivityChildFeedbacksFeedbackXml->addChild('mingrade', '0.00000');
-							$activityActivityChildFeedbacksFeedbackXml->addChild('maxgrade', '11.00000');
-							$activityActivityChildXml->addChild('overrides');
-							$activityActivityChildXml->addChild('grades');
-							$activityActivityChildXml->addChild('attempts');
-							break;
-					}
+					noBookAddActivity($activityActivityXml, $activity, $questionInstanceID, $feedbackID);
 				}
 				
 				$dom->loadXML($activityActivityXml->asXML());
@@ -1419,10 +1235,10 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 //          $name = Name of the current question bank
 function questionBankRandom(&$questions, $qp, $name) {
 	if ($qp->getPageOrdering() == "Random") {
-		foreach ($qp->getRandomQuestionIDs() as $qpqr) {
+		foreach ($qp->getRandomQuestionIDs() as $qpr) {
 			$questionCategoryQuestion = $questions->addChild('question');
-			$questionCategoryQuestion->addAttribute('id', $qpqr);
-			$questionCategoryQuestion->addChild('parent', $qpqr);
+			$questionCategoryQuestion->addAttribute('id', $qpr);
+			$questionCategoryQuestion->addChild('parent', $qpr);
 			$questionCategoryQuestion->name = "Random (" . $name . ")";
 			$questionCategoryQuestion->addChild('questiontext');
 			$questionCategoryQuestion->addChild('questiontextformat', 0);
@@ -1444,4 +1260,159 @@ function questionBankRandom(&$questions, $qp, $name) {
 		}
 	}
 }
+
+// This function is for creating the activity.xml file when the 'books'
+// option isn't checked, since it gets used twice in the code and it's kind of
+// extensive, it will make the code cleaner to separate it in a function
+//
+// PARAMETERS
+// -> $activityActivityXml = The SimpleXMLFile for activity.xml
+//               $activity = The current activity
+//     $questionInstanceID = The current questionInstance ID
+//             $feedbackID = The current feedback ID
+
+function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceID, &$feedbackID) {
+	$activityActivityXml->addAttribute('id', $activity->getActivityID());
+	$activityActivityXml->addAttribute('moduleid', $activity->getModuleID());
+	$activityActivityXml->addAttribute('modulename', $activity->getModuleName());
+	$activityActivityXml->addAttribute('contextid', $activity->getContextID());
+	$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
+	$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
+	$activityActivityChildXml->name = $activity->getName();
+	$activityActivityChildXml->intro = $activity->getName();
+	$activityActivityChildXml->addChild('introformat', 1);
+	
+	switch ($activity->getModuleName()) {
+		case "page":
+			$activityActivityChildXml->addChild('display', 5);
+			$activityActivityChildXml->addChild('content', $activity->getContent());
+			$activityActivityChildXml->addChild('contentformat', 1);
+			$activityActivityChildXml->addChild('legacyfiles', 0);
+			$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+			$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
+			$activityActivityChildXml->addChild('revision', 1);
+			$activityActivityChildXml->addChild('timemodified', time());
+			break;
+		
+		case "folder":
+			$activityActivityChildXml->addChild('display', 0);
+			$activityActivityChildXml->addChild('showexpanded', 1);
+			$activityActivityChildXml->addChild('revision', 1);
+			$activityActivityChildXml->addChild('timemodified', time());
+			break;
+			
+		case "url":
+			$activityActivityChildXml->addChild('display', 0);
+			$activityActivityChildXml->externalurl = $activity->getURL();
+			$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
+			$activityActivityChildXml->addChild('parameters', 'a:0:{}');
+			$activityActivityChildXml->addChild('timemodified', time());
+			break;
+			
+		case "resource":
+			$activityActivityChildXml->addChild('display', 0);
+			$activityActivityChildXml->addChild('tobemigrated', 0);
+			$activityActivityChildXml->addChild('legacyfiles', 0);
+			$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+			$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
+			$activityActivityChildXml->addChild('revision', 1);
+			$activityActivityChildXml->addChild('timemodified', time());
+			break;
+		
+		case "wiki":
+			$activityActivityChildXml->firstpagetitle = $activity->getName();
+			$activityActivityChildXml->addChild('wikimode', 'collaborative');
+			$activityActivityChildXml->addChild('defaultformat', 'html');
+			$activityActivityChildXml->addChild('forceformat', 0);
+			$activityActivityChildXml->addChild('editbegin', 0);
+			$activityActivityChildXml->addChild('editend', 0);
+			$activityActivityChildXml->addChild('subwikis');
+			$activityActivityChildXml->addChild('timemodified', time());
+			break;
+	
+		case "quiz":
+			$activityActivityChildXml->addChild('timeopen', 0);
+			$activityActivityChildXml->addChild('timeclose', 0);
+			$activityActivityChildXml->addChild('timelimit', 0);
+			$activityActivityChildXml->addChild('overduehandling', 'autoabandon');
+			$activityActivityChildXml->addChild('graceperiod', 0);
+			$activityActivityChildXml->addChild('preferredbehaviour', 'deferredfeedback');
+			$activityActivityChildXml->addChild('attempts_number', 0);
+			$activityActivityChildXml->addChild('attemptonlast', 0);
+			$activityActivityChildXml->addChild('grademethod', 1);
+			$activityActivityChildXml->addChild('decimalpoints', 2);
+			$activityActivityChildXml->addChild('questiondecimalpoints', -1);
+			$activityActivityChildXml->addChild('reviewattempt', 69904);
+			$activityActivityChildXml->addChild('reviewcorrectness', 4368);
+			$activityActivityChildXml->addChild('reviewmarks', 4368);
+			$activityActivityChildXml->addChild('reviewspecificfeedback', 4368);
+			$activityActivityChildXml->addChild('reviewgeneralfeedback', 4368);
+			$activityActivityChildXml->addChild('reviewrightanswer', 4368);
+			$activityActivityChildXml->addChild('reviewoverallfeedback', 4368);
+			$activityActivityChildXml->addChild('questionsperpage', 1);
+			$activityActivityChildXml->addChild('navmethod', 'free');
+			$activityActivityChildXml->addChild('shufflequestions', 0);
+			$activityActivityChildXml->addChild('shuffleanswers', 1);
+			$questions = "";
+			foreach ($activity->getQuizPages() as $qp) {
+				if ($qp->getPageOrdering() == "Random") {
+					foreach ($qp->getRandomQuestionIDs() as $qpr) {
+						$questions .= $qpr . ",";
+					}
+				}
+				else {
+					foreach ($qp->getPageQuestions() as $qpq) {
+						$questions .= $qpq->getQID() . ",";
+					}
+				}
+				$questions .= "0,";
+			}
+			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
+			$activityActivityChildXml->addChild('sumgrades', '0.00000');
+			$activityActivityChildXml->addChild('grade', '0.00000');
+			$activityActivityChildXml->addChild('timecreated', time());
+			$activityActivityChildXml->addChild('timemodified', time());
+			$activityActivityChildXml->addChild('password');
+			$activityActivityChildXml->addChild('subnet');
+			$activityActivityChildXml->addChild('browsersecurity', "-");
+			$activityActivityChildXml->addChild('delay1', 0);
+			$activityActivityChildXml->addChild('delay2', 0);
+			$activityActivityChildXml->addChild('showuserpicture', 0);
+			$activityActivityChildXml->addChild('showblocks', 0);
+			$activityActivityChildXmlQI = $activityActivityChildXml->addChild('question_instances');
+			foreach ($activity->getQuizPages() as $qp) {
+				if ($qp->getPageOrdering() == "Random") {
+					foreach ($qp->getRandomQuestionIDs() as $qpr) {
+						$activityActivityChildXmlQII = $activityActivityChildXmlQI->addChild('question_instance');
+						$activityActivityChildXmlQII->addAttribute('id', $questionInstanceID);
+						$questionInstanceID++;
+						$activityActivityChildXmlQII->addChild('question', $qpr);
+						$activityActivityChildXmlQII->addChild('grade', "1.0000000");
+					}
+				}
+				else {
+					foreach ($qp->getPageQuestions() as $qpq) {
+						$activityActivityChildXmlQII = $activityActivityChildXmlQI->addChild('question_instance');
+						$activityActivityChildXmlQII->addAttribute('id', $questionInstanceID);
+						$questionInstanceID++;
+						$activityActivityChildXmlQII->addChild('question', $qpq->getQID());
+						$activityActivityChildXmlQII->addChild('grade', "1.0000000");
+					}
+				}
+			}
+			$activityActivityChildFeedbacksXml = $activityActivityChildXml->addChild('feedbacks');
+			$activityActivityChildFeedbacksFeedbackXml = $activityActivityChildXml->addChild('feedback');
+			$activityActivityChildFeedbacksFeedbackXml->addAttribute('id', $feedbackID);
+			$feedbackID++;
+			$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktext');
+			$activityActivityChildFeedbacksFeedbackXml->addChild('feedbacktextformat', 1);
+			$activityActivityChildFeedbacksFeedbackXml->addChild('mingrade', '0.00000');
+			$activityActivityChildFeedbacksFeedbackXml->addChild('maxgrade', '11.00000');
+			$activityActivityChildXml->addChild('overrides');
+			$activityActivityChildXml->addChild('grades');
+			$activityActivityChildXml->addChild('attempts');
+			break;
+	}					
+}
+
 ?>
