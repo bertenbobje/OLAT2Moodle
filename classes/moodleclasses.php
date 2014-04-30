@@ -458,6 +458,7 @@ class QuizPage {
 	protected $pageOrdering;
 	protected $pageAmount;
 	protected $pageQuestions = array();
+	protected $randomQuestionIDs = array();
 	
 	public function __construct($pageID, $pageTitle, $pageDescription, $pageOrdering, $pageAmount) {
 		$this->pageID = $pageID;
@@ -499,12 +500,28 @@ class QuizPage {
 		return $this->pageOrdering;
 	}
 	
+	public function setPageAmount($pageAmount) {
+		$this->pageAmount = $pageAmount;
+	}
+	
+	public function getPageAmount() {
+		return $this->pageAmount;
+	}
+	
 	public function setPageQuestion($pageQuestions) {
 		array_push($this->pageQuestions, $pageQuestions);
 	}
 	
 	public function getPageQuestions() {
 		return $this->pageQuestions;
+	}
+	
+	public function setRandomQuestionID($randomQuestionID) {
+		array_push($this->randomQuestionIDs, $randomQuestionID);
+	}
+	
+	public function getRandomQuestionIDs() {
+		return $this->randomQuestionIDs;
 	}
 
 }

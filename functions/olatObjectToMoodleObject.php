@@ -237,6 +237,11 @@ function quizMigration($olatObject) {
 					$qs->getOrdering(),
 					$qs->getAmount()
 		);
+		if ($qs->getOrdering() == "Random") {
+			for ($i = 0; $i < $qs->getAmount(); $i++) {
+				$quizPage->setRandomQuestionID((string) substr($id, -6) . $i);
+			}
+		}
 		foreach ($qs->getItems() as $qsi) {
 			$quotation = ($qsi->getType() != "SCQ" ? $qsi->getQuotation() : NULL);
 			$media = ($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL);
@@ -256,14 +261,12 @@ function quizMigration($olatObject) {
 						$qsi->getMax_attempts(),
 						$media
 			);
-			
 			if ($qsi->getType() == "FIB") {
 				foreach ($qsi->getFeedback() as $qsif) {
 					$quizFeedback = new QuizFeedback($qsif->getId(), htmlspecialchars($qsif->getFeedback(), ENT_QUOTES, "UTF-8"));
 					$quizQuestion->setQFeedback($quizFeedback);
 				}
 			}
-			
 			foreach ($qsi->getPossibilities() as $qsip) {
 				$feedback = null;
 				foreach ($qsi->getFeedback() as $qsif) {
@@ -337,7 +340,7 @@ function moodleFixHTML($html, $title, $type) {
 	
 	// Multiple FIB textboxes fix to Cloze (Moodle)
 	if ($type == "quiz") {
-		$fixhtmlFIB = $fixhtmlMedia;
+		$fixhtmlFIB = $fixhtmlMedia2;
 		$qcounter = 1;
 		$patternFIB = "/:text.+?box:/ism";
 		preg_match_all($patternFIB, $fixhtmlMedia2, $matches);
@@ -349,7 +352,7 @@ function moodleFixHTML($html, $title, $type) {
 		}
 	}
 	else {
-		$fixhtmlFIB = $fixhtmlMedia;
+		$fixhtmlFIB = $fixhtmlMedia2;
 	}
 	
 	$dom = new DOMDocument;
@@ -444,7 +447,6 @@ function quizMediaFiles($quizQuestion) {
 		foreach ($qq->getQMedia() as $qqm) {
 			$img = $dom->createElement('img');
 			$img->setAttribute("src", "@@PLUGINFILE@@/" . substr($qqm, 6));
-			$img->setAttribute("alt", "@@PLUGINFILE@@/" . substr($qqm, 6));
 			$body->insertBefore($img, $body->firstChild);
 		}
 		

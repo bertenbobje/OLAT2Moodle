@@ -202,7 +202,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				foreach ($activity->getQuizPages() as $qp) {
 					$questionCategory = $questionsXml->addChild('question_category');
 					$questionCategory->addAttribute('id', $qp->getPageID());
-					$questionCategory->name = $counter . " - " . $activity->getName() . " - " . $qp->getPageTitle();
+					$name = $counter . " - " . $activity->getName() . " - " . $qp->getPageTitle();
+					$questionCategory->name = $name;
 					$counter++;
 					$questionCategory->addChild('contextid', $moodleObject->getID());
 					$questionCategory->addChild('contextlevel', 50);
@@ -319,6 +320,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$questionCategoryQuestion->addChild('tags');
 						}
 					}
+					questionBankRandom($questionCategoryQuestions, $qp, $name);
 				}
 			}
 		}
@@ -430,7 +432,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							case "page":
 								// There can be a lot of possibilities for matching filenames, because of strange characters (umlauts)
 								if (strpos($activity->getContent(), $olatFile) !== false
-													|| strpos(urldecode($activity->getContent()), $olatFile) !== false) {
+										|| strpos(urldecode($activity->getContent()), $olatFile) !== false) {
 									$fileOK = 1;
 									$filesXmlChild = $filesXml->addChild('file');
 									$filesXmlChild->addAttribute('id', $fileID);
@@ -504,8 +506,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		}
 	}
 	
-	// The files for the folders are located somewhere else, so this is
-	// for fetching the folder files from OLAT.
+	// The files for the folders and quizzes are located somewhere else,
+	// so this isfor fetching these files from OLAT.
 	$olatExportPathRoot = $olatObject->getRootdir() . "/export";
 	$olatExportRootFiles = listFolderFiles($olatExportPathRoot);
 	$directoryArray = array();
@@ -522,7 +524,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 			$olatExportFiles = listFolderFiles($directory);
 			foreach ($olatExportFiles as $olatExportFile) {
 				// Ignore the .xml and .zip files
-				if (substr($olatExportFile, -3) != "xml" || substr($olatExportFile, -3) != "zip") {
+				if (substr($olatExportFile, -3) != "xml" && substr($olatExportFile, -3) != "zip") {
 					$fileSHA1 = sha1($olatExportFile);
 					$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
 					if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
@@ -531,7 +533,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					foreach ($moodleObject->getSection() as $section) {
 						foreach ($section->getActivity() as $activity) {
 							$activityModuleName = $activity->getModuleName();
-							if ($activityModuleName == "folder") {
+							if ($activityModuleName == "folder" || $activityModuleName == "quiz") {
 								if ($activity->getActivityID() == (string) ($activity->getSectionID() - 50000000000000)) {
 									$activityID = (string) ($activity->getActivityID() + 50000000000000);
 								}
@@ -542,7 +544,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 								if (file_exists($olatExportFilePath)) {
 									if (!is_dir($olatExportFilePath)) {
 										if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
-											foreach ($activity->getFolderFile() as $folderFile) {
+											if ($activityModuleName == "folder") {
+												foreach ($activity->getFolderFile() as $folderFile) {
 												if ($folderFile->getFileName() == preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) {
 													$filesXmlChild = $filesXml->addChild('file');
 													$filesXmlChild->addAttribute('id', $fileID);
@@ -577,6 +580,42 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 													$filesXmlChild->addChild('reference', '$@NULL@$');
 													
 													$fileID++;
+
+												}
+											}
+											}
+											else if ($activityModuleName == "quiz") {
+												foreach ($activity->getQuizPages() as $qp) {
+													foreach ($qp->getPageQuestions() as $qpq) {
+														if (strpos($qpq->getQQuestion(), preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) !== false
+																|| strpos(urldecode($qpq->getQQuestion()), preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) !== false) {
+															$filesXmlChild = $filesXml->addChild('file');
+															$filesXmlChild->addAttribute('id', $fileID);
+															$filesXmlChild->addChild('contenthash', $fileSHA1);
+															$filesXmlChild->addChild('contextid', $moodleObject->getID());
+															$activity->setFile($fileID);
+															$filesXmlChild->addChild('component', "question");
+															$filesXmlChild->addChild('filearea', "questiontext");
+															$filesXmlChild->addChild('itemid', $qpq->getQID());
+															$filesXmlChild->addchild('filepath', "/");
+															$filesXmlChild->filename = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
+															$filesXmlChild->addChild('userid', 2);
+															$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
+															$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
+															$filesXmlChild->addChild('status', 0);
+															$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
+															$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
+															$filesXmlChild->source = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
+															$filesXmlChild->addChild('author', "OLAT2Moodle");
+															$filesXmlChild->addChild('license', 'allrightsreserved');
+															$filesXmlChild->addChild('sortorder', 0);
+															$filesXmlChild->addChild('repositorytype', '$@NULL@$');
+															$filesXmlChild->addChild('repositoryid', '$@NULL@$');
+															$filesXmlChild->addChild('reference', '$@NULL@$');
+															
+															$fileID++;
+														}
+													}
 												}
 											}
 										}
@@ -1285,7 +1324,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 }
 
 // When there is a multianswer question, every answer is
-// made as a new question. This function makes these questions.
+// made as a new question. This function adds these questions.
 //
 // PARAMETERS
 // ->  $questions = The XML questions part of the question category
@@ -1371,4 +1410,38 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 	}
 }
 
+// If questions are randomized, they are added to the question bank as
+// questions of their own. This function adds these questions.
+//
+// PARAMETERS
+// ->  $questions = The XML questions part of the question category
+//           $qpq = The OLAT QuizQuestion object
+//          $name = Name of the current question bank
+function questionBankRandom(&$questions, $qp, $name) {
+	if ($qp->getPageOrdering() == "Random") {
+		foreach ($qp->getRandomQuestionIDs() as $qpqr) {
+			$questionCategoryQuestion = $questions->addChild('question');
+			$questionCategoryQuestion->addAttribute('id', $qpqr);
+			$questionCategoryQuestion->addChild('parent', $qpqr);
+			$questionCategoryQuestion->name = "Random (" . $name . ")";
+			$questionCategoryQuestion->addChild('questiontext');
+			$questionCategoryQuestion->addChild('questiontextformat', 0);
+			$questionCategoryQuestion->addChild('generalfeedback');
+			$questionCategoryQuestion->addChild('generalfeedbackformat', 0);
+			$questionCategoryQuestion->addChild('defaultmark', 1);
+			$questionCategoryQuestion->addChild('penalty', "0.0000000");
+			$questionCategoryQuestion->addChild('qtype', "random");
+			$questionCategoryQuestion->addChild('length', 1);
+			$questionCategoryQuestion->addChild('stamp', 0);
+			$questionCategoryQuestion->addChild('version', 0);
+			$questionCategoryQuestion->addChild('hidden', 0);
+			$questionCategoryQuestion->addChild('timecreated', time());
+			$questionCategoryQuestion->addChild('timemodified', time());
+			$questionCategoryQuestion->addChild('createdby', 2);
+			$questionCategoryQuestion->addChild('modifiedby', 2);
+			$questionCategoryQuestion->addChild('question_hints');
+			$questionCategoryQuestion->addChild('tags');
+		}
+	}
+}
 ?>
