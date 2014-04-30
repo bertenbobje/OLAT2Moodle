@@ -14,7 +14,7 @@ require_once("functions/moodleObjectToMoodleBackup.php");
 
 // To make sure that every action can happen, even with bigger files.
 ini_set('max_execution_time', 300);
-//ini_set('memory_limit', '-1');
+ini_set('memory_limit', '512M');
 
 ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
@@ -51,7 +51,7 @@ if (isset($_FILES["file"])) {
 			echo "<p>===MOODLE OBJECT===</p>";
 			// Converts the OLAT Object to a Moodle object.
 			$moodleObject = olatObjectToMoodleObject($olatObject, $books);
-			var_dump($moodleObject);
+			//var_dump($moodleObject);
 			echo "<p>OK - Moodle Object created</p>";
 
 			if ($books) {
