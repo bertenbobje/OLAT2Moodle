@@ -192,40 +192,78 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// Every quiz page will have its own question bank that is available over the entire course,
 	// this means people can use all these question banks for other tests (like an exam).
 	$questionsXml = new SimpleXMLElement($header . "<question_categories></question_categories>");
-	$counter = 1;
+	$quizCounter = 1;
+	$pageCounter = 1;
 	$multiChoiceID = 1;
+	$multiChoiceSetID = 1;
 	$shortAnswerID = 1;
 	$multiAnswerID = 1;
+	$allQuestions = true;
 	foreach ($moodleObject->getSection() as $section) {
 		foreach ($section->getActivity() as $activity) {
 			if ($activity->getModuleName() == "quiz") {
-				foreach ($activity->getQuizPages() as $qp) {
+				if ($allQuestions) {
 					$questionCategory = $questionsXml->addChild('question_category');
-					$questionCategory->addAttribute('id', $qp->getPageID());
-					$name = $counter . " - " . $activity->getName() . " - " . $qp->getPageTitle();
-					$questionCategory->name = $name;
-					$counter++;
+					$questionCategory->addAttribute('id', $moodleObject->getID() - 1);
+					$questionCategory->addChild('name', "ALL QUESTIONS");
 					$questionCategory->addChild('contextid', $moodleObject->getID());
 					$questionCategory->addChild('contextlevel', 50);
 					$questionCategory->addChild('contextinstanceid', $moodleObject->getID());
-					$questionCategory->info = "Category for the " . $qp->getPageTitle() . " page from the " . $activity->getName() . " quiz.";
-					$questionCategory->addChild('infoformat', 0);
+					$questionCategory->addChild('info', "All questions for the &lt;b&gt;" . $moodleObject->getFullName() . "&lt;/b&gt; course");
+					$questionCategory->addChild('infoformat', 1);
 					$questionCategory->addChild('stamp', 0);
 					$questionCategory->addChild('parent', 0);
+					$questionCategory->addChild('sortorder', 999);
+					$questionCategory->addChild('questions');
+					$allQuestions = false;
+				}
+				
+				$questionCategory = $questionsXml->addChild('question_category');
+				$questionCategory->addAttribute('id', $activity->getActivityID());
+				$questionCategory->name = sprintf("%03s", $quizCounter) . " - " . $activity->getName();
+				$quizCounter++;
+				$questionCategory->addChild('contextid', $moodleObject->getID());
+				$questionCategory->addChild('contextlevel', 50);
+				$questionCategory->addChild('contextinstanceid', $moodleObject->getID());
+				$questionCategory->addChild('info', "Category for the entire &lt;b&gt;" . $activity->getName() . "&lt;/b&gt; quiz.");
+				$questionCategory->addChild('infoformat', 1);
+				$questionCategory->addChild('stamp', 0);
+				$questionCategory->addChild('parent', $moodleObject->getID() - 1);
+				$questionCategory->addChild('sortorder', 999);
+				$questionCategory->addChild('questions');
+				
+				foreach ($activity->getQuizPages() as $qp) {
+					$questionCategory = $questionsXml->addChild('question_category');
+					$questionCategory->addAttribute('id', $qp->getPageID());
+					$name = sprintf("%03s", $pageCounter) . " - " . $qp->getPageTitle();
+					$pageCounter++;
+					$questionCategory->name = $name;
+					$questionCategory->addChild('contextid', $moodleObject->getID());
+					$questionCategory->addChild('contextlevel', 50);
+					$questionCategory->addChild('contextinstanceid', $moodleObject->getID());
+					$questionCategory->addChild('info', "Category for the &lt;b&gt;" . $qp->getPageTitle() . "&lt;/b&gt; page from the &lt;b&gt;" . $activity->getName() . "&lt;/b&gt; quiz.");
+					$questionCategory->addChild('infoformat', 1);
+					$questionCategory->addChild('stamp', 0);
+					$questionCategory->addChild('parent', $activity->getActivityID());
 					$questionCategory->addChild('sortorder', 999);
 					$questionCategoryQuestions = $questionCategory->addChild('questions');
 					foreach ($qp->getPageQuestions() as $qpq) {
 						switch ($qpq->getQType()) {
 							case "SCQ":
 							case "MCQ":
-								$type = "multichoice";			// SCQ or MCQ > Becomes a Multichoice object in Moodle
+								if ($qpq->getQType() == "MCQ" && $qpq->getQQuotation() == "allCorrect") {
+									$type = "multichoiceset";	// MCQ (allCorrect) -------> Becomes a Multichoiceset object in Moodle	
+								}
+								else {
+									$type = "multichoice";		// SCQ or MCQ (perAnswer) -> Becomes a Multichoice object in Moodle
+								}
 								break;
 							case "FIB":
 								if (count($qpq->getQPossibilities()) == 1) {
-									$type = "shortanswer";		// FIB (1)  --> Becomes a Short Answer object in Moodle
+									$type = "shortanswer";		// FIB (1)  ---------------> Becomes a Short Answer object in Moodle
 								}
 								else {
-									$type = "multianswer";		// FIB (2+) --> Becomes a Cloze object in Moodle
+									$type = "multianswer";		// FIB (2+) ---------------> Becomes a Cloze object in Moodle
 								}
 								break;
 						}
@@ -272,13 +310,18 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							foreach ($qpq->getQPossibilities() as $qpqp) {
 								$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
 								$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID());
-								$questionCategoryQuestionAnswer->answertext = $qpqp->getQPAnswer();
+								$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
 								$questionCategoryQuestionAnswer->addChild('answerformat', 1);
 								if ($qpqp->getQPIsCorrect()) {
-									$questionCategoryQuestionAnswer->addChild('fraction', (string) number_format(1 / $amountCorrect, 7, '.', ''));
+									if ($type == "multichoiceset") {
+										$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+									}
+									else {
+										$questionCategoryQuestionAnswer->addChild('fraction', (string) number_format(1 / $amountCorrect, 7, '.', ''));
+									}
 								}
 								else {
-									$questionCategoryQuestionAnswer->addChild('fraction', "-1.0000000");
+									$questionCategoryQuestionAnswer->addChild('fraction', "0.0000000");
 								}
 								if (!is_null($qpqp->getQPFeedback())) {
 									$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
@@ -310,6 +353,18 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 									$questionCategoryQuestionType->addchild('shownumcorrect', 1);
 									$multiChoiceID++;
 									break;
+								case "multichoiceset":
+									$questionCategoryQuestionType->addAttribute('id', $multiChoiceSetID);
+									$questionCategoryQuestionType->addChild('layout', 0);
+									$questionCategoryQuestionType->addchild('shuffleanswers', 1);
+									$questionCategoryQuestionType->addchild('correctfeedback', "");
+									$questionCategoryQuestionType->addchild('correctfeedbackformat', 1);
+									$questionCategoryQuestionType->addchild('incorrectfeedback', "");
+									$questionCategoryQuestionType->addchild('incorrectfeedbackformat', 1);
+									$questionCategoryQuestionType->addchild('answernumbering', "none");
+									$questionCategoryQuestionType->addchild('shownumcorrect', 1);
+									$multiChoiceSetID++;
+									break;
 								case "shortanswer":
 									$questionCategoryQuestionType->addAttribute('id', $shortAnswerID);
 									$questionCategoryQuestionType->addChild('usecase', 0);
@@ -322,6 +377,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					}
 					questionBankRandom($questionCategoryQuestions, $qp, $name);
 				}
+				$pageCounter = 1;
 			}
 		}
 	}
@@ -358,9 +414,18 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$courseInforefXml = new SimpleXMLElement($header . "<inforef></inforef>");
 	$courseInforefXml->addChild('roleref')->addChild('role')->addChild('id', $moodleObject->getID());
 	$courseInfoRefQuestions = $courseInforefXml->addChild('question_categoryref');
+	
+	$allQuestions = true;
 	foreach ($moodleObject->getSection() as $section) {
 		foreach ($section->getActivity() as $activity) {
 			if ($activity->getModuleName() == "quiz") {
+				if ($allQuestions) {
+					$courseInfoRefQuestionCat = $courseInfoRefQuestions->addChild('question_category');
+					$courseInfoRefQuestionCat->addChild('id', $moodleObject->getID() - 1);
+					$allQuestions = false;
+				}
+				$courseInfoRefQuestionCat = $courseInfoRefQuestions->addChild('question_category');
+				$courseInfoRefQuestionCat->addChild('id', $activity->getActivityID());
 				foreach ($activity->getQuizPages() as $qp) {
 					$courseInfoRefQuestionCat = $courseInfoRefQuestions->addChild('question_category');
 					$courseInfoRefQuestionCat->addChild('id', $qp->getPageID());
@@ -1208,7 +1273,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
 		$questionCategoryQuestionAnswer->addAttribute('id', (string) $qpqp->getQPID() + 1);
 		$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
-		$questionCategoryQuestionAnswer->addChild('answerformat', 0);
+		$questionCategoryQuestionAnswer->addChild('answerformat', 1);
 		$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
 		if (!is_null($qpqp->getQPFeedback())) {
 			$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
