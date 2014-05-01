@@ -1501,7 +1501,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 	}					
 }
 
-// When a HTML page gets referenced in a course, this HTML page could
+// When a HTML page gets referenced to in a course, this HTML page could
 // contain media files of its own, this function makes sure that these
 // files also get migrated
 //
@@ -1518,7 +1518,6 @@ function findEmbeddedFiles($filesPath, $path, $coursefolderPath, &$filesXml, &$f
 	
 	$dom = new DOMDocument;
 	$errorState = libxml_use_internal_errors(TRUE);
-	echo $path . "<br>";
 	$dom->loadHTMLFile($path);
 	$errors = libxml_get_errors();
 
@@ -1532,7 +1531,6 @@ function findEmbeddedFiles($filesPath, $path, $coursefolderPath, &$filesXml, &$f
 	}
 	
 	foreach ($embeddedFiles as $embeddedFile) {
-		echo $embeddedFile . "<br>";
 		$embeddedFilePath = $coursefolderPath . "/" . $embeddedFile;
 		$fileSHA1 = sha1($embeddedFile);
 		$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
