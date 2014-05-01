@@ -322,10 +322,10 @@ function moodleFixHTML($html, $title, $type) {
 	
 	// Media files (Object)
 	if ($type == "page") {
-		$patternMedia = '/&lt;object.*?file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
+		$patternMedia = '/&lt;object.*?&quot;file\=(.+?)&quot;.*?&lt;\/object&gt;/ism';
 	}
 	else {
-		$patternMedia = '/&lt;object.*?file\=media\/(.+?)&quot;.*?&lt;\/object&gt;/ism';
+		$patternMedia = '/&lt;object.*?&quot;file\=media\/(.+?)&quot;.*?&lt;\/object&gt;/ism';
 	}
 	$fixhtmlMedia = preg_replace($patternMedia, $mediaReplace, $fixhtmlRemoveEnd);
 	
@@ -561,7 +561,7 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				
 				// Converts the <a> tags to a page in the current course (if present)
 				foreach ($olatFiles as $olatFile) {
-					$htmlPattern = '/&lt;a href=&quot;(?:@@PLUGINFILE\/|.*?)' . preg_quote($olatFile, '/') . '(.*?)&quot;(.*?)&gt;/ism';
+					$htmlPattern = '/&lt;a href=&quot;@@PLUGINFILE@@\/' . preg_quote($olatFile, '/') . '(.*?)&quot;.*?&gt;/ism';
 					preg_match($htmlPattern, $htmlString, $matches);
 					if (!empty($matches)) {
 						foreach ($object->getSection() as $msection) {
@@ -570,14 +570,14 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 									if ($mactivity->getContentFile() == $olatFile) {
 										if ($books) {
 											if ($mactivity->getBook()) {
-											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;$2&gt;';
+											$htmlReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($mactivity->getBookContextID() - 1) . '*' . $mactivity->getChapterID() . '@$$1&quot;&gt;';
 										}
 										else {
-											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;&gt;';
 										}
 									}
 										else {
-											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;$2&gt;';
+											$htmlReplace = '&lt;a href=&quot;$@' . strtoupper($mactivity->getModuleName()) . 'VIEWBYID*' . $mactivity->getModuleID() . '@$$1&quot;&gt;';
 										}
 										$content = $activity->getContent();
 										$activityContent = preg_replace($htmlPattern, $htmlReplace, $content);
@@ -592,21 +592,21 @@ function fixHTMLReferences($moodleObject, $olatObject, $books) {
 				// Converts the javascript: nodes to matching Moodle activities (if they are present)
 				foreach ($object->getSection() as $jsection) {
 					foreach ($jsection->getActivity() as $jactivity) {
-						$javaPattern = '/&lt;a href=&quot;javascript:parent\.gotonode\(' . $jactivity->getActivityID() . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
-						$javaPattern2 = '/&lt;a href=&quot;javascript:parent\.gotonode\(' . (string) ($jactivity->getActivityID() + 50000000000000) . '\)&quot;(.*?)&gt;(.*?)&lt;\/a&gt;/ism';
+						$javaPattern = '/&lt;a href=&quot;javascript:parent\.gotonode\(' . $jactivity->getActivityID() . '(.*?)\)&quot;.*?&gt;/ism';
+						$javaPattern2 = '/&lt;a href=&quot;javascript:parent\.gotonode\(' . (string) ($jactivity->getActivityID() + 50000000000000) . '(.*?)\)&quot;.*?&gt;/ism';
 						preg_match($javaPattern, $htmlString, $javaMatches);
 						preg_match($javaPattern2, $htmlString, $javaMatches2);
 						if (!empty($javaMatches) || !empty($javaMatches2)) {
 							if ($books) {
 								if ($jactivity->getBook()) {
-									$javaReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($jactivity->getBookContextID() - 1) . '*' . $jactivity->getChapterID() . '@$&quot;$1&gt;$2&lt;/a&gt;';
+									$javaReplace = '&lt;a href=&quot;$@BOOKVIEWBYIDCH*' . (string) ($jactivity->getBookContextID() - 1) . '*' . $jactivity->getChapterID() . '@$$1&quot;&gt;';
 								}
 								else {
-									$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$&quot;$1&gt;$2&lt;/a&gt;';
+									$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$$1&quot;&gt;';
 								}
 							}
 							else {
-								$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$&quot;$1&gt;$2&lt;/a&gt;';
+								$javaReplace = '&lt;a href=&quot;$@' . strtoupper($jactivity->getModuleName()) . 'VIEWBYID*' . $jactivity->getModuleID() . '@$$1&quot;&gt;';
 							}
 							$contentJava = $activity->getContent();
 							if (!empty($javaMatches)) {

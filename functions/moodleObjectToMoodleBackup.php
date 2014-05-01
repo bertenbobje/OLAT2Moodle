@@ -487,8 +487,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
 			mkdir($fileSHA1Dir, 0777, true);
 		}
-		if (!is_dir($olatFilesPath . "/" . $olatFile)) {
-			if (copy($olatFilesPath . "/" . $olatFile, $fileSHA1Dir . "/" . $fileSHA1)) {
+		if (!is_dir($olatFilePath)) {
+			if (copy($olatFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
 				foreach ($moodleObject->getSection() as $section) {
 					foreach ($section->getActivity() as $activity) {
 						$fileOK = 0;
@@ -497,7 +497,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							case "page":
 								// There can be a lot of possibilities for matching filenames, because of strange characters (umlauts)
 								if (strpos($activity->getContent(), $olatFile) !== false
-										|| strpos(urldecode($activity->getContent()), $olatFile) !== false) {
+										|| strpos(urldecode($activity->getContent()), $olatFile) !== false) {	
+									if (substr($olatFile, -4) == "html" || substr($olatFile, -3) == "htm") {
+										findEmbeddedFiles($filesPath, $olatFilePath, $olatFilesPath, $filesXml, $fileID, $activity, $books);
+									}
 									$fileOK = 1;
 									$filesXmlChild = $filesXml->addChild('file');
 									$filesXmlChild->addAttribute('id', $fileID);
@@ -611,43 +614,42 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 										if (copy($olatExportFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
 											if ($activityModuleName == "folder") {
 												foreach ($activity->getFolderFile() as $folderFile) {
-												if ($folderFile->getFileName() == preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) {
-													$filesXmlChild = $filesXml->addChild('file');
-													$filesXmlChild->addAttribute('id', $fileID);
-													$filesXmlChild->addChild('contenthash', $fileSHA1);
-													$filesXmlChild->addChild('contextid', $activity->getContextID());
-													$activity->setFile($fileID);
-													$filesXmlChild->addChild('component', "mod_folder");
-													$filesXmlChild->addChild('filearea', "content");
-													$filesXmlChild->addChild('itemid', 0);
-													$preg = preg_quote('.*' . $activityID . '(.*)[\/]', '/');
-													$fpath = str_replace("\\", "/", preg_replace("/$preg/", '$1', $olatExportFile));
-													$filePath = substr($fpath, 0, strrpos($fpath, '/'));
-													if (!empty($filePath)) {
-														$filesXmlChild->filepath = "/" . $filePath . "/";
+													if ($folderFile->getFileName() == preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)))) {
+														$filesXmlChild = $filesXml->addChild('file');
+														$filesXmlChild->addAttribute('id', $fileID);
+														$filesXmlChild->addChild('contenthash', $fileSHA1);
+														$filesXmlChild->addChild('contextid', $activity->getContextID());
+														$activity->setFile($fileID);
+														$filesXmlChild->addChild('component', "mod_folder");
+														$filesXmlChild->addChild('filearea', "content");
+														$filesXmlChild->addChild('itemid', 0);
+														$preg = preg_quote('.*' . $activityID . '(.*)[\/]', '/');
+														$fpath = str_replace("\\", "/", preg_replace("/$preg/", '$1', $olatExportFile));
+														$filePath = substr($fpath, 0, strrpos($fpath, '/'));
+														if (!empty($filePath)) {
+															$filesXmlChild->filepath = "/" . $filePath . "/";
+														}
+														else {
+															$filesXmlChild->addchild('filepath', "/");
+														}
+														$filesXmlChild->filename = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
+														$filesXmlChild->addChild('userid', 2);
+														$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
+														$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
+														$filesXmlChild->addChild('status', 0);
+														$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
+														$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
+														$filesXmlChild->source = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
+														$filesXmlChild->addChild('author', "OLAT2Moodle");
+														$filesXmlChild->addChild('license', 'allrightsreserved');
+														$filesXmlChild->addChild('sortorder', 0);
+														$filesXmlChild->addChild('repositorytype', '$@NULL@$');
+														$filesXmlChild->addChild('repositoryid', '$@NULL@$');
+														$filesXmlChild->addChild('reference', '$@NULL@$');
+														
+														$fileID++;
 													}
-													else {
-														$filesXmlChild->addchild('filepath', "/");
-													}
-													$filesXmlChild->filename = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
-													$filesXmlChild->addChild('userid', 2);
-													$filesXmlChild->addChild('filesize', filesize($olatExportFilePath));
-													$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $olatExportFilePath));
-													$filesXmlChild->addChild('status', 0);
-													$filesXmlChild->addChild('timecreated', filectime($olatFilePath));
-													$filesXmlChild->addChild('timemodified', filemtime($olatFilePath));
-													$filesXmlChild->source = preg_replace("/[\/\\\]/", "", substr($olatExportFile, strrpos($olatExportFile, DIRECTORY_SEPARATOR)));
-													$filesXmlChild->addChild('author', "OLAT2Moodle");
-													$filesXmlChild->addChild('license', 'allrightsreserved');
-													$filesXmlChild->addChild('sortorder', 0);
-													$filesXmlChild->addChild('repositorytype', '$@NULL@$');
-													$filesXmlChild->addChild('repositoryid', '$@NULL@$');
-													$filesXmlChild->addChild('reference', '$@NULL@$');
-													
-													$fileID++;
-
 												}
-											}
 											}
 											else if ($activityModuleName == "quiz") {
 												foreach ($activity->getQuizPages() as $qp) {
@@ -1344,7 +1346,12 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 	$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
 	$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
 	$activityActivityChildXml->name = $activity->getName();
-	$activityActivityChildXml->intro = $activity->getName();
+	if ($activity->getModuleName() == "quiz") {
+		$activityActivityChildXml->intro = $activity->getDescription();
+	}
+	else {
+		$activityActivityChildXml->intro = $activity->getName();
+	}
 	$activityActivityChildXml->addChild('introformat', 1);
 	
 	switch ($activity->getModuleName()) {
@@ -1398,7 +1405,13 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 		case "quiz":
 			$activityActivityChildXml->addChild('timeopen', 0);
 			$activityActivityChildXml->addChild('timeclose', 0);
-			$activityActivityChildXml->addChild('timelimit', 0);
+			$timelimit = $activity->getDuration();
+			if (!is_null($timelimit) && !empty($timelimit)) {
+				$activityActivityChildXml->addChild('timelimit', $timelimit);
+			}
+			else {
+				$activityActivityChildXml->addChild('timelimit', 0);
+			}
 			$activityActivityChildXml->addChild('overduehandling', 'autoabandon');
 			$activityActivityChildXml->addChild('graceperiod', 0);
 			$activityActivityChildXml->addChild('preferredbehaviour', 'deferredfeedback');
@@ -1419,22 +1432,30 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('shufflequestions', 0);
 			$activityActivityChildXml->addChild('shuffleanswers', 1);
 			$questions = "";
+			$sumgrades = 0;
 			foreach ($activity->getQuizPages() as $qp) {
 				if ($qp->getPageOrdering() == "Random") {
 					foreach ($qp->getRandomQuestionIDs() as $qpr) {
 						$questions .= $qpr . ",";
+						$sumgrades++;
 					}
 				}
 				else {
 					foreach ($qp->getPageQuestions() as $qpq) {
 						$questions .= $qpq->getQID() . ",";
+						$sumgrades++;
 					}
 				}
 				$questions .= "0,";
 			}
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
-			$activityActivityChildXml->addChild('sumgrades', '0.00000');
-			$activityActivityChildXml->addChild('grade', '0.00000');
+			$activityActivityChildXml->addChild('sumgrades', $sumgrades . ".00000");
+			if (!is_null($activity->getPassingScore()) && $activity->getPassingScore() != "0.0") {
+				$activityActivityChildXml->addChild('grade', $activity->getPassingScore() . ".0000");
+			}
+			else {
+				$activityActivityChildXml->addChild('grade', $sumgrades . ".00000");
+			}
 			$activityActivityChildXml->addChild('timecreated', time());
 			$activityActivityChildXml->addChild('timemodified', time());
 			$activityActivityChildXml->addChild('password');
@@ -1478,6 +1499,90 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('attempts');
 			break;
 	}					
+}
+
+// When a HTML page gets referenced in a course, this HTML page could
+// contain media files of its own, this function makes sure that these
+// files also get migrated
+//
+// PARAMETERS
+// ->         $filesPath = The path to /files (Moodle)      
+//                 $path = The path to the referenced HTML file
+//     $coursefolderPath = The path to the current coursefolder
+//             $filesXml = The current files.xml SimpleXMLElement
+//               $fileID = The current fileID
+//             $activity = The activity where the HTML file gets referenced to
+//                $books = The books checkbox
+function findEmbeddedFiles($filesPath, $path, $coursefolderPath, &$filesXml, &$fileID, &$activity, $books) {
+	$embeddedFiles = array();
+	
+	$dom = new DOMDocument;
+	$errorState = libxml_use_internal_errors(TRUE);
+	echo $path . "<br>";
+	$dom->loadHTMLFile($path);
+	$errors = libxml_get_errors();
+
+	// Find all image references in embedded HTML files
+	foreach ($dom->getElementsByTagName('img') as $inode) {
+		$srcValue = $inode->getAttribute('src');
+		if (substr($srcValue, 0, 7)  !== "http://" 
+		 && substr($srcValue, 0, 8)  !== "https://") {
+			array_push($embeddedFiles, $srcValue);
+		}
+	}
+	
+	foreach ($embeddedFiles as $embeddedFile) {
+		echo $embeddedFile . "<br>";
+		$embeddedFilePath = $coursefolderPath . "/" . $embeddedFile;
+		$fileSHA1 = sha1($embeddedFile);
+		$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
+		if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+			mkdir($fileSHA1Dir, 0777, true);
+		}
+		if (!is_dir($embeddedFilePath)) {
+			if (copy($embeddedFilePath, $fileSHA1Dir . "/" . $fileSHA1)) {
+				$filesXmlChild = $filesXml->addChild('file');
+				$filesXmlChild->addAttribute('id', $fileID);
+				if ($books && $activity->getBook()) {
+					$component = "mod_book";
+				}
+				else {
+					$component = "mod_page";
+				}
+				$filesXmlChild->addChild('contenthash', $fileSHA1);
+				if ($books && $activity->getBook()) {
+					$filesXmlChild->addChild('contextid', $activity->getBookContextID());
+					$filesXmlChild->addChild('component', $component);
+					$filesXmlChild->addChild('filearea', "chapter");
+					$filesXmlChild->addChild('itemid', $activity->getChapterID());
+				}
+				else {
+					$filesXmlChild->addChild('contextid', $activity->getContextID());
+					$filesXmlChild->addChild('component', $component);
+					$filesXmlChild->addChild('filearea', "content");
+					$filesXmlChild->addChild('itemid', 0);
+				}
+				$filesXmlChild->addChild('filepath', "/");
+				$filesXmlChild->filename = $embeddedFile;
+				$filesXmlChild->addChild('userid', 2);
+				$filesXmlChild->addChild('filesize', filesize($embeddedFilePath));
+				$filesXmlChild->addChild('mimetype', finfo_file(finfo_open(FILEINFO_MIME_TYPE), $embeddedFilePath));
+				$filesXmlChild->addChild('status', 0);
+				$filesXmlChild->addChild('timecreated', filectime($embeddedFilePath));
+				$filesXmlChild->addChild('timemodified', filemtime($embeddedFilePath));
+				$filesXmlChild->source = $embeddedFile;
+				$filesXmlChild->addChild('author', "OLAT2Moodle");
+				$filesXmlChild->addChild('license', 'allrightsreserved');
+				$filesXmlChild->addChild('sortorder', 0);
+				$filesXmlChild->addChild('repositorytype', '$@NULL@$');
+				$filesXmlChild->addChild('repositoryid', '$@NULL@$');
+				$filesXmlChild->addChild('reference', '$@NULL@$');
+				$activity->setFile($fileID);
+				
+				$fileID++;
+			}
+		}
+	}
 }
 
 ?>
