@@ -136,7 +136,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'role_assignments', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'activities', '1');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'blocks', '0');
-	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'filters', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'filters', '1');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'comments', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'badges', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'calendarevents', '0');
@@ -394,6 +394,16 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	$dom->loadXML($courseInforefXml->asXML());
 	file_put_contents($coursePath . "/inforef.xml", $dom->saveXML());
+	// course/filters.xml
+	$courseFiltersXml = new SimpleXMLElement($header . "<filters></filters>");
+	$courseFiltersActives = $courseFiltersXml->addChild('filter_actives');
+	$courseFiltersActive = $courseFiltersActives->addChild('filter_active');
+	$courseFiltersActive->addChild('filter', "activitynames");
+	$courseFiltersActive->addChild('active', "-1");
+	$courseFiltersXml->addChild('filter_configs');
+	
+	$dom->loadXML($courseFiltersXml->asXML());
+	file_put_contents($coursePath . "/filters.xml", $dom->saveXML());
 	// course/course.xml
 	$courseCourseXml = new SimpleXMLElement($header . "<course></course>");
 	$courseCourseXml->addAttribute('id', $moodleObject->getID());
@@ -749,7 +759,14 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				$activityRolesXml->addChild('role_assignments');
 				
 				$dom->loadXML($activityRolesXml->asXML());
-				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
+				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());		
+				// activities/[activity]_[x]/filters.xml
+				$activityFiltersXml = new SimpleXMLElement($header . "<filters></filters>");
+				$activityFiltersXml->addChild('filter_actives');
+				$activityFiltersXml->addChild('filter_configs');
+				
+				$dom->loadXML($activityFiltersXml->asXML());
+				file_put_contents($activityPath . "/filters.xml", $dom->saveXML());
 			
 				// NOT "EMPTY"
 				// activities/[activity]_[x]/inforef.xml
