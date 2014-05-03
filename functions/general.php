@@ -49,7 +49,7 @@ function rrmdir($dir) {
 function checkDoubleFileReference($zippedzip) {
 	$courseFolderReached = false;
 	$i = 0;
-	for($i = 0; $i < $zippedzip->numFiles; $i++) {
+	for ($i = 0; $i < $zippedzip->numFiles; $i++) {
 		$stat = $zippedzip->statIndex($i);
 		$zipfiles[$i] = basename($stat['name']);
 	}
@@ -140,27 +140,32 @@ function getDataIfExists() {
   return $baseObj;
 }
 
+// Gets the question type (SCQ, MCQ or FIB)
+//
+// PARAMETERS
+// -> $input = The string that contains the question type
 function getQuestionType($input) {
   $length = (strrpos($input, ':') - 1) - strpos($input, ':');
   return substr($input, strpos($input, ':') + 1, $length);
 }
 
 // Quotation for FIB or MCQ can be either allCorrect or perAnswer
-// Function returns also the results form xpath!
+// Function also returns the results from xpath!
+//
+// PARAMETERS
+// -> $item = The current question item
 function getQuotationType($item) {
   // XML structure is different when quotation is different (ALL/PER correct answer)
   $results = $item->xpath('resprocessing/respcondition[setvar and not(conditionvar/other)]');
-	$quotation = "xxxxx";
+	$quotation = "";
 	if (!empty($results[0])) {
-  if (count($results[0]->conditionvar->and) > 0) {
-    $quotation = 'allCorrect';
-  } else {
-    $quotation = 'perAnswer';
-  }}
-
-  return array('quotation' => $quotation,
-    'results' => $results
-  );
+		if (count($results[0]->conditionvar->and) > 0) {
+			$quotation = 'allCorrect';
+		} else {
+			$quotation = 'perAnswer';
+		}
+	}
+  return array('quotation' => $quotation, 'results' => $results);
 }
 
 ?>
