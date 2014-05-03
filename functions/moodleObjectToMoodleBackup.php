@@ -130,62 +130,20 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
 	$moodleBackupXmlSettingsSetting->addChild('name', 'filename');
 	$moodleBackupXmlSettingsSetting->addChild('value', clean($moodleObject->getFullName()) . '.mbz');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'imscc11');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'users');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'anonymize');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'role_assignments');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'activities');
-	$moodleBackupXmlSettingsSetting->addChild('value', '1');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'blocks');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'filters');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'comments');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'badges');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'calendarevents');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'userscompletion');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'logs');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'grade_histories');
-	$moodleBackupXmlSettingsSetting->addChild('value', '0');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'questionbank');
-	$moodleBackupXmlSettingsSetting->addChild('value', '1');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'imscc11', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'users', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'anonymize', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'role_assignments', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'activities', '1');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'blocks', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'filters', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'comments', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'badges', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'calendarevents', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'userscompletion', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'logs', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'grade_histories', '0');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'questionbank', '1');
 	
 	// questions.xml, the question bank.
 	// Whenever there is a quiz, this is where it will get the questions from.
@@ -511,17 +469,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 										$component = "mod_page";
 									}
 								}
-								break;
-							case "folder":
-								foreach ($activity->getFolderFile() as $folderFile) {
-									if ($folderFile->getFileName() == $olatFile) {
-										$fileOK = 1;
-										$filesXmlChild = $filesXml->addChild('file');
-										$filesXmlChild->addAttribute('id', $fileID);
-										$component = "mod_folder";
-									}
-								}
-								break;		
+								break;	
 							case "resource":
 								if ($activity->getResource() == $olatFile) {
 									$fileOK = 1;
@@ -575,7 +523,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	}
 	
 	// The files for the folders and quizzes are located somewhere else,
-	// so this isfor fetching these files from OLAT.
+	// so this is for fetching these files from OLAT.
 	$olatExportPathRoot = $olatObject->getRootdir() . "/export";
 	$olatExportRootFiles = listFolderFiles($olatExportPathRoot);
 	$directoryArray = array();
@@ -754,21 +702,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		file_put_contents($sectionPath . "/section.xml", $dom->saveXML());
 		
 		// moodle_backup.xml
-		$moodleBackupXmlContentsSectionsSection = $moodleBackupXmlContentsSections->addChild('section');
-		$moodleBackupXmlContentsSectionsSection->addChild('sectionid', $section->getSectionID());
-		$moodleBackupXmlContentsSectionsSection->title = $section->getName();
-		$moodleBackupXmlContentsSectionsSection->addChild('directory', "sections/section_" . $section->getSectionID());
-	
-		$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-		$moodleBackupXmlSettingsSetting->addChild('level', 'section');
-		$moodleBackupXmlSettingsSetting->addChild('section', "section_" . $section->getSectionID());
-		$moodleBackupXmlSettingsSetting->addChild('name', "section_" . $section->getSectionID() . "_included");
-		$moodleBackupXmlSettingsSetting->addChild('value', 1);
-		$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-		$moodleBackupXmlSettingsSetting->addChild('level', 'section');
-		$moodleBackupXmlSettingsSetting->addChild('section', "section_" . $section->getSectionID());
-		$moodleBackupXmlSettingsSetting->addChild('name', "section_" . $section->getSectionID() . "_userinfo");
-		$moodleBackupXmlSettingsSetting->addChild('value', 0);
+		moodleBackupSection($moodleBackupXmlContentsSections, $section->getSectionID(), $section->getName());
+		moodleBackupSetting($moodleBackupXmlSettings, 'section', $section->getSectionID(), 'section');
 		
 		$sectionNumber++;
 	}
@@ -863,23 +798,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
 				
 				// moodle_backup.xml
-				$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
-				$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
-				$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
-				$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $activity->getModuleName());
-				$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
-				$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $activity->getModuleName() . "_" . $activity->getModuleID());
-			
-				$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-				$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-				$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
-				$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_included");
-				$moodleBackupXmlSettingsSetting->addChild('value', 1);
-				$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-				$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-				$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
-				$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_userinfo");
-				$moodleBackupXmlSettingsSetting->addChild('value', 0);
+				moodleBackupActivity($moodleBackupXmlContentsActivities, $activity->getModuleID(), $activity->getSectionID(), $activity->getModuleName(), $activity->getName());
+				moodleBackupSetting($moodleBackupXmlSettings, $activity->getModuleName(), $activity->getModuleID(), 'activity');
 			}
 			else {
 				// Variable that says if we're currently making a book
@@ -1018,8 +938,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					$activityActivityXml->addAttribute('contextid', $activity->getContextID());
 					$activityActivityChildXml = $activityActivityXml->addChild('book');
 					$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
-					$activityActivityChildXml->name = $activity->getName();
-					$activityActivityChildXml->intro = $activity->getName();
+					$name = createBookName($section, $activity);
+					$activityActivityChildXml->name = $name;
+					$activityActivityChildXml->intro = $name;
 					$activityActivityChildXml->addChild('introformat', 1);
 					$activityActivityChildXml->addChild('numbering', $chapterFormat);
 					$activityActivityChildXml->addChild('customtitles', 1);
@@ -1036,7 +957,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					else {
 						$activityBookChapter->addChild('subchapter', 0);
 					}
-					$activityBookChapter->title = $activity->getName();
+					$activityBookChapter->title = $name;
 					$activityBookChapter->addChild('content', $activity->getContent());
 					$activityBookChapter->addChild('contentformat', 1);
 					$activityBookChapter->addChild('hidden', 0);
@@ -1076,43 +997,13 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				}
 
 				// moodle_backup.xml
-				if ($currentlyBook && $firstTags) {
-					$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
-					$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
-					$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
-					$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', "book");
-					$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
-					$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/book_" . $activity->getModuleID());
-				
-					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-					$moodleBackupXmlSettingsSetting->addChild('activity', "book_" . $activity->getModuleID());
-					$moodleBackupXmlSettingsSetting->addChild('name', "book_" . $activity->getModuleID() . "_included");
-					$moodleBackupXmlSettingsSetting->addChild('value', 1);
-					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-					$moodleBackupXmlSettingsSetting->addChild('activity', "book_" . $activity->getModuleID());
-					$moodleBackupXmlSettingsSetting->addChild('name', "book_" . $activity->getModuleID() . "_userinfo");
-					$moodleBackupXmlSettingsSetting->addChild('value', 0);
+				if ($currentlyBook && $firstTags) {			
+					moodleBackupActivity($moodleBackupXmlContentsActivities, $activity->getModuleID(), $activity->getSectionID(), 'book', $name, 'activities/book_' . $activity->getModuleID());		
+					moodleBackupSetting($moodleBackupXmlSettings, 'book', $activity->getModuleID(), 'activity');
 				}
 				else if (!$currentlyBook) {
-					$moodleBackupXmlContentsActivitiesActivity = $moodleBackupXmlContentsActivities->addChild('activity');
-					$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $activity->getModuleID());
-					$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $activity->getSectionID());
-					$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $activity->getModuleName());
-					$moodleBackupXmlContentsActivitiesActivity->title = $activity->getName();
-					$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $activity->getModuleName() . "_" . $activity->getModuleID());
-				
-					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-					$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
-					$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_included");
-					$moodleBackupXmlSettingsSetting->addChild('value', 1);
-					$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-					$moodleBackupXmlSettingsSetting->addChild('level', 'activity');
-					$moodleBackupXmlSettingsSetting->addChild('activity', $activity->getModuleName() . "_" . $activity->getModuleID());
-					$moodleBackupXmlSettingsSetting->addChild('name', $activity->getModuleName() . "_" . $activity->getModuleID() . "_userinfo");
-					$moodleBackupXmlSettingsSetting->addChild('value', 0);
+					moodleBackupActivity($moodleBackupXmlContentsActivities, $activity->getModuleID(), $activity->getSectionID(), $activity->getModuleName(), $activity->getName());
+					moodleBackupSetting($moodleBackupXmlSettings, $activity->getModuleName(), $activity->getModuleID(), 'activity');
 				}
 				
 				// Set the previous activity
@@ -1293,6 +1184,71 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 	}
 }
 
+// Default settings function for moodle_backup.xml
+// (This shortens the code by quite a bit)
+//
+// PARAMETERS
+// -> $settings = The <settings> part of the moodle_backup.xml SimpleXMLElement
+//       $level = The <level> element
+//        $name = The <name> element
+//       $value = the <value> element
+function moodleBackupDefaultSettings(&$settings, $level, $name, $value) {
+	$moodleBackupXmlSettingsSetting = $settings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', $level);
+	$moodleBackupXmlSettingsSetting->addChild('name', $name);
+	$moodleBackupXmlSettingsSetting->addChild('value', $value);
+}
+
+// This function is for adding settings to moodle_backup.xml
+//
+// PARAMETERS
+// -> $settings = The <settings> part of the moodle_backup.xml SimpleXMLElement
+//        $name = Name of the module (section, page, quiz, ...)
+//          $id = The ID of said module
+//          $sa = 'section' or 'activity'
+function moodleBackupSetting(&$settings, $name, $id, $sa) {
+	$moodleBackupXmlSettingsSetting = $settings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', $sa);
+	$moodleBackupXmlSettingsSetting->addChild($sa, $name . "_" . $id);
+	$moodleBackupXmlSettingsSetting->addChild('name', $name . "_" . $id . "_included");
+	$moodleBackupXmlSettingsSetting->addChild('value', 1);
+	$moodleBackupXmlSettingsSetting = $settings->addChild('setting');
+	$moodleBackupXmlSettingsSetting->addChild('level', $sa);
+	$moodleBackupXmlSettingsSetting->addChild($sa, $name . "_" . $id);
+	$moodleBackupXmlSettingsSetting->addChild('name', $name . "_" . $id . "_userinfo");
+	$moodleBackupXmlSettingsSetting->addChild('value', 0);
+}
+
+// This function is for adding sections to moodle_backup.xml
+//
+// PARAMETERS
+// -> $xmlSections = The <sections> part of the moodle_backup.xml SimpleXMLElement
+//      $sectionID = The section's ID
+//          $title = The section's title
+function moodleBackupSection(&$xmlSections, $sectionID, $title) {
+	$moodleBackupXmlContentsSectionsSection = $xmlSections->addChild('section');
+	$moodleBackupXmlContentsSectionsSection->addChild('sectionid', $sectionID);
+	$moodleBackupXmlContentsSectionsSection->title = $title;
+	$moodleBackupXmlContentsSectionsSection->addChild('directory', "sections/section_" . $sectionID);
+}
+
+// This function is for adding activities to moodle_backup.xml
+//
+// PARAMETERS
+// -> $xmlActivities = The <activities> part of the moodle_backup.xml SimpleXMLElement
+//         $moduleID = The module's ID
+//        $sectionID = The section's ID
+//       $moduleName = The module's name (page, quiz, ...)
+//            $title = The module's title
+function moodleBackupActivity(&$xmlActivities, $moduleID, $sectionID, $moduleName, $title) {
+	$moodleBackupXmlContentsActivitiesActivity = $xmlActivities->addChild('activity');
+	$moodleBackupXmlContentsActivitiesActivity->addChild('moduleid', $moduleID);
+	$moodleBackupXmlContentsActivitiesActivity->addChild('sectionid', $sectionID);
+	$moodleBackupXmlContentsActivitiesActivity->addChild('modulename', $moduleName);
+	$moodleBackupXmlContentsActivitiesActivity->title = $title;
+	$moodleBackupXmlContentsActivitiesActivity->addChild('directory', "activities/" . $moduleName . "_" . $moduleID);
+}
+
 // If questions are randomized, they are added to the question bank as
 // questions of their own. This function adds these questions.
 //
@@ -1326,6 +1282,33 @@ function questionBankRandom(&$questions, $qp, $name) {
 			$questionCategoryQuestion->addChild('tags');
 		}
 	}
+}
+
+// This function creates a name for the books, basically it will be something like
+// [first chapter in book] - [last chapter in book].
+//
+// PARAMETERS
+// ->  $section = The current section
+//    $activity = The current activity (the first chapter of the book)
+function createBookName($section, $activity) {
+	$bookName = "";
+	$bookName1 = $activity->getName() . " - ";
+	$sectionActivities = $section->getActivity();
+	$currentActivity = array_search($activity, $sectionActivities);
+	for ($i = $currentActivity + 1; $i < count($sectionActivities); $i++) {
+		$a = $sectionActivities[$i];
+		if ($a->getBook()) {
+			$bookName2 = $a->getName();
+			if ($i == count($sectionActivities) - 1) {
+				break;
+			}
+		}
+		else {
+			break;
+		}
+	}
+	$bookName = $bookName1 . $bookName2;
+	return $bookName;
 }
 
 // This function is for creating the activity.xml file when the 'books'
