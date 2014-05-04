@@ -331,10 +331,10 @@ function moodleFixHTML($html, $title, $type) {
 	
 	// Media files (BPlayer)
 	if ($type == "page") {
-		$patternMedia2 = '/&lt;script&gt;.?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.+?&lt;\/script&gt;/ism';
+		$patternMedia2 = '/&lt;script.*?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.*?&lt;\/script&gt;/ism';
 	}
 	else {
-		$patternMedia2 = '/&lt;script&gt;.?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.+?&lt;\/script&gt;/ism';
+		$patternMedia2 = '/&lt;script.*?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.*?&lt;\/script&gt;/ism';
 	}
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $mediaReplace, $fixhtmlMedia);
 	
@@ -360,9 +360,9 @@ function moodleFixHTML($html, $title, $type) {
 	$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($fixhtmlFIB, ENT_QUOTES));
 	$errors = libxml_get_errors();
 	if (!empty($errors)) {
-		echo "<p style='color:darkorange;'>WARNING - HTML errors found in '" . utf8_decode($title) . "', this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
+		echo "<p style='color:darkorange;'>WARNING - HTML validation errors found in '" . utf8_decode($title) . "', this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
 		foreach ($errors as $error) {
-			echo "<li>" . $error->message . " on line " . $error->line . "</li>";
+			echo "<li>" . $error->message . " on line <strong>" . $error->line . "</strong> (starting from &lt;body&gt;)</li>";
 		}
 		echo "</ul></p>";
 	}
@@ -374,8 +374,9 @@ function moodleFixHTML($html, $title, $type) {
 		if (substr($srcValue, 0, 6) == "media/" && $type == "quiz") {
 			$srcValue = substr($srcValue, 6);
 		}
-		if (substr($srcValue, 0, 7)  !== "http://" 
-		 && substr($srcValue, 0, 8)  !== "https://") {
+		if (substr($srcValue, 0, 7) !== "http://" 
+		 && substr($srcValue, 0, 8) !== "https://"
+		 && substr($srcValue, 0, 5) !== "data:") {
 			$inode->setAttribute('src', '@@PLUGINFILE@@/' . $srcValue);
 		}
 	}
@@ -385,6 +386,7 @@ function moodleFixHTML($html, $title, $type) {
 			$hrefValue = $anode->getAttribute('href');
 			if (substr($hrefValue, 0, 7)  !== "http://" 
 			 && substr($hrefValue, 0, 8)  !== "https://" 
+			 && substr($hrefValue, 0, 5)  !== "data:"
 			 && substr($hrefValue, 0, 11) !== "javascript:"
 			 && substr($hrefValue, 0, 15) !== "@@PLUGINFILE@@/") {
 				$anode->setAttribute('href', '@@PLUGINFILE@@/' . $hrefValue);
