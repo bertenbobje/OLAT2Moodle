@@ -243,23 +243,23 @@ function quizMigration($olatObject) {
 			}
 		}
 		foreach ($qs->getItems() as $qsi) {
-			$quotation = ($qsi->getType() != "SCQ" ? $qsi->getQuotation() : NULL);
-			$media = ($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL);
+			$qid = (string) substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1);
 			$question = ($qsi->getType() == "FIB" ? $qsi->getContent() : $qsi->getQuestion());
 			$question = htmlspecialchars(html_entity_decode($question), ENT_QUOTES, "UTF-8");
-			$qid = (string) substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1);
 			$quizQuestion = new QuizQuestion(
 						$qid,
 						$qsi->getTitle(),
 						$qsi->getType(),
-						$quotation,
-						$qsi->getScore(),
+						($qsi->getType() != "SCQ" && $qsi->getType() != "ESSAY" ? $qsi->getQuotation() : NULL),
+						($qsi->getType() != "ESSAY" ? $qsi->getScore() : NULL),
 						htmlspecialchars(html_entity_decode($qsi->getDescription()), ENT_QUOTES, "UTF-8"),
 						moodleFixHTML($question, $olatObject->getLongTitle(), "quiz"),
-						$qsi->getHint(),
-						$qsi->getSolutionFeedback(),
-						$qsi->getMax_attempts(),
-						$media
+						($qsi->getType() == "SCQ" || $qsi->getType() == "MCQ" ? $qsi->getRandomOrder() : NULL),
+						($qsi->getType() != "ESSAY" ? $qsi->getHint() : NULL),
+						($qsi->getType() != "ESSAY" ? $qsi->getSolutionFeedback() : NULL),
+						($qsi->getType() != "ESSAY" ? $qsi->getMax_attempts() : NULL),
+						($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL),
+						($qsi->getType() == "ESSAY" ? $qsi->getEssayRows() : NULL)
 			);
 			if ($qsi->getType() == "FIB") {
 				foreach ($qsi->getFeedback() as $qsif) {

@@ -883,22 +883,6 @@ class SingleChoiceQuestion extends Item {
     parent::__construct($values, 'qtici_SCQ');
   }
 
-  function myFullConstruct($item) {
-    $this->type = $item->type;
-    $this->title = $item->title;
-    $this->objective = NULL;
-    $this->feedback = NULL;
-    $this->hint = NULL;
-    $this->solutionFeedback = NULL;
-    $this->max_attempts = $item->max_attempts;
-    $this->possibilities = NULL;
-    $this->question = $item->question;
-    $this->id = $item->id;
-    $this->answer = NULL;
-    $this->score = $item->score;
-    $this->randomOrder = $item->ordering;
-  }
-
   public function setAnswer($answer) {
     $this->answer = $answer;
   }
@@ -986,23 +970,6 @@ class MultipleChoiceQuestion extends Item {
 
   public function __construct($values = array()) {
     parent::__construct($values, 'qtici_MCQ');
-  }
-
-  function myFullConstruct($item) {
-    $this->type = $item->type;
-    $this->title = $item->title;
-    $this->objective = NULL;
-    $this->feedback = NULL;
-    $this->hint = NULL;
-    $this->solutionFeedback = NULL;
-    $this->max_attempts = $item->max_attempts;
-    $this->possibilities = NULL;
-    $this->question = $item->question;
-    $this->id = $item->id;
-    $this->quotation = $item->quotation;
-    $this->answers = NULL;
-    $this->score = $item->score;
-    $this->randomOrder = $item->ordering;
   }
 
   public function setQuotation($quotation) {
@@ -1138,23 +1105,6 @@ class FillInBlanks extends Item {
     parent::__construct($values, 'qtici_FIB');
   }
 
-  function myFullConstruct($item) {
-    $this->type = $item->type;
-    $this->title = $item->title;
-    $this->objective = NULL;
-    $this->feedback = NULL;
-    $this->hint = NULL;
-    $this->solutionFeedback = NULL;
-    $this->max_attempts = $item->max_attempts;
-    $this->possibilities = NULL;
-    $this->question = $item->question;
-    $this->id = $item->id;
-    $this->quotation = $item->quotation;
-    $this->answers = NULL;
-    $this->score = $item->score;
-    $this->quotation = $item->quotation;
-  }
-
   public function setQuotation($quotation) {
     $this->quotation = $quotation;
   }
@@ -1260,8 +1210,45 @@ class FillInBlanks extends Item {
     }
 		$this->setContent(html_entity_decode($content));
 		
-    parent::parseXML($item);
+		parent::parseXML($item);
   }
+
+}
+
+class EssayQuestion extends Item {
+	
+	protected $essayColumns;
+	protected $essayRows;
+	
+  public function __construct($values = array()) {
+    parent::__construct($values, 'qtici_ESSAY');
+  }
+	
+	public function setEssayColumns($essayColumns) {
+		$this->essayColumns = $essayColumns;
+	}
+	
+	public function getEssayColumns() {
+		return $this->essayColumns;
+	}
+	
+	public function setEssayRows($essayRows) {
+		$this->essayRows = $essayRows;
+	}
+	
+	public function getEssayRows() {
+		return $this->essayRows;
+	}
+	
+	public function parseXML($item) {
+    // Set Type
+    $this->setType('ESSAY');
+    // Get width and height of the fill in box (Essay)
+		$this->essayColumns = (string) getDataIfExists($item, 'presentation', 'response_str', 'render_fib', 'attributes()', 'columns');
+		$this->essayRows = (string) getDataIfExists($item, 'presentation', 'response_str', 'render_fib', 'attributes()', 'rows');
+		
+		parent::parseXML($item);
+	}
 
 }
 
