@@ -25,9 +25,9 @@
 //                                                    |
 //                                               QuizQuestion
 //                                                    |
-//                                             _ SCQ _|
-//                  - QuizFeedback _________  |_ MCQ _|
-//                  - QuizPossibility ______|-|- FIB _|
+//                                                    |
+//                  - QuizFeedback _________          |
+//                  - QuizPossibility ______|---------
 
 ///////////////////////////////////////////////////////////
 // COURSE /////////////////////////////////////////////////
@@ -538,6 +538,7 @@ class QuizQuestion {
 	protected $qScore;
 	protected $qDescription;
 	protected $qQuestion;
+	protected $qShuffle;						// For SCQ and MCQ
 	protected $qHint;
 	protected $qSolutionFeedback;
 	protected $qMaxAttempts;
@@ -545,7 +546,7 @@ class QuizQuestion {
 	protected $qPossibilities = array();
 	protected $qFeedback = array();
 	
-	public function __construct($qID, $qTitle, $qType, $qQuotation, $qScore, $qDescription, $qQuestion, $qHint, $qSolutionFeedback, $qMaxAttempts, $qMedia = "") {
+	public function __construct($qID, $qTitle, $qType, $qQuotation, $qScore, $qDescription, $qQuestion, $qShuffle, $qHint, $qSolutionFeedback, $qMaxAttempts, $qMedia = "", $qLines) {
 		$this->qID = $qID;
 		$this->qTitle = $qTitle;
 		$this->qType = $qType;
@@ -553,10 +554,12 @@ class QuizQuestion {
 		$this->qScore = $qScore;
 		$this->qDescription = $qDescription;
 		$this->qQuestion = $qQuestion;
+		$this->qShuffle = $qShuffle;
 		$this->qHint = $qHint;
 		$this->qSolutionFeedback = $qSolutionFeedback;
 		$this->qMaxAttempts = $qMaxAttempts;
 		$this->qMedia = $qMedia;
+		$this->qLines = $qLines;
 	}
 	
 	public function setQID($qID) {
@@ -615,6 +618,14 @@ class QuizQuestion {
 		return $this->qQuestion;
 	}
 	
+	public function setQShuffle($qShuffle) {
+		$this->qShuffle = $qShuffle;
+	}
+	
+	public function getQShuffle() {
+		return $this->qShuffle;
+	}
+	
 	public function setQHint($qHint) {
 		$this->qHint = $qHint;
 	}
@@ -645,6 +656,14 @@ class QuizQuestion {
 	
 	public function getQMedia() {
 		return $this->qMedia;
+	}
+	
+	public function setQLines($qLines) {
+		$this->qLines = $qLines;
+	}
+	
+	public function getQLines() {
+		return $this->qLines;
 	}
 	
 	public function setQPossibility($qPossibilities) {

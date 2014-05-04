@@ -439,26 +439,36 @@ function olatQuizParse($object, $path, $olatType) {
     $qtiItems = getDataIfExists($qtiSection, 'item');
     foreach ($qtiItems as $qtiItem) {
       // Each question type has be treated differently
+			$quizOK = 0;
       $questionType = getQuestionType($qtiItem->attributes()->ident);
 			if ($questionType == "MCQ") {
 				$QObject = new MultipleChoiceQuestion;
+				$quizOK = 1;
 			}
 			if ($questionType == "SCQ") {
 				$QObject = new SingleChoiceQuestion;
+				$quizOK = 1;
 			}
 			if ($questionType == "FIB") {
 				$QObject = new FillInBlanks;
+				$quizOK = 1;
 			}
-      $QObject->parseXML($qtiItem);
-      $question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
-      if ($questionType == 'FIB') {
-        // For FIB
-        $question = (string) getDataIfExists($qtiItem, 'presentation', 'flow', 'material', 'mattext');
-				$content = unserialize($QObject->content);
-        $QObject->setContent($content);
-      }
-      $QObject->setQuestion($question);
-      $sectionObject->setItem($QObject);
+			if ($questionType == "ESSAY") {
+				$QObject = new EssayQuestion;
+				$quizOK = 1;
+			}
+			if ($quizOK == 1) {
+				$QObject->parseXML($qtiItem);
+				$question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
+				if ($questionType == 'FIB') {
+					// For FIB
+					$question = (string) getDataIfExists($qtiItem, 'presentation', 'flow', 'material', 'mattext');
+					$content = unserialize($QObject->content);
+					$QObject->setContent($content);
+				}
+				$QObject->setQuestion($question);
+				$sectionObject->setItem($QObject);
+			}
     }
   }
 	return $testObject;
