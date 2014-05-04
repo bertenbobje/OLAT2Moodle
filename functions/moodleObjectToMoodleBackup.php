@@ -23,6 +23,7 @@ require_once("functions/general.php");
  |_ [ ] activities ---------- Contains all activities (forums, pages, etc.)
  |   |_ [ ] forum_40 -------} <type of activity>_<moduleID of said activity>
  |   |_ [ ] page_41 --------} 
+ |   |   |_ ||| filters.xml - (E)
  |   |   |_ ||| grades.xml -- (E)
  |   |   |_ ||| inforef.xml - Contains references to used media (fileIDs)
  |   |   |_ ||| module.xml -- Contains IDs and general module options
@@ -32,6 +33,7 @@ require_once("functions/general.php");
  |_ [ ] course -------------- Contains general information about the entire course
  |   |_ ||| course.xml ------ Contains IDs, names and options
  | 	 |_ ||| enrolments.xml -- (E)
+ |   |_ ||| filters.xml ----- Contains filter options (for turning off autohotlink)
  | 	 |_ ||| inforef.xml ----- Contains references (courseID)
  | 	 |_ ||| roles.xml ------- (E)
  |_ [ ] files --------------- Contains the external media files (SHA-1 hashed)
@@ -1328,7 +1330,7 @@ function questionBankRandom(&$questions, $qp, $name) {
 	}
 }
 
-// This function creates a name for the books, basically it will be something like
+// This function creates names for the books, basically it will be something like
 // [first chapter in book] - [last chapter in book].
 //
 // PARAMETERS
