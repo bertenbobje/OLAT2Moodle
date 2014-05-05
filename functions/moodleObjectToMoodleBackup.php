@@ -128,10 +128,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXmlContentsSections = $moodleBackupXmlContents->addChild('sections');
 	$moodleBackupXmlContentsCourse = $moodleBackupXmlContents->addChild('course');
 	$moodleBackupXmlSettings = $moodleBackupXml->addChild('settings');
-	$moodleBackupXmlSettingsSetting = $moodleBackupXmlSettings->addChild('setting');
-	$moodleBackupXmlSettingsSetting->addChild('level', 'root');
-	$moodleBackupXmlSettingsSetting->addChild('name', 'filename');
-	$moodleBackupXmlSettingsSetting->addChild('value', clean($moodleObject->getFullName()) . '.mbz');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'filename', clean($moodleObject->getFullName()) . '.mbz');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'imscc11', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'users', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'anonymize', '0');
