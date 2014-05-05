@@ -220,6 +220,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 // PARAMETERS
 // -> $olatObject = The OLAT Object
 function quizMigration($olatObject) {
+	$emptyCounter = 1;
 	$act = new ActivityQuiz(
 				$olatObject->getDescription(),
 				$olatObject->getDuration(),
@@ -267,31 +268,46 @@ function quizMigration($olatObject) {
 					$quizQuestion->setQFeedback($quizFeedback);
 				}
 			}
-			foreach ($qsi->getPossibilities() as $qsip) {
-				$feedback = null;
-				foreach ($qsi->getFeedback() as $qsif) {
-					if ($qsip->getId() == $qsif->getId()) {
-						$feedback = $qsif->getFeedback();
-					}
-				}
-				// Strips the FIB answers for only the actual answer, not the layout
-				if ($qsi->getType() == "FIB") {
-					$pos1 = strpos($qsip->getAnswer(), '"');
-					$pos2 = strpos($qsip->getAnswer(), '"', $pos1 + 1);
-					$pos3 = strpos($qsip->getAnswer(), '"', $pos2 + 1);
-					$pos4 = strpos($qsip->getAnswer(), '"', $pos3 + 1);
-					$answer = substr($qsip->getAnswer(), $pos3 + 1, $pos4 - $pos3 - 1);
-				}
-				else {
-					$answer = $qsip->getAnswer();
-				}
+			$pos = $qsi->getPossibilities();
+			if (empty($pos)) {
+				$quizQuestion->setQType("SCQ");
 				$quizPossibility = new QuizPossibility(
-					(string) substr($qid, -5) . $qsip->getId(),
-					htmlspecialchars(html_entity_decode($answer), ENT_QUOTES, "UTF-8"),
+					(string) substr($qid, -5) . substr($qid, -5) . $emptyCounter,
+					"NO ANSWER",
 					$qsip->getIs_correct(),
-					htmlspecialchars($feedback, ENT_QUOTES, "UTF-8")
+					""
 				);
+				$emptyCounter++;
+				echo "<p style='color:darkorange;'>WARNING - Question found with no answers (". $quizQuestion->getQTitle()  ."), the question will be added with one radio button saying \"NO ANSWER\".</p>";
 				$quizQuestion->setQPossibility($quizPossibility);
+			}
+			else {
+				foreach ($pos as $qsip) {
+					$feedback = null;
+					foreach ($qsi->getFeedback() as $qsif) {
+						if ($qsip->getId() == $qsif->getId()) {
+							$feedback = $qsif->getFeedback();
+						}
+					}
+					// Strips the FIB answers for only the actual answer, not the layout
+					if ($qsi->getType() == "FIB") {
+						$pos1 = strpos($qsip->getAnswer(), '"');
+						$pos2 = strpos($qsip->getAnswer(), '"', $pos1 + 1);
+						$pos3 = strpos($qsip->getAnswer(), '"', $pos2 + 1);
+						$pos4 = strpos($qsip->getAnswer(), '"', $pos3 + 1);
+						$answer = substr($qsip->getAnswer(), $pos3 + 1, $pos4 - $pos3 - 1);
+					}
+					else {
+						$answer = $qsip->getAnswer();
+					}
+					$quizPossibility = new QuizPossibility(
+						(string) substr($qid, -5) . $qsip->getId(),
+						htmlspecialchars(html_entity_decode($answer), ENT_QUOTES, "UTF-8"),
+						$qsip->getIs_correct(),
+						htmlspecialchars($feedback, ENT_QUOTES, "UTF-8")
+					);
+					$quizQuestion->setQPossibility($quizPossibility);
+				}
 			}
 			$quizQuestion = quizMediaFiles($quizQuestion);
 			$quizPage->setPageQuestion($quizQuestion);
