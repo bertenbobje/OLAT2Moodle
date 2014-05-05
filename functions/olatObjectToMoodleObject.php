@@ -274,7 +274,7 @@ function quizMigration($olatObject) {
 				$quizPossibility = new QuizPossibility(
 					(string) substr($qid, -5) . substr($qid, -5) . $emptyCounter,
 					"NO ANSWER",
-					$qsip->getIs_correct(),
+					true,
 					""
 				);
 				$emptyCounter++;
