@@ -10,17 +10,27 @@
 	}
 	</style>
 	<script>
-		function showMe (box) {
-			var chboxs = document.getElementsByName("books");
-			var vis = "none";
-			for (var i = 0; i < chboxs.length ;i++) { 
-				if(chboxs[i].checked) {
-					vis = "block";
-					break;
-				}
+	function checkCheckbox() {
+		var chboxs = document.getElementsByName("books");
+		for (var i = 0; i < chboxs.length; i++) { 
+			if (chboxs[i].checked) {
+				showMe('chaptertype');
+				break;
 			}
-			document.getElementById(box).style.display = vis;
 		}
+	}
+	function showMe(box) {
+		var chboxs = document.getElementsByName("books");
+		var vis = "none";
+		for (var i = 0; i < chboxs.length; i++) { 
+			if (chboxs[i].checked) {
+				vis = "block";
+				break;
+			}
+		}
+		document.getElementById(box).style.display = vis;
+	}
+	window.onload = checkCheckbox;
 	</script>
 </head>
 <body>
