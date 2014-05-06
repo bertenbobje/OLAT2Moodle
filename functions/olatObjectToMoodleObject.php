@@ -269,7 +269,7 @@ function quizMigration($olatObject) {
 				}
 			}
 			$pos = $qsi->getPossibilities();
-			if (empty($pos)) {
+			if (empty($pos) && $qsi->getType() != "ESSAY") {
 				$quizQuestion->setQType("SCQ");
 				$quizPossibility = new QuizPossibility(
 					(string) substr($qid, -5) . substr($qid, -5) . $emptyCounter,
