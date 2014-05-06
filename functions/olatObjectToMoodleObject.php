@@ -373,7 +373,7 @@ function moodleFixHTML($html, $title, $type) {
 	
 	$dom = new DOMDocument;
 	$errorState = libxml_use_internal_errors(TRUE);
-	$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($fixhtmlFIB, ENT_QUOTES));
+	$dom->loadHTML('<?xml encoding="UTF-8">' . str_replace(' & ', ' &amp; ', htmlspecialchars_decode($fixhtmlFIB, ENT_QUOTES)));
 	$errors = libxml_get_errors();
 	if (!empty($errors)) {
 		echo "<p style='color:darkorange;'>WARNING - HTML validation errors found in '" . utf8_decode($title) . "', this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
