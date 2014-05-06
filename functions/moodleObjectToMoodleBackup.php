@@ -1010,7 +1010,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					else {
 						$activityBookChapter->addChild('subchapter', 0);
 					}
-					$activityBookChapter->title = $name;
+					$activityBookChapter->title = $activity->getName();
 					$activityBookChapter->addChild('content', $activity->getContent());
 					$activityBookChapter->addChild('contentformat', 1);
 					$activityBookChapter->addChild('hidden', 0);
