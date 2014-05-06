@@ -20,8 +20,10 @@ ini_set('xdebug.var_display_max_data', -1);
 ini_set('xdebug.var_display_max_children', -1);
 ini_set('xdebug.var_display_max_depth', -1);
 
-echo '<html>
+echo '<!DOCTYPE html>
+	<html>
 	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<title>OLAT2Moodle</title>
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
 		<style type="text/css">
