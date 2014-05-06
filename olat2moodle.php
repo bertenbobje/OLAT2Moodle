@@ -40,7 +40,7 @@ echo '<!DOCTYPE html>
 if(isset($_POST['books'])) {
 	if ($_POST['books'] == "on") {
 		$books = true;
-		$chapterFormat = $_POST['chaptertype'];
+		$chapterFormat = $_POST['chaptertypeselect'];
 	}
 }
 else {
