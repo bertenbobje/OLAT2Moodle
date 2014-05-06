@@ -39,6 +39,13 @@ function olatBackupToOlatObject($path) {
 				mkdir($expath, 0777, true);
 			}
 			
+			for($i = 0; $i < $zip->numFiles; $i++) {
+				if ($zip->getNameIndex($i) != html_entity_decode($zip->getNameIndex($i), ENT_QUOTES, "UTF-8")) {
+					$zip->renameIndex($i, html_entity_decode($zip->getNameIndex($i), ENT_QUOTES, "UTF-8"));
+					echo $zip->getNameIndex($i);
+				}
+			}
+			
 			// Extract the .zip to the path.
 			if ($zip->extractTo($expath)) {
 				// Checks if double file references in the coursefolder are present.
@@ -146,7 +153,6 @@ function olatBackupToOlatObject($path) {
 								$chapterPageItem = $chapterPage;
 							}
 							if (isset($chapterPageItem)) {
-								// UTF-8 encoding is applied for preservation of unique symbols (like u umlaut).
 								if (substr($chapterPageItem, -4) == "html" || substr($chapterPageItem, -3) == "htm") {
 									if (file_exists($expath . "/coursefolder" . $chapterPageItem)) {
 										$page = file_get_contents($expath . "/coursefolder" . $chapterPageItem);
