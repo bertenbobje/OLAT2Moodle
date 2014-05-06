@@ -155,7 +155,7 @@ function olatBackupToOlatObject($path) {
 										$chapterObject->setSubType("page");
 									}
 									else {
-										echo "<p style='color:darkorange;'>WARNING - " . $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
+										echo "<p style='color:darkorange;'>WARNING - " . $chapterPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.</p>";
 										$ok = 0;
 									}
 								}
