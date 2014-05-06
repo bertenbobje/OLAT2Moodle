@@ -39,7 +39,13 @@ function olatBackupToOlatObject($path) {
 				mkdir($expath, 0777, true);
 			}
 			
-			setLocale(LC_ALL, 'de_DE@euro');
+			// ZipArchive has trouble with unzipping files with special characters in Linux.
+			// Setting the locale to de_DE solves this problem.
+			if (PHP_OS == "Linux") {
+				if (!setlocale(LC_ALL, 'de_DE@euro')) {
+					echo "<p style='color:darkorange;'>Can't set locale to de_DE, this means that HTML files with special characters in the filename might not load (LINUX ONLY)</p>";
+				}
+			}
 			// Extract the .zip to the path.
 			if ($zip->extractTo($expath)) {
 				// Checks if double file references in the coursefolder are present.
