@@ -69,6 +69,10 @@ require_once("functions/general.php");
 //   $chapterFormat = The chapter format (the choice box in the first page reflects this)
 //
 function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat) {
+	
+	$questionID = 500000;
+	$answerID = 5000000;
+	
 	// Creates a temporary storage name made of random numbers.
 	$num = "moodle";
 	for ($i = 0; $i < 9; $i++) {
@@ -229,7 +233,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 								break;
 						}
 						if ($type == "multianswer") {
-							questionBankMultiAnswer($questionCategoryQuestions, $qpq, $multiAnswerID, $shortAnswerID);
+							questionBankMultiAnswer($questionCategoryQuestions, $qpq, $multiAnswerID, $shortAnswerID, $questionID, $answerID);
 						}
 						else {
 							$questionCategoryQuestion = $questionCategoryQuestions->addChild('question');
@@ -1148,9 +1152,11 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 //           $qpq = The OLAT QuizQuestion object
 // $multiAnswerID = The current multiAnswer ID
 // $shortAnswerID = The current shortAnswer ID
-function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnswerID) {
+function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnswerID, &$questionID, &$answerID) {
 	$questionCategoryQuestion = $questions->addChild('question');
-	$questionCategoryQuestion->addAttribute('id', $qpq->getQID());
+	$questionCategoryQuestion->addAttribute('id', $questionID);
+	$qpq->setQID($questionID);
+	$parentID = $questionID;
 	$questionCategoryQuestion->addChild('parent', 0);
 	$questionCategoryQuestion->name = $qpq->getQTitle();
 	$questionCategoryQuestion->addChild('questiontext', $qpq->getQQuestion());
@@ -1173,21 +1179,18 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 	$questionCategoryQuestionMultiAnswer = $questionCategoryQuestionPlugin->addChild("multianswer");
 	$questionCategoryQuestionMultiAnswer->addAttribute('id', $multiAnswerID);
 	$multiAnswerID++;
-	$questionCategoryQuestionMultiAnswer->addChild('question', $qpq->getQID());
-	
-	$sequence = "";
-	foreach ($qpq->getQPossibilities() as $qpqp) {
-		$sequence .= $qpqp->getQPID() . ",";
-	}
-	$questionCategoryQuestionMultiAnswer->addChild('sequence', substr($sequence, 0, -1));
-	
+	$questionCategoryQuestionMultiAnswer->addChild('question', $questionID);
+	$questionID++;
 	$questionCategoryQuestion->addChild('question_hints', $qpq->getQHint());
 	$questionCategoryQuestion->addChild('tags');
 
+	$sequence = "";
 	foreach ($qpq->getQPossibilities() as $qpqp) {
 		$questionCategoryQuestion = $questions->addChild('question');
-		$questionCategoryQuestion->addAttribute('id', $qpqp->getQPID());
-		$questionCategoryQuestion->addChild('parent', $qpq->getQID());
+		$questionCategoryQuestion->addAttribute('id', $questionID);
+		$sequence .= $questionID . ",";
+		$questionID++;
+		$questionCategoryQuestion->addChild('parent', $parentID);
 		$questionCategoryQuestion->name = $qpq->getQTitle();
 		$questionCategoryQuestion->addChild('questiontext', "{1:SHORTANSWER:=" . $qpqp->getQPAnswer() . "}");
 		$questionCategoryQuestion->addChild('questiontextformat', 1);
@@ -1207,7 +1210,8 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_shortanswer_question');
 		$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
 		$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
-		$questionCategoryQuestionAnswer->addAttribute('id', (string) $qpqp->getQPID() + 1);
+		$questionCategoryQuestionAnswer->addAttribute('id', $answerID);
+		$answerID++;
 		$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
 		$questionCategoryQuestionAnswer->addChild('answerformat', 1);
 		$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
@@ -1225,6 +1229,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionCategoryQuestion->addChild('question_hints');
 		$questionCategoryQuestion->addChild('tags');
 	}
+	$questionCategoryQuestionMultiAnswer->addChild('sequence', substr($sequence, 0, -1));
 }
 
 // Default settings function for moodle_backup.xml

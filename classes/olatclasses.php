@@ -1195,14 +1195,12 @@ class FillInBlanks extends Item {
           }
           else {
             $answer = $answers[$ident];
-          }
+					}
         }
-        $dumbAns['value'] = $answer;
-        $dumbAns['format'] = 'full_html';
 				$possibility = new Possibility(
 								(string) getDataIfExists($child, 'attributes()', 'ident'),
 								ElementTypes::TEXTBOX,
-								serialize($dumbAns),
+								$answer,
 								NULL
 				);
         $this->setPossibility($possibility);
