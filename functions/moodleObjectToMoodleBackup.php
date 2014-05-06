@@ -899,6 +899,13 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				
 				$dom->loadXML($activityRolesXml->asXML());
 				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
+				// activities/[activity]_[x]/filters.xml
+				$activityFiltersXml = new SimpleXMLElement($header . "<filters></filters>");
+				$activityFiltersXml->addChild('filter_actives');
+				$activityFiltersXml->addChild('filter_configs');
+				
+				$dom->loadXML($activityFiltersXml->asXML());
+				file_put_contents($activityPath . "/filters.xml", $dom->saveXML());
 				
 				// NOT "EMPTY"
 				// activities/[activity]_[x]/inforef.xml
@@ -975,8 +982,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				$dom->loadXML($activityModuleXml->asXML());
 				file_put_contents($activityPath . "/module.xml", $dom->saveXML());
 				
-				// activities/[activity]_[x]/[activity].xml
-				
+				// activities/[activity]_[x]/[activity].xml		
 				if ($currentlyBook && $firstTags) {
 					$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
 					$activityActivityXml->addAttribute('id', $activity->getActivityID());
