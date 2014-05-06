@@ -10,7 +10,17 @@ require_once("classes/moodleclasses.php");
 //
 // PARAMETERS
 // -> $olatObject = the OLAT Object
+
+// IDs for every quiz part
+$pageID = 1;
+$questionID = 1;
+$answerID = 1;
+
 function olatObjectToMoodleObject($olatObject) {
+	global $pageID;
+	global $questionID;
+	global $answerID;
+	
 	$number = 0;
 	$moodleCourse = new MoodleCourse(
 							$olatObject->getID(),
@@ -28,7 +38,7 @@ function olatObjectToMoodleObject($olatObject) {
 			case "iqsurv":
 				$ok = 1;
 				$moduleName = "quiz";
-				$moodleActivity = quizMigration($olatChapter);
+				$moodleActivity = quizMigration($olatChapter, $pageID, $questionID, $answerID);
 				break;
 			case "sp":
 			case "st":
@@ -85,7 +95,7 @@ function olatObjectToMoodleObject($olatObject) {
 				case "iqsurv":
 					$ok = 1;
 					$moduleName = "quiz";
-					$moodleActivity = quizMigration($olatSubject);
+					$moodleActivity = quizMigration($olatSubject, $pageID, $questionID, $answerID);
 					break;
 				case "sp":
 				case "st":
@@ -150,6 +160,10 @@ function olatObjectToMoodleObject($olatObject) {
 //           $oSub : The OLAT Subject
 //    $olatChapter : The OLAT Chapter (for the ID)
 function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
+	global $pageID;
+	global $questionID;
+	global $answerID;
+
 	foreach ($oSub as $sub) {
 		$type = $sub->getSubjectType();
 		$ok = 0;
@@ -159,7 +173,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			case "iqsurv":
 				$ok = 1;
 				$moduleName = "quiz";
-				$moodleActivity = quizMigration($sub);
+				$moodleActivity = quizMigration($sub, $pageID, $questionID, $answerID);
 				break;
 			case "sp":
 			case "st":
@@ -219,8 +233,10 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 //
 // PARAMETERS
 // -> $olatObject = The OLAT Object
-function quizMigration($olatObject) {
-	$emptyCounter = 1;
+//        $pageID = The current page ID
+//    $questionID = The current question ID
+//      $answerID = The current answer ID
+function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
 	$act = new ActivityQuiz(
 				$olatObject->getDescription(),
 				$olatObject->getDuration(),
@@ -232,23 +248,19 @@ function quizMigration($olatObject) {
 			$id = substr($id, strrpos($id, "_") + 1);
 		}
 		$quizPage = new QuizPage(
-					$id,
+					(string) $pageID,
 					$qs->getTitle(),
 					htmlspecialchars($qs->getDescription(), ENT_QUOTES, "UTF-8"),
 					$qs->getOrdering(),
 					$qs->getAmount()
 		);
-		if ($qs->getOrdering() == "Random") {
-			for ($i = 0; $i < $qs->getAmount(); $i++) {
-				$quizPage->setRandomQuestionID((string) substr($id, -6) . $i);
-			}
-		}
+		$pageID++;
 		foreach ($qs->getItems() as $qsi) {
 			$qid = (string) substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1);
 			$question = ($qsi->getType() == "FIB" ? $qsi->getContent() : $qsi->getQuestion());
 			$question = htmlspecialchars(html_entity_decode($question), ENT_QUOTES, "UTF-8");
 			$quizQuestion = new QuizQuestion(
-						$qid,
+						(string) $questionID,
 						$qsi->getTitle(),
 						$qsi->getType(),
 						($qsi->getType() != "SCQ" && $qsi->getType() != "ESSAY" ? $qsi->getQuotation() : NULL),
@@ -262,6 +274,7 @@ function quizMigration($olatObject) {
 						($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL),
 						($qsi->getType() == "ESSAY" ? $qsi->getEssayRows() : NULL)
 			);
+			$questionID++;
 			if ($qsi->getType() == "FIB") {
 				foreach ($qsi->getFeedback() as $qsif) {
 					$quizFeedback = new QuizFeedback($qsif->getId(), htmlspecialchars($qsif->getFeedback(), ENT_QUOTES, "UTF-8"));
@@ -272,12 +285,12 @@ function quizMigration($olatObject) {
 			if (empty($pos) && $qsi->getType() != "ESSAY") {
 				$quizQuestion->setQType("SCQ");
 				$quizPossibility = new QuizPossibility(
-					(string) substr($qid, -5) . substr($qid, -5) . $emptyCounter,
+					(string) $answerID,
 					"NO ANSWER",
 					true,
 					""
 				);
-				$emptyCounter++;
+				$answerID++;
 				echo "<p style='color:darkorange;'>WARNING - Question found with no answers (". $quizQuestion->getQTitle()  ."), the question will be added with one radio button saying \"NO ANSWER\".</p>";
 				$quizQuestion->setQPossibility($quizPossibility);
 			}
@@ -289,28 +302,37 @@ function quizMigration($olatObject) {
 							$feedback = $qsif->getFeedback();
 						}
 					}
-					// Strips the FIB answers for only the actual answer, not the layout
-					if ($qsi->getType() == "FIB") {
-						$pos1 = strpos($qsip->getAnswer(), '"');
-						$pos2 = strpos($qsip->getAnswer(), '"', $pos1 + 1);
-						$pos3 = strpos($qsip->getAnswer(), '"', $pos2 + 1);
-						$pos4 = strpos($qsip->getAnswer(), '"', $pos3 + 1);
-						$answer = substr($qsip->getAnswer(), $pos3 + 1, $pos4 - $pos3 - 1);
+					if (is_array($qsip->getAnswer())) {
+						$answer = array_values($qsip->getAnswer())[0];
 					}
 					else {
 						$answer = $qsip->getAnswer();
 					}
 					$quizPossibility = new QuizPossibility(
-						(string) substr($qid, -5) . $qsip->getId(),
+						(string) $answerID,
 						htmlspecialchars(html_entity_decode($answer), ENT_QUOTES, "UTF-8"),
 						$qsip->getIs_correct(),
 						htmlspecialchars($feedback, ENT_QUOTES, "UTF-8")
 					);
+					$answerID++;
 					$quizQuestion->setQPossibility($quizPossibility);
 				}
 			}
 			$quizQuestion = quizMediaFiles($quizQuestion);
 			$quizPage->setPageQuestion($quizQuestion);
+		}
+		if ($qs->getOrdering() == "Random") {
+			if ($qs->getAmount() == "" || $qs->getAmount() == 0) {
+				$amount = count($qs->getItems());
+			}
+			else {
+				$amount = $qs->getAmount();
+			}
+			for ($i = 0; $i < $amount; $i++) {
+				//$quizPage->setRandomQuestionID((string) substr($id, -6) . $i);
+				$quizPage->setRandomQuestionID((string) $questionID);
+				$questionID++;
+			}
 		}
 		$act->setQuizPage($quizPage);
 	}
@@ -414,7 +436,7 @@ function moodleFixHTML($html, $title, $type) {
 	foreach ($dom->getElementsByTagName('a') as $anode) {
 		if ($anode->hasAttribute('href')) {
 			$hrefValue = $anode->getAttribute('href');
-			$anode->setAttribute('href', str_replace(" ", "%20", $hrefValue));
+			$anode->setAttribute('href', str_replace(' ', '%20', $hrefValue));
 		}
 	}
 	
