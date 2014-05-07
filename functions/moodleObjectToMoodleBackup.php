@@ -82,10 +82,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$path = getcwd() . "/tmp/" . $num;
 	
 	// Checks if the folders exist and creates them if they do not.
-	if (!file_exists(getcwd() . "/tmp") and !is_dir(getcwd() . "/tmp")) {
+	if (!file_exists(getcwd() . "/tmp") && !is_dir(getcwd() . "/tmp")) {
 		mkdir(getcwd() . "/tmp", 0777, true);
 	}
-	if (!file_exists($path) and !is_dir($path)) {
+	if (!file_exists($path) && !is_dir($path)) {
 		mkdir($path, 0777, true);
 	}
 	
@@ -369,8 +369,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 			}
 		}
 	}
-	$dom->loadXML($questionsXml->asXML());
-	file_put_contents($path . "/questions.xml", $dom->saveXML());
+$dom->loadXML($questionsXml->asXML());
+file_put_contents($path . "/questions.xml", $dom->saveXML());
 	
 	////////////////////////////////////////////////////////////////////
 	// COURSE
@@ -378,7 +378,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// Create the /course folder
 	$coursePath = $path . "/course";
 	
-	if (!file_exists($coursePath) and !is_dir($coursePath)) {
+	if (!file_exists($coursePath) && !is_dir($coursePath)) {
 		mkdir($coursePath, 0777, true);
 	}
 	
@@ -468,7 +468,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	// Create the /files folder
 	$filesPath = $path . "/files";
-	if (!file_exists($filesPath) and !is_dir($filesPath)) {
+	if (!file_exists($filesPath) && !is_dir($filesPath)) {
 		mkdir($filesPath, 0777, true);
 	}
 	
@@ -482,7 +482,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		$olatFilePath = $olatFilesPath . "/" . $olatFile;
 		$fileSHA1 = sha1($olatFile);
 		$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
-		if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+		if (!file_exists($fileSHA1Dir) && !is_dir($fileSHA1Dir)) {
 			mkdir($fileSHA1Dir, 0777, true);
 		}
 		if (!is_dir($olatFilePath)) {
@@ -583,7 +583,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				if (substr($olatExportFile, -3) != "xml" && substr($olatExportFile, -3) != "zip") {
 					$fileSHA1 = sha1($olatExportFile);
 					$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
-					if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+					if (!file_exists($fileSHA1Dir) && !is_dir($fileSHA1Dir)) {
 						mkdir($fileSHA1Dir, 0777, true);
 					}		
 					foreach ($moodleObject->getSection() as $section) {
@@ -694,7 +694,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// SECTIONS
 	
 	// Create the /sections folder
-	if (!file_exists($path . "/sections") and !is_dir($path . "/sections")) {
+	if (!file_exists($path . "/sections") && !is_dir($path . "/sections")) {
 		mkdir($path . "/sections", 0777, true);
 	}
 	
@@ -704,7 +704,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	foreach ($moodleObject->getSection() as $section) {
 		// Create the section folders in /section
 		$sectionPath = $path . "/sections/section_" . $section->getSectionID();
-		if (!file_exists($sectionPath) and !is_dir($sectionPath)) {
+		if (!file_exists($sectionPath) && !is_dir($sectionPath)) {
 			mkdir($sectionPath, 0777, true);
 		}
 		
@@ -752,7 +752,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// ACTIVITIES
 	
 	// Create the /activities folder
-	if (!file_exists($path . "/activities") and !is_dir($path . "/activities")) {
+	if (!file_exists($path . "/activities") && !is_dir($path . "/activities")) {
 		mkdir($path . "/activities", 0777, true);
 	}
 	
@@ -771,7 +771,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 			if (!$books) {
 				// Create the folder
 				$activityPath = $path . "/activities/" . $activity->getModuleName() . "_" . $activity->getModuleID();
-				if (!file_exists($activityPath) and !is_dir($activityPath)) {
+				if (!file_exists($activityPath) && !is_dir($activityPath)) {
 					mkdir($activityPath, 0777, true);
 				}
 				
@@ -893,7 +893,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					$currentlyBook = false;
 					$pageNum = 1;
 				}
-				if (!file_exists($activityPath) and !is_dir($activityPath)) {
+				if (!file_exists($activityPath) && !is_dir($activityPath)) {
 					mkdir($activityPath, 0777, true);
 				}
 				
@@ -1690,7 +1690,7 @@ function findEmbeddedFiles($filesPath, $path, $coursefolderPath, &$filesXml, &$f
 		$embeddedFilePath = $coursefolderPath . "/" . $embeddedFile;
 		$fileSHA1 = sha1($embeddedFile);
 		$fileSHA1Dir = $filesPath . "/" . substr($fileSHA1, 0, 2);
-		if (!file_exists($fileSHA1Dir) and !is_dir($fileSHA1Dir)) {
+		if (!file_exists($fileSHA1Dir) && !is_dir($fileSHA1Dir)) {
 			mkdir($fileSHA1Dir, 0777, true);
 		}
 		if (!is_dir($embeddedFilePath)) {

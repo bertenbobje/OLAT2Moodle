@@ -32,10 +32,10 @@ function olatBackupToOlatObject($path) {
 			$expath = getcwd() . "/tmp/" . $num;
 			// Creates both the 'tmp' directory and the random number directory
 			// if they don't exist yet.
-			if (!file_exists(getcwd() . "/tmp") and !is_dir(getcwd() . "/tmp")) {
+			if (!file_exists(getcwd() . "/tmp") && !is_dir(getcwd() . "/tmp")) {
 				mkdir(getcwd() . "/tmp", 0777, true);
 			}
-			if (!file_exists($expath) and !is_dir($expath)) {
+			if (!file_exists($expath) && !is_dir($expath)) {
 				mkdir($expath, 0777, true);
 			}
 			
@@ -428,7 +428,7 @@ function olatQuizParse($object, $path, $olatType) {
 				echo "<p style='color:darkorange;'>Can't set locale to de_DE, this means that HTML files with special characters in the filename might not load (LINUX ONLY)</p>";
 			}
 		}
-		if (!file_exists($path . "/repo") and !is_dir($path . "/repo")) {
+		if (!file_exists($path . "/repo") && !is_dir($path . "/repo")) {
 			mkdir($path . "/repo", 0777, true);
 		}
 		$testZip->extractTo($path . "/repo");
