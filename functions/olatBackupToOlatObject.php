@@ -99,7 +99,7 @@ function olatBackupToOlatObject($path) {
 				}
 				
 				// Chapters
-				$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
+				$chapters = $xpath->xpath("/org.olat.course.Structure/rootNode/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki' or type = 'ta']");
 				foreach ($chapters as $child) {
 					$indentation = 0;
 					$ok = 0;
@@ -263,7 +263,7 @@ function olatBackupToOlatObject($path) {
 //    $pathCourse = Path to the exported OLAT .zip file
 //  &$indentation = The indentation of the OLAT subject
 function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
-	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki']");
+	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki' or type = 'ta']");
 	if ($subjects != null) {
 		$indentation++;
 		foreach ($subjects as $schild) {
