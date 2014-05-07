@@ -783,6 +783,19 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				
 				$dom->loadXML($activityGradesXml->asXML());
 				file_put_contents($activityPath . "/grades.xml", $dom->saveXML());
+				// activities/[activity]_[x]/grading.xml (ONLY WITH ASSIGNMENTS)
+				if ($activity->getModuleName() == "assign") {
+					$activityGradingXml = new SimpleXMLElement($header . "<areas></areas>");
+					$activityGradingArea = $activityGradingXml->addChild('area');
+					$activityGradingArea->addAttribute('id', 1);
+					$activityGradingArea->addChild('areaname', "submissions");
+					$activityGradingArea->addChild('activemethod', "$@NULL@$");
+					$activityGradingArea->addChild('definitions');
+					
+					$dom->loadXML($activityGrading->asXML());
+					file_put_contents($activityPath . "/grading.xml", $dom->saveXML());		
+				}
+				
 				// activities/[activity]_[x]/roles.xml
 				$activityRolesXml = new SimpleXMLElement($header . "<roles></roles>");
 				$activityRolesXml->addChild('role_overrides');
@@ -892,6 +905,18 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				
 				$dom->loadXML($activityGradesXml->asXML());
 				file_put_contents($activityPath . "/grades.xml", $dom->saveXML());
+				// activities/[activity]_[x]/grading.xml (ONLY WITH ASSIGNMENTS)
+				if ($activity->getModuleName() == "assign") {
+					$activityGradingXml = new SimpleXMLElement($header . "<areas></areas>");
+					$activityGradingArea = $activityGradingXml->addChild('area');
+					$activityGradingArea->addAttribute('id', 1);
+					$activityGradingArea->addChild('areaname', "submissions");
+					$activityGradingArea->addChild('activemethod', "$@NULL@$");
+					$activityGradingArea->addChild('definitions');
+					
+					$dom->loadXML($activityGrading->asXML());
+					file_put_contents($activityPath . "/grading.xml", $dom->saveXML());		
+				}
 				// activities/[activity]_[x]/roles.xml
 				$activityRolesXml = new SimpleXMLElement($header . "<roles></roles>");
 				$activityRolesXml->addChild('role_overrides');
@@ -1386,6 +1411,9 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 	if ($activity->getModuleName() == "quiz") {
 		$activityActivityChildXml->intro = $activity->getDescription();
 	}
+	else if ($activity->getModuleName() == "assign") {
+		$activityActivityChildXml->intro = $activity->getAssignmentText();
+	}
 	else {
 		$activityActivityChildXml->intro = $activity->getName();
 	}
@@ -1438,7 +1466,98 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('subwikis');
 			$activityActivityChildXml->addChild('timemodified', time());
 			break;
-	
+		
+		case "assign":
+			$activityActivityChildXml->addChild('alwaysshowdescription', 0);
+			$activityActivityChildXml->addChild('submissiondrafts', 0);
+			$activityActivityChildXml->addChild('sendnotifications', 0);
+			$activityActivityChildXml->addChild('sendlatenotifications', 0);
+			$activityActivityChildXml->addChild('duedate', 0);
+			$activityActivityChildXml->addChild('cutoffdate', 0);
+			$activityActivityChildXml->addChild('allowsubmissionsfromdate', 0);
+			$activityActivityChildXml->addChild('grade', 100);
+			$activityActivityChildXml->addChild('timemodified', time());
+			$activityActivityChildXml->addChild('completionsubmit', 0);
+			$activityActivityChildXml->addChild('requiresubmissionstatement', 0);
+			$activityActivityChildXml->addChild('teamsubmission', 0);
+			$activityActivityChildXml->addChild('requireallteammemberssubmit', 0);
+			$activityActivityChildXml->addChild('teamsubmissiongroupingid', 0);
+			$activityActivityChildXml->addChild('blindmarking', 0);
+			$activityActivityChildXml->addChild('revealidentities', 0);
+			$activityActivityChildXml->addChild('attemptreopenmethod', "none");
+			$activityActivityChildXml->addChild('maxattempts', "-1");
+			$activityActivityChildXml->addChild('markingworkflow', 0);
+			$activityActivityChildXml->addChild('markingallocation', 0);
+			$activityActivityChildXml->addChild('userflags');
+			$activityActivityChildXml->addChild('submissions');
+			$activityActivityChildXml->addChild('grades');
+			$pluginID = 1;
+			$activityActivityChildPluginConfigs = $activityActivityChildXml->addChild('plugin_configs');
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "onlinetext");
+			$activityActivityChildPlugin->addChild('subtype', "assignsubmission");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 1);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "file");
+			$activityActivityChildPlugin->addChild('subtype', "assignsubmission");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 1);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "file");
+			$activityActivityChildPlugin->addChild('subtype', "maxfilesubmissions");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 1);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "file");
+			$activityActivityChildPlugin->addChild('subtype', "assignsubmission");
+			$activityActivityChildPlugin->addChild('name', "maxxubmissionsizebytes");
+			$activityActivityChildPlugin->addChild('value', 0);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "comments");
+			$activityActivityChildPlugin->addChild('subtype', "assignsubmission");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 1);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "comments");
+			$activityActivityChildPlugin->addChild('subtype', "assignfeedback");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 1);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "editpdf");
+			$activityActivityChildPlugin->addChild('subtype', "assignfeedback");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 0);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "offline");
+			$activityActivityChildPlugin->addChild('subtype', "assignfeedback");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 0);
+			$activityActivityChildPlugin = $activityActivityChildPluginConfigs->addChild('plugin_config');
+			$activityActivityChildPlugin->addAttribute('id', $pluginID);
+			$pluginID++;
+			$activityActivityChildPlugin->addChild('plugin', "file");
+			$activityActivityChildPlugin->addChild('subtype', "assignsfeedback");
+			$activityActivityChildPlugin->addChild('name', "enabled");
+			$activityActivityChildPlugin->addChild('value', 0);
+			break;
+		
 		case "quiz":
 			$activityActivityChildXml->addChild('timeopen', 0);
 			$activityActivityChildXml->addChild('timeclose', 0);

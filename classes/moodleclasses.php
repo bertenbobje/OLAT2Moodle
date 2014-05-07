@@ -7,10 +7,10 @@
 /*********************************************************/
 
 //
-// MoodleCourse (1)
-//    |___> Section (1+)
-//               |_______________________> Activity (1+)
-//                      moduleID's            |
+// MoodleCourse
+//  1 |___> Section
+//     inf.   1 |_______________________> Activity 
+//                      moduleID's   inf.     |
 //                                            |
 //                                            - ActivityPage
 //                                            - ActivityFolder
@@ -19,15 +19,19 @@
 //                                            - ActivityBook
 //                                            - ActivityWiki
 //                                            - ActivityLabel
+//                                            - ActivityAssignment
 //                                            - ActivityQuiz
-//                                                    |
+//                                                  1 |
+//                                                    | inf.
 //                                                QuizPage
-//                                                    |
+//                                                  1 |
+//                                                    | inf.
 //                                               QuizQuestion
-//                                                    |
-//                                                    |
+//                                                  1 |
+//                                   inf.             |
 //                  - QuizFeedback _________          |
 //                  - QuizPossibility ______|---------
+//                                     inf.
 
 ///////////////////////////////////////////////////////////
 // COURSE /////////////////////////////////////////////////
@@ -385,6 +389,27 @@ class ActivityResource extends Activity {
 class ActivityWiki extends Activity {
 
 	public function __construct() {}
+	
+}
+
+///////////////////////////////////////////////////////////
+// ACTIVITY ASSIGNMENT ////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ActivityAssignment extends Activity {
+	
+	protected $assignmentText;
+	
+	public function __construct($assignmentText) {
+		$this->assignmentText = $assignmentText;
+	}
+	
+	public function setAssignmentText($assignmentText) {
+		$this->assignmentText = $assignmentText;
+	}
+	
+	public function getAssignmentText() {
+		return $this->assignmentText;
+	}
 	
 }
 
