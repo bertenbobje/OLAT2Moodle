@@ -255,7 +255,8 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
 	$act = new ActivityQuiz(
 				$olatObject->getDescription(),
 				$olatObject->getDuration(),
-				$olatObject->getPassingScore()
+				$olatObject->getPassingScore(),
+				$olatObject->getClustering()
 	);
 	foreach ($olatObject->getQuizSections() as $qs) {
 		$id = substr($qs->getId(), 7);

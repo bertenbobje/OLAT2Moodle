@@ -404,6 +404,7 @@ class ChapterTest extends Chapter {
   protected $description;
   protected $duration;
   protected $passingScore;
+	protected $clustering;
   protected $quizSections = array();
 
   function __construct() {}
@@ -440,13 +441,21 @@ class ChapterTest extends Chapter {
     return $this->duration;
   }
 
-  public function getPassingScore() {
-    return $this->passingScore;
-  }
-
   public function setPassingScore($passingScore) {
     $this->passingScore = $passingScore;
   }
+	
+  public function getPassingScore() {
+    return $this->passingScore;
+  }
+	
+	public function setClustering($clustering) {
+		$this->clustering = $clustering;
+	}
+	
+	public function getClustering() {
+		return $this->clustering;
+	}
 	
   public function setQuizSection($quizSections) {
     array_push($this->quizSections, $quizSections);
@@ -697,6 +706,7 @@ class SubjectTest extends Subject {
   protected $description;
   protected $duration;
   protected $passingScore;
+	protected $clustering;
   protected $quizSections = array();
 
   function __construct() {}
@@ -733,13 +743,21 @@ class SubjectTest extends Subject {
     return $this->duration;
   }
 
-  public function getPassingScore() {
-    return $this->passingScore;
-  }
-
   public function setPassingScore($passingScore) {
     $this->passingScore = $passingScore;
   }
+	
+  public function getPassingScore() {
+    return $this->passingScore;
+  }
+	
+	public function setClustering($clustering) {
+		$this->clustering = $clustering;
+	}
+	
+	public function getClustering() {
+		return $this->clustering;
+	}
 	
   public function setQuizSection($quizSections) {
     array_push($this->quizSections, $quizSections);
