@@ -1593,16 +1593,24 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 				if ($qp->getPageOrdering() == "Random") {
 					foreach ($qp->getRandomQuestionIDs() as $qpr) {
 						$questions .= $qpr . ",";
+						if ($activity->getClustering() == "itemPage") {
+							$questions .= "0,";
+						}
 						$sumgrades++;
 					}
 				}
 				else {
 					foreach ($qp->getPageQuestions() as $qpq) {
 						$questions .= $qpq->getQID() . ",";
+						if ($activity->getClustering() == "itemPage") {
+							$questions .= "0,";
+						}
 						$sumgrades++;
 					}
 				}
-				$questions .= "0,";
+				if ($activity->getClustering() != "itemPage") {
+					$questions .= "0,";
+				}
 			}
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
 			$activityActivityChildXml->addChild('sumgrades', $sumgrades . ".00000");

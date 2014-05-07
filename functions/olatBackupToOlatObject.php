@@ -113,6 +113,12 @@ function olatBackupToOlatObject($path) {
 							$testFolder = $expath . "/export/" . $child->ident;
 							$newChapterObject = olatQuizParse($chapterObject, $testFolder, "chapter");
 							$chapterObject = $newChapterObject;
+							$clustering = "";
+							$clusterings = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'sequence']/following::string[1]");
+							foreach ($clusterings as $c) {
+								$clustering .= $c;
+							}
+							$subjectObject->setClustering($clustering);
 							break;
 						
 						// Enrollment
@@ -279,6 +285,12 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 					$testFolder = $pathCourse . "/export/" . $schild->ident;
 					$newSubjectObject = olatQuizParse($subjectObject, $testFolder, "subject");
 					$subjectObject = $newSubjectObject;
+					$clustering = "";
+					$clusterings = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[text() = 'sequence']/following::string[1]");
+					foreach ($clusterings as $c) {
+						$clustering .= $c;
+					}
+					$subjectObject->setClustering($clustering);
 					break;
 				
 				// Enrollment

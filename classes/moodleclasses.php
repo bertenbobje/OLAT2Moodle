@@ -430,12 +430,14 @@ class ActivityQuiz extends Activity {
 	protected $description;
 	protected $duration;
 	protected $passingScore;
+	protected $clustering;
 	protected $quizPages = array();
 
-	public function __construct($description, $duration, $passingScore) {
+	public function __construct($description, $duration, $passingScore, $clustering) {
 		$this->description = $description;
 		$this->duration = $duration;
 		$this->passingScore = $passingScore;
+		$this->clustering = $clustering;
 	}
 	
 	public function setDescription($description) {
@@ -460,6 +462,14 @@ class ActivityQuiz extends Activity {
 	
 	public function getPassingScore() {
 		return $this->passingScore;
+	}
+	
+	public function setClustering($clustering) {
+		$this->clustering = $clustering;
+	}
+	
+	public function getClustering() {
+		return $this->clustering;
 	}
 	
 	public function setQuizPage($quizPages) {
