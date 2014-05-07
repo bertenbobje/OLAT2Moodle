@@ -75,6 +75,11 @@ function olatObjectToMoodleObject($olatObject) {
 				$moduleName = "wiki";
 				$moodleActivity = new ActivityWiki();
 				break;
+			case "ta":
+				$ok = 1;
+				$moduleName = "assign";
+				$moodleActivity = new ActivityAssignment($olatChapter->getTaskText());
+				break;
 		}
 		if ($ok == 1) {
 			$moodleActivity->setActivityID((string) ($olatChapter->getChapterID() - 50000000000000));
@@ -131,6 +136,11 @@ function olatObjectToMoodleObject($olatObject) {
 					$ok = 1;
 					$moduleName = "wiki";
 					$moodleActivity = new ActivityWiki();
+					break;
+				case "ta":
+					$ok = 1;
+					$moduleName = "assign";
+					$moodleActivity = new ActivityAssignment($olatSubject->getSubjectTaskText());
 					break;
 			}
 			if ($ok == 1) {
@@ -209,6 +219,11 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 				$ok = 1;
 				$moduleName = "wiki";
 				$moodleActivity = new ActivityWiki();
+				break;
+			case "ta":
+				$ok = 1;
+				$moduleName = "assign";
+				$moodleActivity = new ActivityAssignment($sub->getSubjectTaskText());
 				break;
 		}
 		if ($ok == 1) {

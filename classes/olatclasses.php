@@ -20,9 +20,11 @@ require_once("functions/general.php");
 //             - ChapterDropFolder            - SubjectDropFolder
 //             - ChapterURL										- SubjectURL
 //             - ChapterResource              - SubjectResource
+//             - ChapterTask                  - SubjectTask
 //             - ChapterTest                  - SubjectTest
 //     _______________|______________________________|
-//    |
+//    |       1
+//    | inf.
 // Section
 // Feedback
 // ElementTypes
@@ -373,6 +375,27 @@ class ChapterWiki extends Chapter {
 }
 
 ///////////////////////////////////////////////////////////
+// CHAPTER TASK ///////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class ChapterTask extends Chapter {
+	
+	protected $taskText;
+	
+	public function __construct($taskText) {
+		$this->taskText = $taskText;
+	}
+	
+	public function setTaskText($taskText) {
+		$this->taskText = $tasktext;
+	}
+	
+	public function getTaskText() {
+		return $this->taskText;
+	}
+	
+}
+
+///////////////////////////////////////////////////////////
 // CHAPTER TEST ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 class ChapterTest extends Chapter {
@@ -641,6 +664,27 @@ class SubjectResource extends Subject {
 class SubjectWiki extends Subject {
 	
 	public function __construct() {}
+	
+}
+
+///////////////////////////////////////////////////////////
+// SUBJECT TASK ///////////////////////////////////////////
+///////////////////////////////////////////////////////////
+class SubjectTask extends Subject {
+	
+	protected $taskText;
+	
+	public function __construct($taskText) {
+		$this->taskText = $taskText;
+	}
+	
+	public function setSubjectTaskText($taskText) {
+		$this->taskText = $tasktext;
+	}
+	
+	public function getSubjectTaskText() {
+		return $this->taskText;
+	}
 	
 }
 

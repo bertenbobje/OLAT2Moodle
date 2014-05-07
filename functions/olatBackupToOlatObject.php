@@ -215,6 +215,16 @@ function olatBackupToOlatObject($path) {
 							$ok = 1;
 							$chapterObject = new ChapterWiki();
 							break;
+						
+						// Task
+						case "ta";
+							$ok = 1;
+							$taskTexts = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'task_text']/following::string[1]");
+							foreach ($taskTexts as $t) {
+								$taskText .= $t;
+							}
+							$chapterObject = new ChapterTask($taskText);
+							break;
 					}
 					
 					if ($ok != 0 && isset($chapterObject)) {
@@ -368,6 +378,16 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				case "wiki":
 					$ok = 1;
 					$subjectObject = new SubjectWiki();
+					break;
+				
+				// Task
+				case "ta";
+					$ok = 1;
+					$taskTexts = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'task_text']/following::string[1]");
+					foreach ($taskTexts as $t) {
+						$taskText .= $t;
+					}
+					$subjectObject = new SubjectTask($taskText);
 					break;
 			}
 
