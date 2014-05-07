@@ -792,7 +792,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					$activityGradingArea->addChild('activemethod', "$@NULL@$");
 					$activityGradingArea->addChild('definitions');
 					
-					$dom->loadXML($activityGrading->asXML());
+					$dom->loadXML($activityGradingXml->asXML());
 					file_put_contents($activityPath . "/grading.xml", $dom->saveXML());		
 				}
 				
@@ -914,7 +914,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					$activityGradingArea->addChild('activemethod', "$@NULL@$");
 					$activityGradingArea->addChild('definitions');
 					
-					$dom->loadXML($activityGrading->asXML());
+					$dom->loadXML($activityGradingXml->asXML());
 					file_put_contents($activityPath . "/grading.xml", $dom->saveXML());		
 				}
 				// activities/[activity]_[x]/roles.xml
@@ -1411,7 +1411,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 	if ($activity->getModuleName() == "quiz") {
 		$activityActivityChildXml->intro = $activity->getDescription();
 	}
-	else if ($activity->getModuleName() == "assign") {
+	else if ($activity->getModuleName() == "assign" && $activity->getAssignmentText() != "") {
 		$activityActivityChildXml->intro = $activity->getAssignmentText();
 	}
 	else {
