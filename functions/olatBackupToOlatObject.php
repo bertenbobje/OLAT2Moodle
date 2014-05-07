@@ -383,7 +383,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 				// Task
 				case "ta":
 					$ok = 1;
-					$taskTexts = $xpath->xpath("//*[ident = " . $child->ident . "]/moduleConfiguration/config//string[text() = 'task_text']/following::string[1]");
+					$taskTexts = $xpath->xpath("//*[ident = " . $schild->ident . "]/moduleConfiguration/config//string[text() = 'task_text']/following::string[1]");
 					foreach ($taskTexts as $t) {
 						$taskText .= $t;
 					}
