@@ -394,12 +394,21 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 //  $olatType = Either chapter or subject
 //
 function olatQuizParse($object, $path, $olatType) {
-
 	$QObject = $object;
 
 	// Unpack the repo.zip archive
 	$testZip = new ZipArchive;
 	if ($testZip->open($path . "/repo.zip")) {
+		// ZipArchive has trouble with unzipping files with special characters in Linux.
+		// Setting the locale to de_DE solves this problem.
+		if (PHP_OS == "Linux") {
+			if (!setlocale(LC_ALL, 'de_DE@euro')) {
+				echo "<p style='color:darkorange;'>Can't set locale to de_DE, this means that HTML files with special characters in the filename might not load (LINUX ONLY)</p>";
+			}
+		}
+		if (!file_exists($path . "/repo") and !is_dir($path . "/repo")) {
+			mkdir($path . "/repo", 0777, true);
+		}
 		$testZip->extractTo($path . "/repo");
 		$testZip->close();
 	}
