@@ -118,7 +118,7 @@ function olatBackupToOlatObject($path) {
 							foreach ($clusterings as $c) {
 								$clustering .= $c;
 							}
-							$subjectObject->setClustering($clustering);
+							$chapterObject->setClustering($clustering);
 							break;
 						
 						// Enrollment
