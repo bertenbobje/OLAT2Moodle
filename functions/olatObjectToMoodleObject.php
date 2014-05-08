@@ -414,11 +414,11 @@ function moodleFixHTML($html, $title, $type) {
 	$dom->loadHTML('<?xml encoding="UTF-8">' . str_replace(' & ', ' &amp; ', htmlspecialchars_decode($fixhtmlFIB, ENT_QUOTES)));
 	$errors = libxml_get_errors();
 	if (!empty($errors)) {
-		echo "<p style='color:darkorange;'>WARNING - HTML validation errors found in '" . utf8_decode($title) . "', this could cause some strange results or parts that won't show up in Moodle!<ul style='color:darkorange;'>";
+		echo "<p style='color:darkorange;'>WARNING - HTML validation errors found in '" . utf8_decode($title) . "', this could cause some strange results or parts that won't show up in Moodle!</p><ul style='color:darkorange;'>";
 		foreach ($errors as $error) {
-			echo "<li>" . $error->message . " on line <strong>" . $error->line . "</strong> (starting from &lt;body&gt;)</li>";
+			echo "<li>- " . $error->message . " on line <strong>" . $error->line . "</strong> (starting from &lt;body&gt;)</li>";
 		}
-		echo "</ul></p>";
+		echo "</ul>";
 	}
 	
 	// Fix the references in <img> and <a> tags that don't lead to an external page
