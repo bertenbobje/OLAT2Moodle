@@ -123,21 +123,21 @@ function getDataIfExists() {
 
 	// If there are no arguments, nothing will happen.
 	if (!count($args)) {
-    trigger_error('getDataIfExists() expects a minimum of 1 argument', E_USER_WARNING);
-    return NULL;
-  }
+		trigger_error('getDataIfExists() expects a minimum of 1 argument', E_USER_WARNING);
+		return NULL;
+	}
 	
 	// The object we are working with
 	$baseObj = array_shift($args);
 	
 	// Check if it's actually an object
-  if (!is_object($baseObj)) {
+	if (!is_object($baseObj)) {
 		trigger_error('getDataIfExists(): first argument must be an object', E_USER_WARNING);
 		return NULL;
 	}
 
-  // Loop subsequent arguments, check they are valid and get their value(s)
-  foreach ($args as $arg) {
+	// Loop subsequent arguments, check they are valid and get their value(s)
+	foreach ($args as $arg) {
 		if (substr($arg, -2) == '()') { // method
 			$arg = substr($arg, 0, -2);
 			if (!method_exists($baseObj, $arg)) {
@@ -146,7 +146,7 @@ function getDataIfExists() {
 			else {
 				$baseObj = $baseObj->$arg();
 			}
-    }
+		}
 		else { // property
 			if (!isset($baseObj->$arg)) {
 				return NULL;
@@ -154,10 +154,10 @@ function getDataIfExists() {
 			else {
 				$baseObj = $baseObj->$arg;
 			}
-    }
-  }
-  // If we get to this point $baseObj will contain the item referenced by the supplied chain
-  return $baseObj;
+		}
+	}
+	// If we get to this point $baseObj will contain the item referenced by the supplied chain
+	return $baseObj;
 }
 
 // Gets the question type (SCQ, MCQ or FIB)
@@ -165,8 +165,8 @@ function getDataIfExists() {
 // PARAMETERS
 // -> $input = The string that contains the question type
 function getQuestionType($input) {
-  $length = (strrpos($input, ':') - 1) - strpos($input, ':');
-  return substr($input, strpos($input, ':') + 1, $length);
+	$length = (strrpos($input, ':') - 1) - strpos($input, ':');
+	return substr($input, strpos($input, ':') + 1, $length);
 }
 
 // Quotation for FIB or MCQ can be either allCorrect or perAnswer
@@ -175,8 +175,8 @@ function getQuestionType($input) {
 // PARAMETERS
 // -> $item = The current question item
 function getQuotationType($item) {
-  // XML structure is different when quotation is different (ALL/PER correct answer)
-  $results = $item->xpath('resprocessing/respcondition[setvar and not(conditionvar/other)]');
+	// XML structure is different when quotation is different (ALL/PER correct answer)
+	$results = $item->xpath('resprocessing/respcondition[setvar and not(conditionvar/other)]');
 	$quotation = "";
 	if (!empty($results[0])) {
 		if (count($results[0]->conditionvar->and) > 0) {
@@ -185,7 +185,7 @@ function getQuotationType($item) {
 			$quotation = 'perAnswer';
 		}
 	}
-  return array('quotation' => $quotation, 'results' => $results);
+	return array('quotation' => $quotation, 'results' => $results);
 }
 
 ?>

@@ -1670,7 +1670,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 // files also get migrated
 //
 // PARAMETERS
-// ->         $filesPath = The path to /files (Moodle)      
+// ->         $filesPath = The path to /files (Moodle)
 //                 $path = The path to the referenced HTML file
 //     $coursefolderPath = The path to the current coursefolder
 //             $filesXml = The current files.xml SimpleXMLElement
