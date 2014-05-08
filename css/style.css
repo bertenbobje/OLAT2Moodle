@@ -1,0 +1,111 @@
+@charset "utf-8";
+/****************************************************
+* CSS stylesheet for index.html and olat2moodle.php
+* Bert Truyens
+****************************************************/
+body {
+	font-family: "Tahoma", Tahoma, sans-serif;
+	font-size: 90%;
+	background-color: #DDDDDD;
+	margin: 0;
+	padding: 0;
+	color: #000000;
+}
+
+h1 {
+	font-family: "Tahoma", Tahoma, sans-serif;
+	color: #FFFFFF;
+	font-size: 3em;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	padding-left: 10px;
+}
+
+h2, h3, h4, h5, h6, p, a {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
+.download {
+	-moz-box-shadow: inset 0px 1px 0px 0px #BBDAF7;
+	-webkit-box-shadow: inset 0px 1px 0px 0px #BBDAF7;
+	box-shadow: inset 0px 1px 0px 0px #BBDAF7;
+	background-color: #79BBFF;
+	-webkit-border-top-left-radius: 6px;
+	-moz-border-radius-topleft: 6px;
+	border-top-left-radius: 6px;
+	-webkit-border-top-right-radius: 6px;
+	-moz-border-radius-topright: 6px;
+	border-top-right-radius: 6px;
+	-webkit-border-bottom-right-radius: 6px;
+	-moz-border-radius-bottomright: 6px;
+	border-bottom-right-radius: 6px;
+	-webkit-border-bottom-left-radius: 6px;
+	-moz-border-radius-bottomleft: 6px;
+	border-bottom-left-radius: 6px;
+	text-indent: 0;
+	border: 1px solid #84BBF3;
+	display: inline-block;
+	color: #FFFFFF;
+	font-family: "Tahoma", Tahoma, sans-serif;
+	font-size: 120%;
+	font-weight: bold;
+	font-style: normal;
+	height: 50px;
+	line-height: 50px;
+	width: 130px;
+	text-decoration: none;
+	text-align: center;
+	text-shadow: 1px 1px 0px #528ECC;
+	margin-bottom: 10px;
+	margin-left: 15px;
+}
+
+.download:hover {
+	background-color: #378DE5;
+}
+
+.download:active {
+	position: relative;
+	top: 1px;
+}
+
+form {
+	padding: 15px;
+}
+
+.container {
+	width: auto;
+	height: auto;
+	box-shadow: black 0.1em 0.1em 0.2em;
+	background-color: #FFFFFF;
+	border: 1px solid #FFFFFF;
+	margin: 20px;
+}
+.loader {
+	display: none;
+	padding-bottom: 15px;
+	margin-left: 40px;
+}
+
+/*Header*/
+header {
+	background-color: #A5C5FF ;
+}
+
+/*Footer*/
+footer {
+	padding: 10px 0;
+	font-family: "Tahoma", Tahoma, sans-serif;
+	color: #FFFFFF;
+	background-color: #A5C5FF;
+	position: relative;
+	clear: both;
+}
+
+/*HTML5*/
+header, section, footer, aside, article, figure {
+	display: block;
+}
