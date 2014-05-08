@@ -76,6 +76,10 @@ form {
 	padding: 15px;
 }
 
+li {
+	padding-left: 30px;
+}
+
 .container {
 	width: auto;
 	height: auto;
@@ -84,6 +88,7 @@ form {
 	border: 1px solid #FFFFFF;
 	margin: 20px;
 }
+
 .loader {
 	display: none;
 	padding-bottom: 15px;

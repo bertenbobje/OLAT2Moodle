@@ -88,8 +88,9 @@ else {
 }
 
 echo '<footer>
-			<p>&copy; 2014</p>
-		</footer>
+				<p>&copy; 2014</p>
+			</footer>
+		</div>
 	</body>
 </html>
 ';
