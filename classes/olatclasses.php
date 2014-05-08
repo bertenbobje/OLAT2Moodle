@@ -20,6 +20,7 @@ require_once("functions/general.php");
 //             - ChapterDropFolder            - SubjectDropFolder
 //             - ChapterURL										- SubjectURL
 //             - ChapterResource              - SubjectResource
+//             - ChapterWiki                  - SubjectWiki
 //             - ChapterTask                  - SubjectTask
 //             - ChapterTest                  - SubjectTest
 //     _______________|______________________________|
@@ -32,6 +33,7 @@ require_once("functions/general.php");
 // Item -- SingleChoiceQuestion
 //      -- MultipleChoiceQuestion
 //      -- FillInBlanks
+//      -- EssayQuestion
 //
 
 ///////////////////////////////////////////////////////////
