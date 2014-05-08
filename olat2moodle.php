@@ -26,15 +26,14 @@ echo '<!DOCTYPE html>
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<title>OLAT2Moodle</title>
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-		<style type="text/css">
-			body {
-				background-color: #FFFFAA;
-				font-family: "Tahoma", Tahoma, sans-serif;
-				font-size: 90%;
-			}
-		</style>
+		<link href="css/reset.css" rel="stylesheet" type="text/css">
+		<link href="css/style.css" rel="stylesheet" type="text/css">
 	</head>
 	<body>
+		<div class="container">
+			<header>
+				<h1>OLAT2Moodle</h1>
+			</header>
 ';
 
 if(isset($_POST['books'])) {
@@ -77,7 +76,7 @@ if (isset($_FILES["file"])) {
 			$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat);
 			echo "<p>OK - Moodle backup .mbz created</p><br>";
 
-			echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "'>Download here</a>";
+			echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "' class='download'>Download here</a>";
 		}
 	}
 	else {
@@ -88,7 +87,9 @@ else {
 	echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><a href='index.html'>Go to start page</a>";
 }
 
-echo '
+echo '<footer>
+			<p>&copy; 2014</p>
+		</footer>
 	</body>
 </html>
 ';
