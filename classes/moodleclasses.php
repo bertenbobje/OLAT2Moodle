@@ -38,13 +38,12 @@
 ///////////////////////////////////////////////////////////
 class MoodleCourse {
 	
-  protected $id;
-  protected $contextID;
-
-  public $shortName;
-  public $fullName;
-	public $categoryID;
-	public $sections = array();
+	protected $id;
+	protected $contextID;
+	protected $shortName;
+	protected $fullName;
+	protected $categoryID;
+	protected $sections = array();
 	
 	public function __construct($id, $shortName, $fullName, $categoryID) {
 		$this->id = $id;

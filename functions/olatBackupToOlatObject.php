@@ -264,11 +264,11 @@ function olatBackupToOlatObject($path) {
 // until nothing remains.
 //
 // PARAMETERS
-// ->    &$object = The OLAT Chapter object
+// ->     $object = The OLAT Chapter object
 //            $id = The ident (ID) of the child to get subjects from
 //         $xpath = runstructure.xml, loaded as a SimpleXMLElement
 //    $pathCourse = Path to the exported OLAT .zip file
-//  &$indentation = The indentation of the OLAT subject
+//   $indentation = The indentation of the OLAT subject
 function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation) {
 	$subjects = $xpath->xpath("/org.olat.course.Structure//*[ident='" . $id . "']/children/*[type = 'st' or type = 'sp' or type = 'bc' or type = 'en' or type = 'iqtest' or type = 'iqself' or type = 'iqsurv' or type = 'tu' or type = 'wiki' or type = 'ta']");
 	if ($subjects != null) {
@@ -454,7 +454,7 @@ function olatQuizParse($object, $path, $olatType) {
 	$qtiXml = new SimpleXMLElement($filename, null, true);
 	
 	$qtiSections = $qtiXml->assessment->section;
-  $qtiCategories = array();
+	$qtiCategories = array();
 	
 	if ($olatType == "chapter") {
 		$testObject = new ChapterTest;
@@ -473,22 +473,22 @@ function olatQuizParse($object, $path, $olatType) {
 	$testObject->setDuration((string) getDataIfExists($qtiXml, 'assessment', 'duration'));
 	$testObject->setPassingScore((string) getDataIfExists($qtiXml, 'assessment', 'outcomes_processing', 'outcomes', 'decvar', 'attributes()', 'cutvalue'));
 
-  // Loop through each section
-  foreach ($qtiSections as $qtiSection) {
-    $sectionObject = new QuizSection(
+	// Loop through each section
+	foreach ($qtiSections as $qtiSection) {
+		$sectionObject = new QuizSection(
 						(string) getDataIfExists($qtiSection, 'attributes()', 'ident'), 
 						(string) getDataIfExists($qtiSection, 'attributes()', 'title'), 
 						(string) getDataIfExists($qtiSection, 'objectives', 'material', 'mattext'), 
 						(string) getDataIfExists($qtiSection, 'selection_ordering', 'order', 'attributes()', 'order_type'),
 						(string) getDataIfExists($qtiSection, 'selection_ordering', 'selection', 'selection_number')
 		);
-    $testObject->setQuizSection($sectionObject);
+		$testObject->setQuizSection($sectionObject);
 		
-    // Loop through each item
-    $qtiItems = getDataIfExists($qtiSection, 'item');
-    foreach ($qtiItems as $qtiItem) {
-      // Each question type has be treated differently
-      $questionType = getQuestionType($qtiItem->attributes()->ident);
+		// Loop through each item
+		$qtiItems = getDataIfExists($qtiSection, 'item');
+		foreach ($qtiItems as $qtiItem) {
+			// Each question type has be treated differently
+			$questionType = getQuestionType($qtiItem->attributes()->ident);
 			switch ($questionType) {
 				case "MCQ":
 					$QObject = new MultipleChoiceQuestion;
@@ -513,8 +513,8 @@ function olatQuizParse($object, $path, $olatType) {
 			}
 			$QObject->setQuestion($question);
 			$sectionObject->setItem($QObject);
-    }
-  }
+		}
+	}
 	return $testObject;
 }
 

@@ -166,7 +166,7 @@ function olatObjectToMoodleObject($olatObject) {
 // Moodle with the correct indentation.
 //
 // PARAMETERS
-// ->       &$mSec : The Moodle Section
+// ->        $mSec : The Moodle Section
 //           $oSub : The OLAT Subject
 //    $olatChapter : The OLAT Chapter (for the ID)
 function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
@@ -307,7 +307,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
 					""
 				);
 				$answerID++;
-				echo "<p style='color:darkorange;'>WARNING - Question found with no answers (". $quizQuestion->getQTitle()  ."), the question will be added with one radio button saying \"NO ANSWER\".</p>";
+				echo "<p style='color:darkorange;'>WARNING - Question found with no answers (". $quizQuestion->getQTitle() ."), the question will be added with one radio button saying \"NO ANSWER\".</p>";
 				$quizQuestion->setQPossibility($quizPossibility);
 			}
 			else {
@@ -400,7 +400,7 @@ function moodleFixHTML($html, $title, $type) {
 		preg_match_all($patternFIB, $fixhtmlMedia2, $matches);
 		foreach ($matches as $m) {
 			foreach ($m as $patternFIB)	{
-				$fixhtmlFIB = preg_replace("/" . $patternFIB . "/ism", " {#" . $qcounter  . "} ", $fixhtmlFIB);
+				$fixhtmlFIB = preg_replace("/" . $patternFIB . "/ism", " {#" . $qcounter . "} ", $fixhtmlFIB);
 				$qcounter++;
 			}
 		}
