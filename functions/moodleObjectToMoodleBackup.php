@@ -278,13 +278,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 									$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID());
 									$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
 									$questionCategoryQuestionAnswer->addChild('answerformat', 1);
-									if ($qpqp->getQPIsCorrect()) {
-										if ($type == "multichoiceset") {
-											$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
-										}
-										else {
-											$questionCategoryQuestionAnswer->addChild('fraction', (string) number_format(1 / $amountCorrect, 7, '.', ''));
-										}
+									if ($qpqp->getQPIsCorrect() || $type == "shortanswer") {
+										$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
 									}
 									else {
 										$questionCategoryQuestionAnswer->addChild('fraction', "0.0000000");

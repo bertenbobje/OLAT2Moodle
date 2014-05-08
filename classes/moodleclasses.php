@@ -16,7 +16,6 @@
 //                                            - ActivityFolder
 //                                            - ActivityURL
 //                                            - ActivityResource
-//                                            - ActivityBook
 //                                            - ActivityWiki
 //                                            - ActivityLabel
 //                                            - ActivityAssignment
