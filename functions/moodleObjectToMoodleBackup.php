@@ -298,6 +298,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 								case "multichoice":
 									$questionCategoryQuestionType->addAttribute('id', $multiChoiceID);
 									$questionCategoryQuestionType->addChild('layout', 0);
+									$questionCategoryQuestionType->addChild('answers');
 									if ($qpq->getQType() == "SCQ") {
 										$questionCategoryQuestionType->addchild('single', 1);
 									}
@@ -323,6 +324,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 								case "multichoiceset":
 									$questionCategoryQuestionType->addAttribute('id', $multiChoiceSetID);
 									$questionCategoryQuestionType->addChild('layout', 0);
+									$questionCategoryQuestionType->addChild('answers');
 									if ($qpq->getQShuffle()) {
 										$questionCategoryQuestionType->addchild('shuffleanswers', 1);
 									}
