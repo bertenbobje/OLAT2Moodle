@@ -366,8 +366,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 			}
 		}
 	}
-$dom->loadXML($questionsXml->asXML());
-file_put_contents($path . "/questions.xml", $dom->saveXML());
+	$dom->loadXML($questionsXml->asXML());
+	file_put_contents($path . "/questions.xml", $dom->saveXML());
 	
 	////////////////////////////////////////////////////////////////////
 	// COURSE
