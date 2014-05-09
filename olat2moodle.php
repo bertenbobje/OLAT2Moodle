@@ -76,7 +76,7 @@ if (isset($_FILES["file"])) {
 			$moodleBackup = moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat);
 			echo "<p>OK - Moodle backup .mbz created</p><br>";
 
-			echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "' class='download'>Download here</a>";
+			echo "<a href='" . dirname($_SERVER['PHP_SELF']) . $moodleBackup . "' class='download'>Download</a>";
 		}
 	}
 	else {
