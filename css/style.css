@@ -21,7 +21,7 @@ h1 {
 	padding-left: 10px;
 }
 
-h2, h3, h4, h5, h6, p, a {
+h2, h3, h4, h5, h6, p {
 	margin-top: 5px;
 	margin-bottom: 5px;
 	padding-right: 15px;
@@ -76,7 +76,7 @@ form {
 	padding: 15px;
 }
 
-li {
+.container:li {
 	padding-left: 30px;
 }
 
@@ -97,7 +97,46 @@ li {
 
 /*Header*/
 header {
-	background-color: #A5C5FF ;
+	background-color: #A5C5FF;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #FFFFFF;
+}
+
+/*Navigation*/
+
+.nav {
+	background-color: #A5C5FF;
+}
+
+.nav ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.nav li {
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: #FFFFFF;
+	float: left;
+}
+
+.nav a:link, .nav a:visited {
+	display: block;
+	width: 180px;
+	font-weight: bold;
+	color: #FFFFFF;
+	background-color: #A5C5FF;
+	text-align: center;
+	padding: 4px;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.nav a:hover, .nav a:active {
+	background-color: #7291FF;
 }
 
 /*Footer*/

@@ -21,7 +21,7 @@ function olatBackupToOlatObject($path) {
 	$fileName = $_FILES["file"]["name"];
 	$fileExtension = substr($fileName, strrpos($fileName, "."));
 	if ($fileExtension != ".zip") {
-		echo "<p style='color:red;'>ERROR - " . $fileExtension . " uploaded, .zip expected</p><a href='index.html'>Go to start page</a>";
+		echo "<p style='color:red;'>ERROR - " . $fileExtension . " uploaded, .zip expected</p>";
 		return null;
 	}
 	else {
@@ -64,7 +64,7 @@ function olatBackupToOlatObject($path) {
 				$zip->close();
 			}
 			else {
-				echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p><a href='index.html'>Go to start page</a>";
+				echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p>";
 				return null;
 			}
 			
@@ -259,12 +259,12 @@ function olatBackupToOlatObject($path) {
 				return $course;
 			}
 			else {
-				echo "<p style='color:red;'>ERROR - Error reading XML, are you sure you uploaded an OLAT export .zip?</p><a href='index.html'>Go to start page</a>";
+				echo "<p style='color:red;'>ERROR - Error reading XML, are you sure you uploaded an OLAT export .zip?</p>";
 				return null;
 			}
 		}
 		else {
-			echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p><a href='index.html'>Go to start page</a>";
+			echo "<p style='color:red;'>ERROR - Error parsing ZIP, are you sure the .zip file isn't corrupt?</p>";
 			return null;
 		}
 	}

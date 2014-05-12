@@ -34,6 +34,12 @@ echo '<!DOCTYPE html>
 			<header>
 				<h1>OLAT2Moodle</h1>
 			</header>
+			<div class="nav">
+				<ul>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="">Documentation</a></li>
+				</ul>
+			</div>
 ';
 
 if(isset($_POST['books'])) {
@@ -80,11 +86,11 @@ if (isset($_FILES["file"])) {
 		}
 	}
 	else {
-		echo "<p style='color:red;'>ERROR - No file uploaded.</p><a href='index.html'>Go to start page</a>";
+		echo "<p style='color:red;'>ERROR - No file uploaded.</p>";
 	}
 }
 else {
-	echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p><a href='index.html'>Go to start page</a>";
+	echo "<p style='color:red;'>ERROR - No file found, did you land on this page by accident?</p>";
 }
 
 echo '<footer>
