@@ -121,6 +121,7 @@ header {
 	border-right-style: solid;
 	border-right-color: #FFFFFF;
 	float: left;
+	padding: 0;
 }
 
 .nav a:link, .nav a:visited {
