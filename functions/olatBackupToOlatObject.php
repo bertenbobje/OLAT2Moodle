@@ -34,6 +34,17 @@ function olatBackupToOlatObject($path) {
 			// if they don't exist yet.
 			if (!file_exists(getcwd() . "/tmp") && !is_dir(getcwd() . "/tmp")) {
 				mkdir(getcwd() . "/tmp", 0777, true);
+				if (is_writable(getcwd() . "/tmp")) {
+					echo "<p>OK - /tmp is writable</p>";
+				}
+				else {
+					echo "<p style='color:red;'>ERROR - /tmp is not writable, are you sure the webserver has enough permissions?</p>";
+				}
+			}
+			else {
+				if (is_writable(getcwd() . "/tmp")) {
+					echo "<p>OK - /tmp is writable</p>";
+				}
 			}
 			if (!file_exists($expath) && !is_dir($expath)) {
 				mkdir($expath, 0777, true);
