@@ -51,3 +51,6 @@ memory_limit
   RECOMMENDED VALUE: 512M
 
 ==================================
+
+Initial version by Bert Truyens and Sam Wouters
+Date of writing: May 12, 2014
