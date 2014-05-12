@@ -12,14 +12,6 @@ require_once("functions/olatBackupToOlatObject.php");
 require_once("functions/olatObjectToMoodleObject.php");
 require_once("functions/moodleObjectToMoodleBackup.php");
 
-// To make sure that every action can happen, even with bigger files.
-ini_set('max_execution_time', 300);
-ini_set('memory_limit', '512M');
-
-ini_set('xdebug.var_display_max_data', -1);
-ini_set('xdebug.var_display_max_children', -1);
-ini_set('xdebug.var_display_max_depth', -1);
-
 echo '<!DOCTYPE html>
 	<html>
 	<head>
