@@ -28,6 +28,10 @@ h2, h3, h4, h5, h6, p {
 	padding-left: 15px;
 }
 
+button {
+	margin-left: 15px;
+}
+
 .download {
 	-moz-box-shadow: inset 0px 1px 0px 0px #BBDAF7;
 	-webkit-box-shadow: inset 0px 1px 0px 0px #BBDAF7;
@@ -93,6 +97,10 @@ form {
 	display: none;
 	padding-bottom: 15px;
 	margin-left: 40px;
+}
+
+#errors {
+	display: none;
 }
 
 /*Header*/
