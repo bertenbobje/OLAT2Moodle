@@ -1,7 +1,13 @@
 <?php
 
+require_once("classes/generalclasses.php");
 require_once("classes/olatclasses.php");
 require_once("classes/moodleclasses.php");
+
+// IDs for every quiz part
+$pageID = 1;
+$questionID = 1;
+$answerID = 1;
 
 // Creates an as good as possible Moodle object from
 // the given object parameter (OLAT backup object).
@@ -10,13 +16,8 @@ require_once("classes/moodleclasses.php");
 //
 // PARAMETERS
 // -> $olatObject = the OLAT Object
-
-// IDs for every quiz part
-$pageID = 1;
-$questionID = 1;
-$answerID = 1;
-
-function olatObjectToMoodleObject($olatObject) {
+//         $error = The error handler
+function olatObjectToMoodleObject($olatObject, &$error) {
 	global $pageID;
 	global $questionID;
 	global $answerID;
@@ -38,7 +39,7 @@ function olatObjectToMoodleObject($olatObject) {
 			case "iqsurv":
 				$ok = 1;
 				$moduleName = "quiz";
-				$moodleActivity = quizMigration($olatChapter, $pageID, $questionID, $answerID);
+				$moodleActivity = quizMigration($olatChapter, $pageID, $questionID, $answerID, $error);
 				break;
 			case "sp":
 			case "st":
@@ -46,7 +47,7 @@ function olatObjectToMoodleObject($olatObject) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage(), $olatChapter->getLongTitle(), "page"), $olatChapter->getContentFile());
+						$moodleActivity = new ActivityPage(moodleFixHTML($olatChapter->getChapterPage(), $olatChapter->getLongTitle(), "page", $error), $olatChapter->getContentFile());
 						break;
 					case "emptypage":
 						$ok = 1;
@@ -100,7 +101,7 @@ function olatObjectToMoodleObject($olatObject) {
 				case "iqsurv":
 					$ok = 1;
 					$moduleName = "quiz";
-					$moodleActivity = quizMigration($olatSubject, $pageID, $questionID, $answerID);
+					$moodleActivity = quizMigration($olatSubject, $pageID, $questionID, $answerID, $error);
 					break;
 				case "sp":
 				case "st":
@@ -108,7 +109,7 @@ function olatObjectToMoodleObject($olatObject) {
 						case "page":
 							$ok = 1;
 							$moduleName = "page";
-							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage(), $olatSubject->getLongTitle(), "page"), $olatSubject->getSubjectContentFile());
+							$moodleActivity = new ActivityPage(moodleFixHTML($olatSubject->getSubjectPage(), $olatSubject->getLongTitle(), "page", $error), $olatSubject->getSubjectContentFile());
 							break;
 						case "emptypage":
 							$ok = 1;
@@ -153,7 +154,7 @@ function olatObjectToMoodleObject($olatObject) {
 				$moodleActivity->setBook(false);
 				$moodleSection->setActivity($moodleActivity);
 				
-				moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter);
+				moodleGetActivities($moodleSection, $olatSubject->getSubject(), $olatChapter, $error);
 			}
 		}
 		$moodleCourse->setSection($moodleSection);
@@ -166,10 +167,11 @@ function olatObjectToMoodleObject($olatObject) {
 // Moodle with the correct indentation.
 //
 // PARAMETERS
-// ->        $mSec : The Moodle Section
-//           $oSub : The OLAT Subject
-//    $olatChapter : The OLAT Chapter (for the ID)
-function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
+// ->        $mSec = The Moodle Section
+//           $oSub = The OLAT Subject
+//    $olatChapter = The OLAT Chapter (for the ID)
+//          $error = The error handler
+function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$error) {
 	global $pageID;
 	global $questionID;
 	global $answerID;
@@ -183,7 +185,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			case "iqsurv":
 				$ok = 1;
 				$moduleName = "quiz";
-				$moodleActivity = quizMigration($sub, $pageID, $questionID, $answerID);
+				$moodleActivity = quizMigration($sub, $pageID, $questionID, $answerID, $error);
 				break;
 			case "sp":
 			case "st":
@@ -191,7 +193,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 					case "page":
 						$ok = 1;
 						$moduleName = "page";
-						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage(), $sub->getLongTitle(), "page"), $sub->getSubjectContentFile());
+						$moodleActivity = new ActivityPage(moodleFixHTML($sub->getSubjectPage(), $sub->getLongTitle(), "page", $error), $sub->getSubjectContentFile());
 						break;
 					case "emptypage":
 						$ok = 1;
@@ -238,7 +240,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 			$mSec->setActivity($moodleActivity);
 			
 			if (is_object($sub)) {
-				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter);
+				moodleGetActivities($mSec, $sub->getSubject(), $olatChapter, $error);
 			}
 		}
 	}
@@ -251,7 +253,8 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter) {
 //        $pageID = The current page ID
 //    $questionID = The current question ID
 //      $answerID = The current answer ID
-function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
+//         $error = The error handler
+function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error) {
 	$act = new ActivityQuiz(
 				$olatObject->getDescription(),
 				$olatObject->getDuration(),
@@ -282,7 +285,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
 						($qsi->getType() != "SCQ" && $qsi->getType() != "ESSAY" ? $qsi->getQuotation() : NULL),
 						($qsi->getType() != "ESSAY" ? $qsi->getScore() : NULL),
 						htmlspecialchars(html_entity_decode($qsi->getDescription()), ENT_QUOTES, "UTF-8"),
-						moodleFixHTML($question, $olatObject->getLongTitle(), "quiz"),
+						moodleFixHTML($question, $olatObject->getLongTitle(), "quiz", $error),
 						($qsi->getType() == "SCQ" || $qsi->getType() == "MCQ" ? $qsi->getRandomOrder() : NULL),
 						($qsi->getType() != "ESSAY" ? $qsi->getHint() : NULL),
 						($qsi->getType() != "ESSAY" ? $qsi->getSolutionFeedback() : NULL),
@@ -307,7 +310,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
 					""
 				);
 				$answerID++;
-				echo "<p style='color:darkorange;'>WARNING - Question found with no answers (". $quizQuestion->getQTitle() ."), the question will be added with one radio button saying \"NO ANSWER\".</p>";
+				$error->setError(new Error("WARNING", 2, "Question found with no answers (" . $quizQuestion->getQTitle() . "), the question will be added with one radio button saying \"NO ANSWER\"", 0));
 				$quizQuestion->setQPossibility($quizPossibility);
 			}
 			else {
@@ -358,10 +361,11 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
 // in Moodle.
 //
 // PARAMETERS
-// -> $html = The HTML file (as string)
-//    $page = The title of the activity that contains the HTML file
-//    $type = Type of HTML to fix (page or quiz)
-function moodleFixHTML($html, $title, $type) {
+// ->  $html = The HTML file (as string)
+//     $page = The title of the activity that contains the HTML file
+//     $type = Type of HTML to fix (page or quiz)
+//    $error = The error handler
+function moodleFixHTML($html, $title, $type, &$error) {
 	// Removes everything before <body> and after </body>
 	$patternRemoveStart = '/^.+?&lt;body&gt;/ism';
 	$replaceRemoveStart = '';
@@ -411,13 +415,12 @@ function moodleFixHTML($html, $title, $type) {
 	$dom = new DOMDocument;
 	$errorState = libxml_use_internal_errors(TRUE);
 	$dom->loadHTML('<?xml encoding="UTF-8">' . str_replace(' & ', ' &amp; ', htmlspecialchars_decode($fixhtmlFIB, ENT_QUOTES)));
-	$errors = libxml_get_errors();
-	if (!empty($errors)) {
-		echo "<p style='color:darkorange;'>WARNING - HTML validation errors found in '" . $title . "', this could cause some strange results or parts that won't show up in Moodle!</p><ul style='color:darkorange;'>";
-		foreach ($errors as $error) {
-			echo "<li>- " . $error->message . " on line <strong>" . $error->line . "</strong> (starting from &lt;body&gt;)</li>";
+	$htmlErrors = libxml_get_errors();
+	if (!empty($htmlErrors)) {
+		$error->setError(new Error("WARNING", 1, "HTML validation errors found in '" . $title . "', this could cause some strange results or parts that won't show up in Moodle!", 0));
+		foreach ($htmlErrors as $e) {
+			$error->setError(new Error("WARNING", 1, "- " . $e->message . " on line <strong>" . $e->line . "</strong> (starting from &lt;body&gt;)", 1));
 		}
-		echo "</ul>";
 	}
 	
 	// Fix the references in <img> and <a> tags that don't lead to an external page
