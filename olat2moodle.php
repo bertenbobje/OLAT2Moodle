@@ -142,10 +142,9 @@ else {
 			}
 		}
 	}
-}
-
-if (!$showButton) {
-	echo "</div>";
+	if (!$showButton) {
+		echo "</div>";
+	}
 }
 
 ?>
