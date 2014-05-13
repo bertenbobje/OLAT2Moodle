@@ -31,8 +31,11 @@ this has been remedied by using indentation (which is purely visual)
   - Surveys (Quiz)
   - Files (Resource)
   - Wikis (Wiki)
-    - This will only be the shell of the wiki, because most information 
-      in the OLAT wiki is userbound
+    - This is just an empty shell of the wiki    
+    - Wikis can be migrated manually by exporting the
+      wiki activity itself to CP in OLAT, and importing
+      it as an IMS package in Moodle. It will not be a
+      wiki but the data will at least be available.
 
 ===========REQUIREMENTS===========
 
@@ -86,4 +89,4 @@ memory_limit
 ==================================
 
 Initial version by Bert Truyens and Sam Wouters
-Date of writing: May 12, 2014
+Date of writing: May 13, 2014

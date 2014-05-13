@@ -345,7 +345,6 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID) {
 				$amount = $qs->getAmount();
 			}
 			for ($i = 0; $i < $amount; $i++) {
-				//$quizPage->setRandomQuestionID((string) substr($id, -6) . $i);
 				$quizPage->setRandomQuestionID((string) $questionID);
 				$questionID++;
 			}
