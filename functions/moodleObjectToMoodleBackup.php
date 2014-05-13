@@ -103,10 +103,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXmlStart = new SimpleXMLElement($header . "<moodle_backup></moodle_backup>");
 	$moodleBackupXml = $moodleBackupXmlStart->addChild('information');
 	$moodleBackupXml->addChild('name', clean($moodleObject->getFullName()) . '.mbz');
-	$moodleBackupXml->addChild('moodle_version', 2013062400);
-	$moodleBackupXml->addChild('moodle_release', '2.5');
-	$moodleBackupXml->addChild('backup_version', 2013062400);
-	$moodleBackupXml->addChild('backup_release', '2.5');
+	$moodleBackupXml->addChild('moodle_version', 2013051403);
+	$moodleBackupXml->addChild('moodle_release', '2.5.3');
+	$moodleBackupXml->addChild('backup_version', 2013051403);
+	$moodleBackupXml->addChild('backup_release', '2.5.3');
 	$moodleBackupXml->addChild('backup_date', time());
 	$moodleBackupXml->addChild('mnet_remoteusers', 0);
 	$moodleBackupXml->addChild('include_files', 1);
