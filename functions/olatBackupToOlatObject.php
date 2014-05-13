@@ -23,7 +23,7 @@ function olatBackupToOlatObject($path, &$error) {
 	$fileName = $_FILES["file"]["name"];
 	$fileExtension = substr($fileName, strrpos($fileName, "."));
 	if ($fileExtension != ".zip") {
-		$error->setError(new Error("ERROR", 5, $fileExtension . " uploaded, .zip expected", 0));
+		$error->setError(new Error("ERROR", 2, $fileExtension . " uploaded, .zip expected", 0));
 		return null;
 	}
 	else {
@@ -40,7 +40,7 @@ function olatBackupToOlatObject($path, &$error) {
 					echo "<p>OK - /tmp is writable</p>";
 				}
 				else {
-					$error->setError(new Error("ERROR", 5, "/tmp is not writable, are you sure the webserver has enough permissions?", 0));
+					$error->setError(new Error("ERROR", 2, "/tmp is not writable, are you sure the webserver has enough permissions?", 0));
 					return null;
 				}
 			}
@@ -57,7 +57,7 @@ function olatBackupToOlatObject($path, &$error) {
 			// Setting the locale to de_DE solves this problem.
 			if (PHP_OS == "Linux") {
 				if (!setlocale(LC_ALL, 'de_DE@euro')) {
-					$error->setError(new Error("WARNING", 3, "Can't set locale to de_DE, files with special characters in the filename might not unzip", 0));
+					$error->setError(new Error("WARNING", 2, "Can't set locale to de_DE, files with special characters in the filename might not unzip", 0));
 				}
 			}
 			// Extract the .zip to the path.
@@ -67,7 +67,7 @@ function olatBackupToOlatObject($path, &$error) {
 				$zip->close();
 			}
 			else {
-				$error->setError(new Error("ERROR", 5, "Error parsing ZIP, the ZIP file might be corrupt.", 0));
+				$error->setError(new Error("ERROR", 2, "Error parsing ZIP, the ZIP file might be corrupt.", 0));
 				return null;
 			}
 			
@@ -181,7 +181,7 @@ function olatBackupToOlatObject($path, &$error) {
 										$chapterObject->setSubType("page");
 									}
 									else {
-										$error->setError(new Error("WARNING", 3, $chapterPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.", 0));
+										$error->setError(new Error("WARNING", 2, $chapterPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.", 0));
 										$ok = 0;
 									}
 								}
@@ -262,12 +262,12 @@ function olatBackupToOlatObject($path, &$error) {
 				return $course;
 			}
 			else {
-				$error->setError(new Error("ERROR", 5, "Error reading XML, was an OLAT export ZIP uploaded?", 0));
+				$error->setError(new Error("ERROR", 2, "Error reading XML, was an OLAT export ZIP uploaded?", 0));
 				return null;
 			}
 		}
 		else {
-			$error->setError(new Error("ERROR", 5, "Error parsing ZIP, the .zip file might be corrupt?", 0));
+			$error->setError(new Error("ERROR", 2, "Error parsing ZIP, the .zip file might be corrupt?", 0));
 			return null;
 		}
 	}
@@ -353,7 +353,7 @@ function olatGetSubjects(&$object, $id, $xpath, $pathCourse, &$indentation, &$er
 								$subjectObject->setSubjectSubType("page");
 							}
 							else {
-								$error->setError(new Error("WARNING", 3, $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.", 0));
+								$error->setError(new Error("WARNING", 2, $subjectPageItem . " not found in OLAT backup file, this page will be ignored in the Moodle course.", 0));
 								$ok = 0;
 							}
 						}
@@ -452,7 +452,7 @@ function olatQuizParse($object, $path, $olatType) {
 		// Setting the locale to de_DE solves this problem.
 		if (PHP_OS == "Linux") {
 			if (!setlocale(LC_ALL, 'de_DE@euro')) {
-				$error->setError(new Error("WARNING", 3, "Can't set locale to de_DE, files with special characters in the filename might not unzip", 0));
+				$error->setError(new Error("WARNING", 2, "Can't set locale to de_DE, files with special characters in the filename might not unzip", 0));
 			}
 		}
 		if (!file_exists($path . "/repo") && !is_dir($path . "/repo")) {

@@ -11,11 +11,11 @@
 			var e = document.getElementById(id);
 			if (e.style.display == 'block') {
 				e.style.display = 'none';
-				document.getElementById('showerrors').innerHTML = 'Show errors';
+				document.getElementById('showerrors').innerHTML = 'Show HTML validation errors';
 			}
 			else {
 				e.style.display = 'block';
-				document.getElementById('showerrors').innerHTML = 'Hide errors';
+				document.getElementById('showerrors').innerHTML = 'Hide HTML validation errors';
 			}
 		}
 		</script>
@@ -92,11 +92,11 @@ if (isset($_FILES["file"])) {
 		}
 	}
 	else {
-		$error->setError(new Error("ERROR", 5, "No file uploaded.", 0));
+		$error->setError(new Error("ERROR", 2, "No file uploaded.", 0));
 	}
 }
 else {
-	$error->setError(new Error("ERROR", 5, "No file found (or the file is too big)", 0));
+	$error->setError(new Error("ERROR", 2, "No file found (or the file is too big)", 0));
 }
 
 $errors = $error->getErrors();
@@ -104,22 +104,40 @@ if (empty($errors)) {
 	echo "<p style='color:green;'>OK - No warnings or errors found in the process.</p>";
 }
 else {
-	echo "<p style='color:darkorange;'>There were some issues with this course.</p><br><button type='button' id='showerrors' onclick='toggle_visibility(\"errors\")'>Show errors</button><div id='errors'>";
+	echo "<p style='color:darkorange;font-weight:bolder;'>There were some issues with this course. Everything will still work but it might be for the best if these issues were resolved.</p><br>";
+	
 	foreach ($errors as $e) {
-		if ($e->getPartOf() == 1) {
-			if ($e->getType() == "WARNING") {
-				echo "<p style='color:darkorange;margin-left:15px;'>" . $e->getErrorText() . "</p>";
-			}
-			else {
-				echo "<p style='color:red;margin-left:15px;'>" . $e->getErrorText() . "</p>";
-			}
-		}
-		else {
+		if ($e->getLevel() == 2) {
 			if ($e->getType() == "WARNING") {
 				echo "<p style='color:darkorange;'>" . $e->getErrorText() . "</p>";
 			}
 			else {
 				echo "<p style='color:red;'>" . $e->getErrorText() . "</p>";
+			}
+		}
+	}
+	$showButton = true;
+	foreach ($errors as $e) {
+		if ($e->getLevel() == 1) {
+			if ($showButton) {
+				echo "<br><button type='button' id='showerrors' onclick='toggle_visibility(\"errors\")'>Show HTML validation errors</button><div id='errors'>";
+				$showButton = false;
+			}
+			if ($e->getPartOf() == 1) {
+				if ($e->getType() == "WARNING") {
+					echo "<p style='color:darkorange;margin-left:15px;'>" . $e->getErrorText() . "</p>";
+				}
+				else {
+					echo "<p style='color:red;margin-left:15px;'>" . $e->getErrorText() . "</p>";
+				}
+			}
+			else {
+				if ($e->getType() == "WARNING") {
+					echo "<p style='color:darkorange;'>" . $e->getErrorText() . "</p>";
+				}
+				else {
+					echo "<p style='color:red;'>" . $e->getErrorText() . "</p>";
+				}
 			}
 		}
 	}

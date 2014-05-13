@@ -99,7 +99,7 @@ class o2mErrorHandler {
 class Error {
 
 	public $type;		// Type of error (ERROR or WARNING)
-	public $level;			// Severity of error (1 = Low prioriy, 5 = High priority)
+	public $level;			// Severity of error (1 = Low priority, 2 = High priority)
 	public $errorText;		// The error itself
 	public $partOf;	// If the error is part of a bigger error
 
