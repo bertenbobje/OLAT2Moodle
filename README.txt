@@ -7,9 +7,32 @@ OLAT2Moodle is a parser written in PHP that
 converts OLAT backup ZIP files to Moodle backup MBZ files.
 
 The repository contains a basic upload HTML page, and an output page
-that shows if the course got parsed correctly, or errors / warnings
-if there are some issues with it.
+that shows if the course got parsed correctly or not (with error handling
+showing the faults).
 
+
+=============MIGRATION============
+
+** USERS WILL NOT BE MIGRATED OVER TO MOODLE, ONLY THE COURSE ITSELF **
+
+Moodle DOES NOT support sub-activities in sub-activities (without modules),
+this has been remedied by using indentation (which is purely visual)
+
+- Top level OLAT course elements will become Moodle sections
+- Things that will get migrated (with what it will become between parentheses):
+  - Empty structures (Label)
+  - Stuctures (Page)
+  - Pages (Page)
+  - Folders (Folder)
+    - Including the containing data
+  - Tasks (Assignment)
+  - Tests (Quiz)
+  - Self tests (Quiz)
+  - Surveys (Quiz)
+  - Files (Resource)
+  - Wikis (Wiki)
+    - This will only be the shell of the wiki, because most information 
+      in the OLAT wiki is userbound
 
 ===========REQUIREMENTS===========
 
@@ -53,6 +76,12 @@ memory_limit
   (depending on the size of the course).
 
   RECOMMENDED VALUE: 512M - 1024M
+
+
+==========MOODLE SETTINGS=========
+
+- qtype_multichoiceset module is required
+  
 
 ==================================
 
