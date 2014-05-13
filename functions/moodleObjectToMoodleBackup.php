@@ -553,7 +553,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				}
 			}
 			else {
-				$error->setError(new Error("WARNING", 3, "Couldn't copy file: " . $olatFile, 0));
+				$error->setError(new Error("WARNING", 2, "Couldn't copy file: " . $olatFile, 0));
 			}
 		}
 	}
@@ -670,7 +670,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 											}
 										}
 										else {
-											$error->setError(new Error("WARNING", 3, "Couldn't copy file: " . $olatExportFile, 0));
+											$error->setError(new Error("WARNING", 2, "Couldn't copy file: " . $olatExportFile, 0));
 										}
 									}
 								}
@@ -1142,7 +1142,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - .zip created</p>";
 	}
 	catch (App_File_Zip_Exception $e) {
-		$error->setError(new Error("ERROR", 5, "ZIP failed to create: " . $e, 0));
+		$error->setError(new Error("ERROR", 2, "ZIP failed to create: " . $e, 0));
 		return null;
 	}
 	
@@ -1151,7 +1151,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - .zip renamed to .mbz</p>";
 	}
 	else {
-		$error->setError(new Error("ERROR", 5, "ZIP failed to rename." . $e, 0));
+		$error->setError(new Error("ERROR", 2, "ZIP failed to rename." . $e, 0));
 		return null;
 	}
 	
@@ -1161,7 +1161,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - Course name given to .mbz file</p>";
 	}
 	else {
-		$error->setError(new Error("ERROR", 5, "MBZ failed to rename." . $e, 0));
+		$error->setError(new Error("ERROR", 2, "MBZ failed to rename." . $e, 0));
 		return null;
 	}
 

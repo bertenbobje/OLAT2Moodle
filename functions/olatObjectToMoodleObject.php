@@ -417,7 +417,7 @@ function moodleFixHTML($html, $title, $type, &$error) {
 	$dom->loadHTML('<?xml encoding="UTF-8">' . str_replace(' & ', ' &amp; ', htmlspecialchars_decode($fixhtmlFIB, ENT_QUOTES)));
 	$htmlErrors = libxml_get_errors();
 	if (!empty($htmlErrors)) {
-		$error->setError(new Error("WARNING", 1, "HTML validation errors found in '" . $title . "', this could cause some strange results or parts that won't show up in Moodle!", 0));
+		$error->setError(new Error("WARNING", 1, "HTML validation errors found in '" . $title . "'", 0));
 		foreach ($htmlErrors as $e) {
 			$error->setError(new Error("WARNING", 1, "- " . $e->message . " on line <strong>" . $e->line . "</strong> (starting from &lt;body&gt;)", 1));
 		}
