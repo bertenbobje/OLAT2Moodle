@@ -46,7 +46,8 @@ function rrmdir($dir) {
 //
 // PARAMETERS
 // -> $zippedzip = The .zip file
-function checkDoubleFileReference($zippedzip) {
+//        $error = The error handler
+function checkDoubleFileReference($zippedzip, &$error) {
 	$courseFolderReached = false;
 	$i = 0;
 	for ($i = 0; $i < $zippedzip->numFiles; $i++) {
@@ -72,8 +73,8 @@ function checkDoubleFileReference($zippedzip) {
 		$diff = array_count_values($dirdump);
 		foreach ($diff as $key=>$val) {
 			if ($val != 1) {
-				echo "<p style='color:darkorange;'>WARNING - The coursefolder directory contains duplicate files, these will be discarded. 
-						Some content may not load in Moodle as a result. The discarded content is named: " . $key . "</p>";
+				$error->setError(new Error("WARNING", 4, "The coursefolder directory contains duplicate files, these will be discarded.
+							Some content may not load in Moodle as a result. The discarded content is named: " . $key, 0));
 			}
 		}
 	}

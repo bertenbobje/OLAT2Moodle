@@ -1,8 +1,8 @@
 <?php
 
+require_once("classes/generalclasses.php");
 require_once("classes/olatclasses.php");
 require_once("classes/moodleclasses.php");
-require_once("classes/generalclasses.php");
 
 require_once("functions/general.php");
 
@@ -67,8 +67,9 @@ require_once("functions/general.php");
 //           $books = Reads out the checkbox in the beginning and turns pages in a row
 //                    into a single book for a more clear overview
 //   $chapterFormat = The chapter format (the choice box in the first page reflects this)
+//           $error = The error handler
 //
-function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat) {
+function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapterFormat, &$error) {
 	
 	$questionID = 500000;
 	$answerID = 5000000;
@@ -474,7 +475,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	// for Moodle
 	$olatFilesPath = $olatObject->getRootdir() . "/coursefolder";	
 	$olatFiles = listFolderFiles($olatFilesPath);
-	$fileError = 0;
 	foreach ($olatFiles as $olatFile) {
 		$olatFilePath = $olatFilesPath . "/" . $olatFile;
 		$fileSHA1 = sha1($olatFile);
@@ -552,10 +552,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					}
 				}
 			}
-		}
-		else {
-			echo "<p style='color:orange;'>WARNING - Couldn't copy file: " . $olatFile . "</p><br>";
-			$fileError++;
+			else {
+				$error->setError(new Error("WARNING", 3, "Couldn't copy file: " . $olatFile, 0));
+			}
 		}
 	}
 	
@@ -670,6 +669,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 												}
 											}
 										}
+										else {
+											$error->setError(new Error("WARNING", 3, "Couldn't copy file: " . $olatExportFile, 0));
+										}
 									}
 								}
 							}
@@ -682,9 +684,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	$dom->loadXml($filesXml->asXML());
 	file_put_contents($path . "/files.xml", $dom->saveXML());
-	if ($fileError != 0) {
-		echo "<p style='color:orange;'>WARNING - " . $fileError . " file(s) failed to copy</p>";
-	}
 	echo "<p>OK - Files copied</p>";
 	
 	////////////////////////////////////////////////////////////////////
@@ -1143,7 +1142,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - .zip created</p>";
 	}
 	catch (App_File_Zip_Exception $e) {
-		echo "<p style='color:red;'>ERROR - .zip failed to create: " . $e . "</p>";
+		$error->setError(new Error("ERROR", 5, "ZIP failed to create: " . $e, 0));
+		return null;
 	}
 	
 	// Renames the .zip to .mbz (.mbz is just a renamed .zip anyway)
@@ -1151,7 +1151,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - .zip renamed to .mbz</p>";
 	}
 	else {
-		echo "<p style='color:red;'>ERROR - .zip failed to rename</p>";
+		$error->setError(new Error("ERROR", 5, "ZIP failed to rename." . $e, 0));
+		return null;
 	}
 	
 	$moodleDownload = "/tmp/" . clean($moodleObject->getFullName()) . ".mbz";
@@ -1160,7 +1161,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		echo "<p>OK - Course name given to .mbz file</p>";
 	}
 	else {
-		echo "<p style='color:red;'>ERROR - .mbz failed to rename</p>";
+		$error->setError(new Error("ERROR", 5, "MBZ failed to rename." . $e, 0));
+		return null;
 	}
 
 	// Remove both the OLAT and Moodle temporary directory

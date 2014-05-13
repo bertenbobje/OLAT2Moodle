@@ -77,5 +77,71 @@ class App_File_Zip {
 	}
 
 }
+
+// This is the error handler of the project, every warning or error will be written
+// to this class so it can be shown to the end user at the end of the process.
+class o2mErrorHandler {
+
+	public $error = array();
+	
+	public function __construct() {}
+	
+	public function setError($error) {
+		array_push($this->error, $error);
+	}
+	
+	public function getErrors() {
+		return $this->error;
+	}
+
+}
+
+class Error {
+
+	public $type;		// Type of error (ERROR or WARNING)
+	public $level;			// Severity of error (1 = Low prioriy, 5 = High priority)
+	public $errorText;		// The error itself
+	public $partOf;	// If the error is part of a bigger error
+
+	public function __construct($type, $level, $errorText, $partOf) {
+		$this->type = $type;
+		$this->level = $level;
+		$this->errorText = $errorText;
+		$this->partOf = $partOf;
+	}
+	
+	public function setType($type) {
+		$this->type = $type;
+	}
+	
+	public function getType() {
+		return $this->type;
+	}
+	
+	public function setLevel($level) {
+		$this->level = $level;
+	}
+	
+	public function getLevel() {
+		return $this->level;
+	}
+	
+	public function setErrorText($errorText) {
+		$this->errorText = $errorText;
+	}
+	
+	public function getErrorText() {
+		return $this->errorText;
+	}
+	
+	public function setPartOf($partOf) {
+		$this->partOf = $partOf;
+	}
+	
+	public function getPartOf() {
+		return $this->partOf;
+	}
+	
+}
 	
 ?>
