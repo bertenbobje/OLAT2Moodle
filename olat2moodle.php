@@ -144,8 +144,11 @@ else {
 	}
 }
 
+if (!$showButton) {
+	echo "</div>";
+}
+
 ?>
-			</div>
 			<footer>
 				<p>Original version by Bert Truyens and Sam Wouters - Source code can be found <a href="https://bitbucket.org/truyb/olat2moodle">here</a></p>
 			</footer>
