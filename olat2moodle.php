@@ -1,3 +1,37 @@
+<!DOCTYPE html>
+	<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<title>OLAT2Moodle</title>
+		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+		<link href="css/reset.css" rel="stylesheet" type="text/css">
+		<link href="css/style.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript">
+		function toggle_visibility(id) {
+			var e = document.getElementById(id);
+			if (e.style.display == 'block') {
+				e.style.display = 'none';
+				document.getElementById('showerrors').innerHTML = 'Show errors';
+			}
+			else {
+				e.style.display = 'block';
+				document.getElementById('showerrors').innerHTML = 'Hide errors';
+			}
+		}
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1>OLAT2Moodle</h1>
+			</header>
+			<div class="nav">
+				<ul>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="">Documentation</a></li>
+				</ul>
+			</div>
+			
 <?php
 
 /*************************************************************
@@ -13,28 +47,6 @@ require_once("classes/generalclasses.php");
 require_once("functions/olatBackupToOlatObject.php");
 require_once("functions/olatObjectToMoodleObject.php");
 require_once("functions/moodleObjectToMoodleBackup.php");
-
-echo '<!DOCTYPE html>
-	<html>
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-		<title>OLAT2Moodle</title>
-		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
-		<link href="css/reset.css" rel="stylesheet" type="text/css">
-		<link href="css/style.css" rel="stylesheet" type="text/css">
-	</head>
-	<body>
-		<div class="container">
-			<header>
-				<h1>OLAT2Moodle</h1>
-			</header>
-			<div class="nav">
-				<ul>
-					<li><a href="index.html">Home</a></li>
-					<li><a href="">Documentation</a></li>
-				</ul>
-			</div>
-';
 
 if(isset($_POST['books'])) {
 	if ($_POST['books'] == "on") {
@@ -89,10 +101,10 @@ else {
 
 $errors = $error->getErrors();
 if (empty($errors)) {
-	echo "<p style='color:green;'>OK - No warnings or errors found in the process.</p><br>";
+	echo "<p style='color:green;'>OK - No warnings or errors found in the process.</p>";
 }
 else {
-	echo "<p style='color:darkorange;'>There were some issues with the course.</p>";
+	echo "<p style='color:darkorange;'>There were some issues with this course.</p><br><button type='button' id='showerrors' onclick='toggle_visibility(\"errors\")'>Show errors</button><div id='errors'>";
 	foreach ($errors as $e) {
 		if ($e->getPartOf() == 1) {
 			if ($e->getType() == "WARNING") {
@@ -113,12 +125,11 @@ else {
 	}
 }
 
-echo '<footer>
+?>
+			</div>
+			<footer>
 				<p>Original version by Bert Truyens and Sam Wouters - Source code can be found <a href="https://bitbucket.org/truyb/olat2moodle">here</a></p>
 			</footer>
 		</div>
 	</body>
 </html>
-';
-
-?>
