@@ -116,11 +116,12 @@ else {
 			}
 		}
 	}
+	
 	$showButton = true;
 	foreach ($errors as $e) {
 		if ($e->getLevel() == 1) {
 			if ($showButton) {
-				echo "<br><button type='button' id='showerrors' onclick='toggle_visibility(\"errors\")'>Show HTML validation errors</button><div id='errors'>";
+				echo "<button type='button' id='showerrors' onclick='toggle_visibility(\"errors\")'>Show HTML validation errors</button><div id='errors'>";
 				$showButton = false;
 			}
 			if ($e->getPartOf() == 1) {
