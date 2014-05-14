@@ -71,14 +71,14 @@ max_execution_time
   increase this value to make sure that every script
   has enough time to complete successfully.
 
-  RECOMMENDED VALUE: 300
+  RECOMMENDED VALUE: 120
 
 memory_limit
 - This value should be increased because a lot of files get 
   moved around during the process and this might take quite some memory 
   (depending on the size of the course).
 
-  RECOMMENDED VALUE: 512M - 1024M
+  RECOMMENDED VALUE: 512M
 
 
 ==========MOODLE SETTINGS=========
@@ -89,4 +89,4 @@ memory_limit
 ==================================
 
 Initial version by Bert Truyens and Sam Wouters
-Date of writing: May 13, 2014
+Date of writing: May 14, 2014
