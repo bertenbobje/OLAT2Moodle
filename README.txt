@@ -95,4 +95,4 @@ Initial version made by Bert Truyens and Sam Wouters
 Thanks to: Adriane Boyd for qtype_multichoiceset
            Roger Thomas for his recursive ZIP function
      
-Date of writing: May 13, 2014
+Date of writing: May 2014
