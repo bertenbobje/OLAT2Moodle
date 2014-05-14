@@ -104,7 +104,7 @@ if (empty($errors)) {
 	echo "<p style='color:green;font-weight:bolder;'>OK - No warnings or errors found in the process.</p>";
 }
 else {
-	echo "<p style='color:darkorange;font-weight:bolder;'>There were some issues with this course. Everything will still work but it might be for the best if these issues were resolved.</p><br>";
+	echo "<p style='color:darkorange;font-weight:bolder;'>There were some issues with this course.</p><br>";
 	
 	foreach ($errors as $e) {
 		if ($e->getLevel() == 2) {

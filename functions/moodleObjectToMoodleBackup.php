@@ -23,7 +23,6 @@ require_once("functions/general.php");
  |_ [ ] activities ---------- Contains all activities (forums, pages, etc.)
  |   |_ [ ] forum_40 -------} <type of activity>_<moduleID of said activity>
  |   |_ [ ] page_41 --------} 
- |   |   |_ ||| filters.xml - (E)
  |   |   |_ ||| grades.xml -- (E)
  |   |   |_ ||| inforef.xml - Contains references to used media (fileIDs)
  |   |   |_ ||| module.xml -- Contains IDs and general module options
@@ -33,7 +32,6 @@ require_once("functions/general.php");
  |_ [ ] course -------------- Contains general information about the entire course
  |   |_ ||| course.xml ------ Contains IDs, names and options
  | 	 |_ ||| enrolments.xml -- (E)
- |   |_ ||| filters.xml ----- Contains filter options (for turning off autohotlink)
  | 	 |_ ||| inforef.xml ----- Contains references (courseID)
  | 	 |_ ||| roles.xml ------- (E)
  |_ [ ] files --------------- Contains the external media files (SHA-1 hashed)
@@ -104,12 +102,11 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXml = $moodleBackupXmlStart->addChild('information');
 	$moodleBackupXml->addChild('name', clean($moodleObject->getFullName()) . '.mbz');
 	$moodleBackupXml->addChild('moodle_version', 2013051403);
-	$moodleBackupXml->addChild('moodle_release', '2.5.3');
-	$moodleBackupXml->addChild('backup_version', 2013051403);
-	$moodleBackupXml->addChild('backup_release', '2.5.3');
+	$moodleBackupXml->addChild('moodle_release', '2.5.3 (Build: 20131111)');
+	$moodleBackupXml->addChild('backup_version', 2013051400);
+	$moodleBackupXml->addChild('backup_release', '2.5');
 	$moodleBackupXml->addChild('backup_date', time());
 	$moodleBackupXml->addChild('mnet_remoteusers', 0);
-	$moodleBackupXml->addChild('include_files', 1);
 	$moodleBackupXml->addChild('include_file_references_to_external_content', 0);
 	$moodleBackupXml->addChild('original_wwwroot', 'OLAT2Moodle');
 	$moodleBackupXml->addChild('original_site_identifier_hash', "2221f5e20fe9c6708db19a7804aee7a34b077352");
@@ -127,7 +124,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXmlDetailsDetail->addChild('interactive', 1);
 	$moodleBackupXmlDetailsDetail->addChild('mode', 10);
 	$moodleBackupXmlDetailsDetail->addChild('execution', 1);
-	$moodleBackupXmlDetailsDetail->addChild('executiontime', 1);
+	$moodleBackupXmlDetailsDetail->addChild('executiontime', 0);
 	$moodleBackupXmlContents = $moodleBackupXml->addChild('contents');
 	$moodleBackupXmlContentsActivities = $moodleBackupXmlContents->addChild('activities');
 	$moodleBackupXmlContentsSections = $moodleBackupXmlContents->addChild('sections');
@@ -140,14 +137,14 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'role_assignments', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'activities', '1');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'blocks', '0');
-	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'filters', '1');
+	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'filters', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'comments', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'badges', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'calendarevents', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'userscompletion', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'logs', '0');
 	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'grade_histories', '0');
-	moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'questionbank', '1');
+	//moodleBackupDefaultSettings($moodleBackupXmlSettings, 'root', 'questionbank', '1');
 	
 	// questions.xml, the question bank.
 	// Whenever there is a quiz, this is where it will get the questions from.
@@ -246,10 +243,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$questionCategoryQuestion->addChild('generalfeedback');
 							$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
 							if (!is_null($qpq->getQScore()) && $qpq->getQScore() != "") {
-								$questionCategoryQuestion->addChild('defaultmark', (string) $qpq->getQScore() . "000000");
+								$questionCategoryQuestion->addChild('defaultmark', (string) $qpq->getQScore());
 							}
 							else {
-								$questionCategoryQuestion->addChild('defaultmark', "1.000000");
+								$questionCategoryQuestion->addChild('defaultmark', 1);
 							}
 							$questionCategoryQuestion->addChild('penalty', "0.3333333");
 							$questionCategoryQuestion->addChild('qtype', $type);
@@ -315,7 +312,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 									$questionCategoryQuestionType->addchild('correctfeedback', "");
 									$questionCategoryQuestionType->addchild('correctfeedbackformat', 1);
 									$questionCategoryQuestionType->addchild('partiallycorrectfeedback', "");
-									$questionCategoryQuestionType->addchild('partiallycorrectfeedbackformat');
+									$questionCategoryQuestionType->addchild('partiallycorrectfeedbackformat', 0);
 									$questionCategoryQuestionType->addchild('incorrectfeedback', "");
 									$questionCategoryQuestionType->addchild('incorrectfeedbackformat', 1);
 									$questionCategoryQuestionType->addchild('answernumbering', "none");
@@ -422,32 +419,42 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	
 	$dom->loadXML($courseInforefXml->asXML());
 	file_put_contents($coursePath . "/inforef.xml", $dom->saveXML());
-	// course/filters.xml
-	$courseFiltersXml = new SimpleXMLElement($header . "<filters></filters>");
-	$courseFiltersActives = $courseFiltersXml->addChild('filter_actives');
-	$courseFiltersActive = $courseFiltersActives->addChild('filter_active');
-	$courseFiltersActive->addChild('filter', "activitynames");
-	$courseFiltersActive->addChild('active', "-1");
-	$courseFiltersXml->addChild('filter_configs');
-	
-	$dom->loadXML($courseFiltersXml->asXML());
-	file_put_contents($coursePath . "/filters.xml", $dom->saveXML());
 	// course/course.xml
 	$courseCourseXml = new SimpleXMLElement($header . "<course></course>");
 	$courseCourseXml->addAttribute('id', $moodleObject->getID());
 	$courseCourseXml->addAttribute('contextid', $moodleObject->getID());
 	$courseCourseXml->addChild('shortname', $moodleObject->getShortName());
-	$courseCourseXml->addChild('fullName', $moodleObject->getFullName());
+	$courseCourseXml->addChild('fullname', $moodleObject->getFullName());
+	$courseCourseXml->addChild('idnumber');
 	$courseCourseXml->addChild('summary', "&lt;p&gt;" . $moodleObject->getFullName() . "&lt;/p&gt;");
+	$courseCourseXml->addChild('summaryformat', 0);
 	$courseCourseXml->addChild('format', 'topics');
+	$courseCourseXml->addChild('showgrades', 1);
+	$courseCourseXml->addChild('newsitems', 1);
 	$courseCourseXml->addChild('startdate', time());
+	$courseCourseXml->addChild('marker', 0);
+	$courseCourseXml->addChild('maxbytes', 0);
+	$courseCourseXml->addChild('legacyfiles', 0);
+	$courseCourseXml->addChild('showreports', 0);
 	$courseCourseXml->addChild('visible', 1);
+	$courseCourseXml->addChild('groupmode', 0);
+	$courseCourseXml->addChild('groupmodeforce', 0);
 	$courseCourseXml->addChild('defaultgroupingid', 0);
 	$courseCourseXml->addChild('lang');
 	$courseCourseXml->addChild('theme');
 	$courseCourseXml->addChild('timecreated', time());
 	$courseCourseXml->addChild('timemodified', time());
-	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()));
+	$courseCourseXml->addChild('requested', 0);
+	$courseCourseXml->addChild('enablecompletion', 0);
+	$courseCourseXml->addChild('completionnotify', 0);
+	$courseCourseXml->addChild('numsections', count($moodleObject->getSection()) - 1);
+	$courseCourseXml->addChild('hiddensections', 0);
+	$courseCourseXml->addChild('coursedisplay', 0);
+	$courseCourseCategoryXml = $courseCourseXml->addChild('category');
+	$courseCourseCategoryXml->addAttribute('id', 1);
+	$courseCourseCategoryXml->addChild('name', "OLAT2Moodle");
+	$courseCourseCategoryXml->addChild('description', "$@NULL@$");
+	$courseCourseXml->addChild('tags');
 	
 	$dom->loadXML($courseCourseXml->asXML());
 	file_put_contents($coursePath . "/course.xml", $dom->saveXML());
@@ -799,13 +806,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				
 				$dom->loadXML($activityRolesXml->asXML());
 				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());		
-				// activities/[activity]_[x]/filters.xml
-				$activityFiltersXml = new SimpleXMLElement($header . "<filters></filters>");
-				$activityFiltersXml->addChild('filter_actives');
-				$activityFiltersXml->addChild('filter_configs');
-				
-				$dom->loadXML($activityFiltersXml->asXML());
-				file_put_contents($activityPath . "/filters.xml", $dom->saveXML());
 			
 				// NOT "EMPTY"
 				// activities/[activity]_[x]/inforef.xml
@@ -832,16 +832,27 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				// activities/[activity]_[x]/module.xml
 				$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
 				$activityModuleXml->addAttribute('id', $activity->getModuleID());
-				$activityModuleXml->addAttribute('version', 2013110500);
+				$activityModuleXml->addAttribute('version', 2013050100);
 				$activityModuleXml->addChild('modulename', $activity->getModuleName());
 				$activityModuleXml->addChild('sectionid', $section->getSectionID());
 				$activityModuleXml->addChild('idnumber');
 				$activityModuleXml->addChild('added', time());
+				$activityModuleXml->addChild('score', 0);
 				$activityModuleXml->addChild('indent', $activity->getIndent());
 				$activityModuleXml->addChild('visible', 1);
 				$activityModuleXml->addChild('visibleold', 1);
-				$activityModuleXml->addChild('groupingid', 0);
-				$activityModuleXml->addChild('completionexpected', 0);
+					$activityModuleXml->addChild('groupmode', 0);
+					$activityModuleXml->addChild('groupingid', 0);
+					$activityModuleXml->addChild('groupmembersonly', 0);
+					$activityModuleXml->addChild('completion', 0);
+					$activityModuleXml->addChild('completiongradeitemnumber', "$@NULL@$");
+					$activityModuleXml->addChild('completionview', 0);
+					$activityModuleXml->addChild('completionexpected', 0);
+					$activityModuleXml->addChild('availablefrom', 0);
+					$activityModuleXml->addChild('availableuntil', 0);
+					$activityModuleXml->addChild('showavailability', 0);
+					$activityModuleXml->addChild('showdescription', 0);
+					$activityModuleXml->addChild('availability_info');
 				
 				$dom->loadXML($activityModuleXml->asXML());
 				file_put_contents($activityPath . "/module.xml", $dom->saveXML());
@@ -920,13 +931,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				
 				$dom->loadXML($activityRolesXml->asXML());
 				file_put_contents($activityPath . "/roles.xml", $dom->saveXML());
-				// activities/[activity]_[x]/filters.xml
-				$activityFiltersXml = new SimpleXMLElement($header . "<filters></filters>");
-				$activityFiltersXml->addChild('filter_actives');
-				$activityFiltersXml->addChild('filter_configs');
-				
-				$dom->loadXML($activityFiltersXml->asXML());
-				file_put_contents($activityPath . "/filters.xml", $dom->saveXML());
 				
 				// NOT "EMPTY"
 				// activities/[activity]_[x]/inforef.xml
@@ -974,30 +978,52 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				if ($currentlyBook && $firstTags) {
 					$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
 					$activityModuleXml->addAttribute('id', $activity->getModuleID());
-					$activityModuleXml->addAttribute('version', 2013110500);
+					$activityModuleXml->addAttribute('version', 2013050100);
 					$activityModuleXml->addChild('modulename', "book");
 					$activityModuleXml->addChild('sectionid', $section->getSectionID());
 					$activityModuleXml->addChild('idnumber');
 					$activityModuleXml->addChild('added', time());
+					$activityModuleXml->addChild('score', 0);
 					$activityModuleXml->addChild('indent', $activity->getIndent());
 					$activityModuleXml->addChild('visible', 1);
 					$activityModuleXml->addChild('visibleold', 1);
+					$activityModuleXml->addChild('groupmode', 0);
 					$activityModuleXml->addChild('groupingid', 0);
+					$activityModuleXml->addChild('groupmembersonly', 0);
+					$activityModuleXml->addChild('completion', 0);
+					$activityModuleXml->addChild('completiongradeitemnumber', "$@NULL@$");
+					$activityModuleXml->addChild('completionview', 0);
 					$activityModuleXml->addChild('completionexpected', 0);
+					$activityModuleXml->addChild('availablefrom', 0);
+					$activityModuleXml->addChild('availableuntil', 0);
+					$activityModuleXml->addChild('showavailability', 0);
+					$activityModuleXml->addChild('showdescription', 0);
+					$activityModuleXml->addChild('availability_info');
 				}
 				else if (!$currentlyBook) {
 					$activityModuleXml = new SimpleXMLElement($header . "<module></module>");
 					$activityModuleXml->addAttribute('id', $activity->getModuleID());
-					$activityModuleXml->addAttribute('version', 2013110500);
+					$activityModuleXml->addAttribute('version', 2013050100);
 					$activityModuleXml->addChild('modulename', $activity->getModuleName());
 					$activityModuleXml->addChild('sectionid', $section->getSectionID());
 					$activityModuleXml->addChild('idnumber');
 					$activityModuleXml->addChild('added', time());
+					$activityModuleXml->addChild('score', 0);
 					$activityModuleXml->addChild('indent', $activity->getIndent());
 					$activityModuleXml->addChild('visible', 1);
 					$activityModuleXml->addChild('visibleold', 1);
+					$activityModuleXml->addChild('groupmode', 0);
 					$activityModuleXml->addChild('groupingid', 0);
+					$activityModuleXml->addChild('groupmembersonly', 0);
+					$activityModuleXml->addChild('completion', 0);
+					$activityModuleXml->addChild('completiongradeitemnumber', "$@NULL@$");
+					$activityModuleXml->addChild('completionview', 0);
 					$activityModuleXml->addChild('completionexpected', 0);
+					$activityModuleXml->addChild('availablefrom', 0);
+					$activityModuleXml->addChild('availableuntil', 0);
+					$activityModuleXml->addChild('showavailability', 0);
+					$activityModuleXml->addChild('showdescription', 0);
+					$activityModuleXml->addChild('availability_info');
 				}
 				
 				$dom->loadXML($activityModuleXml->asXML());
@@ -1032,7 +1058,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityBookChapter->addChild('subchapter', 0);
 					}
 					$activityBookChapter->title = $activity->getName();
-					$activityBookChapter->addChild('content', $activity->getContent());
+					$activityBookChapter->addChild('content', str_replace("\r\n", "\n", $activity->getContent()));
 					$activityBookChapter->addChild('contentformat', 1);
 					$activityBookChapter->addChild('hidden', 0);
 					$activityBookChapter->addChild('timemodified', time());
@@ -1050,7 +1076,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 						$activityBookChapter->addChild('subchapter', 0);
 					}
 					$activityBookChapter->title = $activity->getName();
-					$activityBookChapter->addChild('content', $activity->getContent());
+					$activityBookChapter->addChild('content', str_replace("\r\n", "\n", $activity->getContent()));
 					$activityBookChapter->addChild('contentformat', 1);
 					$activityBookChapter->addChild('hidden', 0);
 					$activityBookChapter->addChild('timemodified', time());
@@ -1106,6 +1132,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	file_put_contents($path . "/gradebook.xml", $dom->saveXML());
 	// groups.xml
 	$groupsXml = new SimpleXMLElement($header . "<groups></groups>");
+	$groupsXml->addChild('groupings');
 	
 	$dom->loadXML($groupsXml->asXML());
 	file_put_contents($path . "/groups.xml", $dom->saveXML());
@@ -1193,7 +1220,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 	$questionCategoryQuestion->addChild('questiontextformat', 1);
 	$questionCategoryQuestion->addChild('generalfeedback');
 	$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
-	$questionCategoryQuestion->addChild('defaultmark', (string) count($qpq->getQPossibilities()) . ".0000000");
+	$questionCategoryQuestion->addChild('defaultmark', (string) count($qpq->getQPossibilities()));
 	$questionCategoryQuestion->addChild('penalty', "0.3333333");
 	$questionCategoryQuestion->addChild('qtype', "multianswer");
 	$questionCategoryQuestion->addChild('length', 1);
@@ -1226,7 +1253,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionCategoryQuestion->addChild('questiontextformat', 1);
 		$questionCategoryQuestion->addChild('generalfeedback');
 		$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
-		$questionCategoryQuestion->addChild('defaultmark', "1.0000000");
+		$questionCategoryQuestion->addChild('defaultmark', 1);
 		$questionCategoryQuestion->addChild('penalty', "0.0000000");
 		$questionCategoryQuestion->addChild('qtype', "shortanswer");
 		$questionCategoryQuestion->addChild('length', 1);
@@ -1420,37 +1447,38 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 	
 	switch ($activity->getModuleName()) {
 		case "page":
-			$activityActivityChildXml->addChild('display', 5);
-			$activityActivityChildXml->addChild('content', $activity->getContent());
+			$activityActivityChildXml->addChild('content', str_replace("\r\n", "\n", $activity->getContent()));
 			$activityActivityChildXml->addChild('contentformat', 1);
 			$activityActivityChildXml->addChild('legacyfiles', 0);
 			$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+			$activityActivityChildXml->addChild('display', 5);
 			$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 			$activityActivityChildXml->addChild('revision', 1);
 			$activityActivityChildXml->addChild('timemodified', time());
 			break;
 		
 		case "folder":
-			$activityActivityChildXml->addChild('display', 0);
-			$activityActivityChildXml->addChild('showexpanded', 1);
 			$activityActivityChildXml->addChild('revision', 1);
 			$activityActivityChildXml->addChild('timemodified', time());
+			$activityActivityChildXml->addChild('display', 0);
+			$activityActivityChildXml->addChild('showexpanded', 1);
 			break;
 			
 		case "url":
-			$activityActivityChildXml->addChild('display', 0);
 			$activityActivityChildXml->externalurl = $activity->getURL();
+			$activityActivityChildXml->addChild('display', 0);
 			$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";s:1:"0";}');
 			$activityActivityChildXml->addChild('parameters', 'a:0:{}');
 			$activityActivityChildXml->addChild('timemodified', time());
 			break;
 			
 		case "resource":
-			$activityActivityChildXml->addChild('display', 0);
 			$activityActivityChildXml->addChild('tobemigrated', 0);
 			$activityActivityChildXml->addChild('legacyfiles', 0);
 			$activityActivityChildXml->addChild('legacyfileslast', "$@NULL@$");
+			$activityActivityChildXml->addChild('display', 0);
 			$activityActivityChildXml->addChild('displayoptions', 'a:1:{s:10:"printintro";i:1;}');
+			$activityActivityChildXml->addChild('filterfiles', 0);
 			$activityActivityChildXml->addChild('revision', 1);
 			$activityActivityChildXml->addChild('timemodified', time());
 			break;
