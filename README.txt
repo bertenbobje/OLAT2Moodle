@@ -84,9 +84,15 @@ memory_limit
 ==========MOODLE SETTINGS=========
 
 - qtype_multichoiceset module is required
-  
+  - Get the version for your Moodle version here:
+    https://github.com/jmvedrine/moodle-qtype_multichoiceset
+
 
 ==================================
 
-Initial version by Bert Truyens and Sam Wouters
-Date of writing: May 14, 2014
+Initial version made by Bert Truyens and Sam Wouters
+
+Thanks to: Adriane Boyd for qtype_multichoiceset
+           Roger Thomas for his recursive ZIP function
+     
+Date of writing: May 13, 2014
