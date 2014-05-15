@@ -111,8 +111,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$moodleBackupXml->addChild('original_wwwroot', 'OLAT2Moodle');
 	$moodleBackupXml->addChild('original_site_identifier_hash', "2221f5e20fe9c6708db19a7804aee7a34b077352");
 	$moodleBackupXml->addChild('original_course_id', $moodleObject->getID());
-	$moodleBackupXml->addChild('original_course_fullname', $moodleObject->getFullName());
-	$moodleBackupXml->addChild('original_course_shortname', $moodleObject->getShortName());
+	$moodleBackupXml->original_course_fullname = $moodleObject->getFullName();
+	$moodleBackupXml->original_course_shortname = $moodleObject->getShortName();
 	$moodleBackupXml->addChild('original_course_startdate', time());
 	$moodleBackupXml->addChild('original_course_contextid', $moodleObject->getContextID());
 	$moodleBackupXml->addChild('original_system_contextid', 1);
@@ -169,7 +169,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					$questionCategory->addChild('contextid', $moodleObject->getID());
 					$questionCategory->addChild('contextlevel', 50);
 					$questionCategory->addChild('contextinstanceid', $moodleObject->getID());
-					$questionCategory->addChild('info', "All questions for the &lt;b&gt;" . $moodleObject->getFullName() . "&lt;/b&gt; course");
+					$questionCategory->info = "All questions for the &lt;b&gt;" . $moodleObject->getFullName() . "&lt;/b&gt; course";
 					$questionCategory->addChild('infoformat', 1);
 					$questionCategory->addChild('stamp', 0);
 					$questionCategory->addChild('parent', 0);
@@ -423,10 +423,10 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$courseCourseXml = new SimpleXMLElement($header . "<course></course>");
 	$courseCourseXml->addAttribute('id', $moodleObject->getID());
 	$courseCourseXml->addAttribute('contextid', $moodleObject->getID());
-	$courseCourseXml->addChild('shortname', $moodleObject->getShortName());
-	$courseCourseXml->addChild('fullname', $moodleObject->getFullName());
+	$courseCourseXml->shortname = $moodleObject->getShortName();
+	$courseCourseXml->fullname = $moodleObject->getFullName();
 	$courseCourseXml->addChild('idnumber');
-	$courseCourseXml->addChild('summary', "&lt;p&gt;" . $moodleObject->getFullName() . "&lt;/p&gt;");
+	$courseCourseXml->summary = "&lt;p&gt;" . $moodleObject->getFullName() . "&lt;/p&gt;";
 	$courseCourseXml->addChild('summaryformat', 0);
 	$courseCourseXml->addChild('format', 'topics');
 	$courseCourseXml->addChild('showgrades', 1);
