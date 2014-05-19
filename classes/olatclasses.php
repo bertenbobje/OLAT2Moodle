@@ -1111,7 +1111,7 @@ class MultipleChoiceQuestion extends Item {
 		}
 		elseif ($quotation == 'perAnswer') {
 			foreach ($results as $result) {
-				$answers[$result->attributes()->title] = array(
+				$answers[trim($result->attributes()->title)] = array(
 					'value' => (string) $result->conditionvar->varequal,
 					'score' => (string) $result->setvar,
 				);

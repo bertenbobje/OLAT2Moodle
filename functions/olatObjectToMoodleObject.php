@@ -25,12 +25,15 @@ function olatObjectToMoodleObject($olatObject, &$error) {
 	$number = 0;
 	$moodleCourse = new MoodleCourse(
 							$olatObject->getID(),
-							$olatObject->getShortTitle(),
-							$olatObject->getLongTitle(),
+							str_replace(' & ', ' &amp; ', $olatObject->getShortTitle()),
+							str_replace(' & ', ' &amp; ', $olatObject->getLongTitle()),
 							1);
 	
 	foreach ($olatObject->getChapter() as $olatChapter) {
-		$moodleSection = new Section($olatChapter->getChapterID(), $olatChapter->getShortTitle(), $number);
+		$moodleSection = new Section(
+								$olatChapter->getChapterID(), 
+								str_replace(' & ', ' &amp; ', $olatChapter->getShortTitle()), 
+								$number);
 		$ctype = $olatChapter->getType();
 		$ok = 0;
 		switch ($ctype) {
@@ -87,7 +90,7 @@ function olatObjectToMoodleObject($olatObject, &$error) {
 			$moodleActivity->setSectionID($olatChapter->getChapterID());
 			$moodleActivity->setModuleName($moduleName);
 			$moodleActivity->setOlatType($ctype);
-			$moodleActivity->setName($olatChapter->getShortTitle());
+			$moodleActivity->setName(str_replace(' & ', ' &amp; ', $olatChapter->getShortTitle()));
 			$moodleActivity->setIndent($olatChapter->getIndentation());
 			$moodleActivity->setBook(false);
 			$moodleSection->setActivity($moodleActivity);
@@ -149,7 +152,7 @@ function olatObjectToMoodleObject($olatObject, &$error) {
 				$moodleActivity->setSectionID($olatChapter->getChapterID());
 				$moodleActivity->setModuleName($moduleName);
 				$moodleActivity->setOlatType($stype);
-				$moodleActivity->setName($olatSubject->getSubjectShortTitle());
+				$moodleActivity->setName(str_replace(' & ', ' &amp; ', $olatSubject->getSubjectShortTitle()));
 				$moodleActivity->setIndent($olatSubject->getSubjectIndentation());
 				$moodleActivity->setBook(false);
 				$moodleSection->setActivity($moodleActivity);
@@ -233,7 +236,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$error) {
 			$moodleActivity->setSectionID($olatChapter->getChapterID());
 			$moodleActivity->setModuleName($moduleName);
 			$moodleActivity->setOlatType($type);
-			$moodleActivity->setName($sub->getSubjectShortTitle());
+			$moodleActivity->setName(str_replace(' & ', ' &amp; ', $sub->getSubjectShortTitle()));
 			$moodleActivity->setIndent($sub->getSubjectIndentation());
 			$moodleActivity->setBook(false);
 			
@@ -256,7 +259,7 @@ function moodleGetActivities(&$mSec, $oSub, $olatChapter, &$error) {
 //         $error = The error handler
 function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error) {
 	$act = new ActivityQuiz(
-				$olatObject->getDescription(),
+				str_replace(' & ', ' &amp; ', htmlspecialchars($olatObject->getDescription(),  ENT_QUOTES, "UTF-8")),
 				$olatObject->getDuration(),
 				$olatObject->getPassingScore(),
 				$olatObject->getClustering()
@@ -269,7 +272,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 		$quizPage = new QuizPage(
 					(string) $pageID,
 					$qs->getTitle(),
-					htmlspecialchars($qs->getDescription(), ENT_QUOTES, "UTF-8"),
+					str_replace(' & ', ' &amp; ', htmlspecialchars($qs->getDescription(), ENT_QUOTES, "UTF-8")),
 					$qs->getOrdering(),
 					$qs->getAmount()
 		);
@@ -277,14 +280,14 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 		foreach ($qs->getItems() as $qsi) {
 			$qid = (string) substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1);
 			$question = ($qsi->getType() == "FIB" ? $qsi->getContent() : $qsi->getQuestion());
-			$question = htmlspecialchars(html_entity_decode($question), ENT_QUOTES, "UTF-8");
+			$question = str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($question), ENT_QUOTES, "UTF-8"));
 			$quizQuestion = new QuizQuestion(
 						(string) $questionID,
-						$qsi->getTitle(),
+						str_replace(' & ', ' &amp; ', $qsi->getTitle()),
 						$qsi->getType(),
 						($qsi->getType() != "SCQ" && $qsi->getType() != "ESSAY" ? $qsi->getQuotation() : NULL),
 						($qsi->getType() != "ESSAY" ? $qsi->getScore() : NULL),
-						htmlspecialchars(html_entity_decode($qsi->getDescription()), ENT_QUOTES, "UTF-8"),
+						str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qsi->getDescription()), ENT_QUOTES, "UTF-8")),
 						moodleFixHTML($question, $olatObject->getLongTitle(), "quiz", $error),
 						($qsi->getType() == "SCQ" || $qsi->getType() == "MCQ" ? $qsi->getRandomOrder() : NULL),
 						($qsi->getType() != "ESSAY" ? $qsi->getHint() : NULL),
@@ -296,7 +299,9 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 			$questionID++;
 			if ($qsi->getType() == "FIB") {
 				foreach ($qsi->getFeedback() as $qsif) {
-					$quizFeedback = new QuizFeedback($qsif->getId(), htmlspecialchars($qsif->getFeedback(), ENT_QUOTES, "UTF-8"));
+					$quizFeedback = new QuizFeedback(
+											$qsif->getId(), 
+											str_replace(' & ', ' &amp; ', htmlspecialchars($qsif->getFeedback(), ENT_QUOTES, "UTF-8")));
 					$quizQuestion->setQFeedback($quizFeedback);
 				}
 			}
@@ -318,7 +323,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 					$feedback = null;
 					foreach ($qsi->getFeedback() as $qsif) {
 						if ($qsip->getId() == $qsif->getId()) {
-							$feedback = $qsif->getFeedback();
+							$feedback = str_replace(' & ', ' &amp; ', $qsif->getFeedback());
 						}
 					}
 					if (is_array($qsip->getAnswer())) {
@@ -327,6 +332,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 					else {
 						$answer = $qsip->getAnswer();
 					}
+					$answer = str_replace(' & ', ' &amp; ', $answer);
 					$quizPossibility = new QuizPossibility(
 						(string) $answerID,
 						htmlspecialchars(html_entity_decode($answer), ENT_QUOTES, "UTF-8"),
