@@ -426,7 +426,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$courseCourseXml->shortname = $moodleObject->getShortName();
 	$courseCourseXml->fullname = $moodleObject->getFullName();
 	$courseCourseXml->addChild('idnumber');
-	$courseCourseXml->summary = "&lt;p&gt;" . $moodleObject->getFullName() . "&lt;/p&gt;";
+	$courseCourseXml->summary = $moodleObject->getFullName();
 	$courseCourseXml->addChild('summaryformat', 1);
 	$courseCourseXml->addChild('format', 'topics');
 	$courseCourseXml->addChild('showgrades', 1);
