@@ -290,8 +290,8 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 						str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qsi->getDescription()), ENT_QUOTES, "UTF-8")),
 						moodleFixHTML($question, $olatObject->getLongTitle(), "quiz", $error),
 						($qsi->getType() == "SCQ" || $qsi->getType() == "MCQ" ? $qsi->getRandomOrder() : NULL),
-						($qsi->getType() != "ESSAY" ? $qsi->getHint() : NULL),
-						($qsi->getType() != "ESSAY" ? $qsi->getSolutionFeedback() : NULL),
+						($qsi->getType() != "ESSAY" ? str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qsi->getHint()), ENT_QUOTES, "UTF-8")) : NULL),
+						($qsi->getType() != "ESSAY" ? str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qsi->getSolutionFeedback()), ENT_QUOTES, "UTF-8")) : NULL),
 						($qsi->getType() != "ESSAY" ? $qsi->getMax_attempts() : NULL),
 						($qsi->getType() == "FIB" ? $qsi->getMedia() : NULL),
 						($qsi->getType() == "ESSAY" ? $qsi->getEssayRows() : NULL)
