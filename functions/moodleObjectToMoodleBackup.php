@@ -427,7 +427,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$courseCourseXml->fullname = $moodleObject->getFullName();
 	$courseCourseXml->addChild('idnumber');
 	$courseCourseXml->summary = "&lt;p&gt;" . $moodleObject->getFullName() . "&lt;/p&gt;";
-	$courseCourseXml->addChild('summaryformat', 0);
+	$courseCourseXml->addChild('summaryformat', 1);
 	$courseCourseXml->addChild('format', 'topics');
 	$courseCourseXml->addChild('showgrades', 1);
 	$courseCourseXml->addChild('newsitems', 1);
@@ -759,6 +759,9 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 		mkdir($path . "/activities", 0777, true);
 	}
 	
+	// For the sectionnumber XML tag
+	$sn = 1;
+	
 	foreach ($moodleObject->getSection() as $section) {
 		$previousActivity = null;
 		// Page numbers (increases by one by every chapter of every single book)
@@ -835,24 +838,25 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				$activityModuleXml->addAttribute('version', 2013050100);
 				$activityModuleXml->addChild('modulename', $activity->getModuleName());
 				$activityModuleXml->addChild('sectionid', $section->getSectionID());
-				$activityModuleXml->addChild('idnumber');
+				$activityModuleXml->addChild('sectionnumber', $sn);
+				$activityModuleXml->addChild('idnumber', "$@NULL@$");
 				$activityModuleXml->addChild('added', time());
 				$activityModuleXml->addChild('score', 0);
 				$activityModuleXml->addChild('indent', $activity->getIndent());
 				$activityModuleXml->addChild('visible', 1);
 				$activityModuleXml->addChild('visibleold', 1);
-					$activityModuleXml->addChild('groupmode', 0);
-					$activityModuleXml->addChild('groupingid', 0);
-					$activityModuleXml->addChild('groupmembersonly', 0);
-					$activityModuleXml->addChild('completion', 0);
-					$activityModuleXml->addChild('completiongradeitemnumber', "$@NULL@$");
-					$activityModuleXml->addChild('completionview', 0);
-					$activityModuleXml->addChild('completionexpected', 0);
-					$activityModuleXml->addChild('availablefrom', 0);
-					$activityModuleXml->addChild('availableuntil', 0);
-					$activityModuleXml->addChild('showavailability', 0);
-					$activityModuleXml->addChild('showdescription', 0);
-					$activityModuleXml->addChild('availability_info');
+				$activityModuleXml->addChild('groupmode', 0);
+				$activityModuleXml->addChild('groupingid', 0);
+				$activityModuleXml->addChild('groupmembersonly', 0);
+				$activityModuleXml->addChild('completion', 0);
+				$activityModuleXml->addChild('completiongradeitemnumber', "$@NULL@$");
+				$activityModuleXml->addChild('completionview', 0);
+				$activityModuleXml->addChild('completionexpected', 0);
+				$activityModuleXml->addChild('availablefrom', 0);
+				$activityModuleXml->addChild('availableuntil', 0);
+				$activityModuleXml->addChild('showavailability', 0);
+				$activityModuleXml->addChild('showdescription', 0);
+				$activityModuleXml->addChild('availability_info');
 				
 				$dom->loadXML($activityModuleXml->asXML());
 				file_put_contents($activityPath . "/module.xml", $dom->saveXML());
@@ -1110,6 +1114,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				$previousActivity = $activity;
 			}
 		}
+		$sn++;
 	}
 	
 	////////////////////////////////////////////////////////////////////
@@ -1434,7 +1439,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 	$activityActivityChildXml = $activityActivityXml->addChild($activity->getModuleName());
 	$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
 	$activityActivityChildXml->name = $activity->getName();
-	if ($activity->getModuleName() == "quiz") {
+	if ($activity->getModuleName() == "quiz" && $activity->getDescription() != "") {
 		$activityActivityChildXml->intro = $activity->getDescription();
 	}
 	else if ($activity->getModuleName() == "assign" && $activity->getAssignmentText() != "") {
@@ -1484,6 +1489,8 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			break;
 		
 		case "wiki":
+			$activityActivityChildXml->addChild('timecreated', time());
+			$activityActivityChildXml->addChild('timemodified', time());
 			$activityActivityChildXml->firstpagetitle = $activity->getName();
 			$activityActivityChildXml->addChild('wikimode', 'collaborative');
 			$activityActivityChildXml->addChild('defaultformat', 'html');
@@ -1491,7 +1498,6 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('editbegin', 0);
 			$activityActivityChildXml->addChild('editend', 0);
 			$activityActivityChildXml->addChild('subwikis');
-			$activityActivityChildXml->addChild('timemodified', time());
 			break;
 		
 		case "assign":
@@ -1641,7 +1647,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			}
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
 			$activityActivityChildXml->addChild('sumgrades', $sumgrades . ".00000");
-			if (!is_null($activity->getPassingScore()) && $activity->getPassingScore() != "0.0") {
+			if (!is_null($activity->getPassingScore()) && (int) $activity->getPassingScore() != 0 && $activity->getPassingScore() != "") {
 				$activityActivityChildXml->addChild('grade', $activity->getPassingScore());
 			}
 			else {
