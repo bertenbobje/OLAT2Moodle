@@ -395,9 +395,11 @@ function moodleFixHTML($html, $title, $type, &$error) {
 	// Media files (BPlayer)
 	if ($type == "page") {
 		$patternMedia2 = '/&lt;script.*?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.*?&lt;\/script&gt;/ism';
+		//$patternMedia2 = '/&lt;span id=&quot;olatFlashMovieViewer0&quot; class=&quot;olatFlashMovieViewer&quot;.*?&lt;script.*?BPlayer\.insertPlayer\(&quot;(.+?)&quot;.*?&lt;\/script&gt;.*?&lt;\/span&gt;/ism';
 	}
 	else {
 		$patternMedia2 = '/&lt;script.*?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.*?&lt;\/script&gt;/ism';
+		//$patternMedia2 = '/&lt;span id=&quot;olatFlashMovieViewer0&quot; class=&quot;olatFlashMovieViewer&quot;.*?&lt;script.*?BPlayer\.insertPlayer\(&quot;media\/(.+?)&quot;.*?&lt;\/script&gt;.*?&lt;\/span&gt;/ism';
 	}
 	$fixhtmlMedia2 = preg_replace($patternMedia2, $mediaReplace, $fixhtmlMedia);
 	
