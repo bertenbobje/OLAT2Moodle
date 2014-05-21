@@ -18,7 +18,7 @@ require_once("functions/general.php");
 //             - ChapterPage                  - SubjectPage
 //             - ChapterLearningObject        - SubjectLearningObject
 //             - ChapterDropFolder            - SubjectDropFolder
-//             - ChapterURL										- SubjectURL
+//             - ChapterURL                   - SubjectURL
 //             - ChapterResource              - SubjectResource
 //             - ChapterWiki                  - SubjectWiki
 //             - ChapterTask                  - SubjectTask
@@ -27,10 +27,11 @@ require_once("functions/general.php");
 //    |       1
 //    | inf.
 // Section
-// Feedback
-// ElementTypes
-// Possibility
-// Item -- SingleChoiceQuestion
+//      | 1
+//      |
+//  inf |       1
+//    Item ------------------------------- - Possibility
+//      -- SingleChoiceQuestion     inf.   - Feedback
 //      -- MultipleChoiceQuestion
 //      -- FillInBlanks
 //      -- EssayQuestion
