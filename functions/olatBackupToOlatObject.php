@@ -71,12 +71,8 @@ function olatBackupToOlatObject($path, &$error) {
 				return null;
 			}
 			
-			// $olat will be the root for the XML file
+			// $xpath will contain the entire file as an object.
 			if (file_exists($expath . "/runstructure.xml")) {
-				$olat = file_get_contents($expath . "/runstructure.xml");
-				// xPath initialisation for easier access to xml nodes.
-				$doc = new DOMDocument();
-				$doc->loadXML($olat);
 				$xpath = simplexml_load_file($expath . "/runstructure.xml", 'SimpleXMLElement', LIBXML_NOCDATA);
 				echo "<p>OK - OLAT backup file opened successfully</p>";
 				
@@ -267,7 +263,7 @@ function olatBackupToOlatObject($path, &$error) {
 			}
 		}
 		else {
-			$error->setError(new Error("ERROR", 2, "Error parsing ZIP, the .zip file might be corrupt?", 0));
+			$error->setError(new Error("ERROR", 2, "Error parsing ZIP, the .zip file might be corrupt.", 0));
 			return null;
 		}
 	}
