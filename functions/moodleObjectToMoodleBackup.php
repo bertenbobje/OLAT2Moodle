@@ -271,13 +271,26 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 										$amountIncorrect++;
 									}
 								}
+								if ($type == "multichoice") {
+									$amountQ = 0;
+									foreach ($qpq->getQPossibilities() as $qpqp) {
+										if ($qpqp->getQPIsCorrect()) {
+											$amountQ++;
+										}
+									}
+								}
 								foreach ($qpq->getQPossibilities() as $qpqp) {
 									$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
 									$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID());
 									$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
 									$questionCategoryQuestionAnswer->addChild('answerformat', 1);
 									if ($qpqp->getQPIsCorrect() || $type == "shortanswer") {
-										$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+										if ($type != "multichoice") {
+											$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+										}
+										else {
+											$questionCategoryQuestionAnswer->addChild('fraction', 1 / $amountQ);
+										}
 									}
 									else {
 										$questionCategoryQuestionAnswer->addChild('fraction', "0.0000000");
@@ -1245,7 +1258,12 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 	$questionID++;
 	$questionCategoryQuestion->addChild('question_hints', $qpq->getQHint());
 	$questionCategoryQuestion->addChild('tags');
-
+	
+	$totalScore = 0;
+	foreach ($qpq->getQPossibilities() as $qpqp) {
+		$totalScore += $qpqp->getQPScore();
+	}
+	
 	$sequence = "";
 	foreach ($qpq->getQPossibilities() as $qpqp) {
 		$questionCategoryQuestion = $questions->addChild('question');
@@ -1254,7 +1272,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionID++;
 		$questionCategoryQuestion->addChild('parent', $parentID);
 		$questionCategoryQuestion->name = $qpq->getQTitle();
-		$questionCategoryQuestion->addChild('questiontext', "{1:SHORTANSWER:=" . $qpqp->getQPAnswer() . "}");
+		$questionCategoryQuestion->addChild('questiontext', "{:SHORTANSWER:=" . $qpqp->getQPAnswer() . "}");
 		$questionCategoryQuestion->addChild('questiontextformat', 1);
 		$questionCategoryQuestion->addChild('generalfeedback');
 		$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
@@ -1276,7 +1294,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$answerID++;
 		$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
 		$questionCategoryQuestionAnswer->addChild('answerformat', 1);
-		$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+		$questionCategoryQuestionAnswer->addChild('fraction', $qpqp->getQPScore() / $totalScore);
 		if (!is_null($qpqp->getQPFeedback())) {
 			$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
 		}
@@ -1647,11 +1665,12 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			}
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
 			$activityActivityChildXml->addChild('sumgrades', $sumgrades . ".00000");
-			if (!is_null($activity->getPassingScore()) && (int) $activity->getPassingScore() != 0 && $activity->getPassingScore() != "") {
-				$activityActivityChildXml->addChild('grade', $activity->getPassingScore());
+			var_dump($activity->getPassingScore());
+			if (is_null($activity->getPassingScore()) || (int) $activity->getPassingScore() == 0 || $activity->getPassingScore() == "") {
+				$activityActivityChildXml->addChild('grade', $sumgrades . ".00000");
 			}
 			else {
-				$activityActivityChildXml->addChild('grade', $sumgrades . ".00000");
+				$activityActivityChildXml->addChild('grade', $activity->getPassingScore());
 			}
 			$activityActivityChildXml->addChild('timecreated', time());
 			$activityActivityChildXml->addChild('timemodified', time());
@@ -1679,7 +1698,12 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 						$activityActivityChildXmlQII->addAttribute('id', $questionInstanceID);
 						$questionInstanceID++;
 						$activityActivityChildXmlQII->addChild('question', $qpq->getQID());
-						$activityActivityChildXmlQII->addChild('grade', "1.0000000");
+						if ($qpq->getQScore() == null || $qpq->getQScore() == 0) {
+							$activityActivityChildXmlQII->addChild('grade', "1.0000000");
+						}
+						else {
+							$activityActivityChildXmlQII->addChild('grade', $qpq->getQScore());
+						}
 					}
 				}
 			}
