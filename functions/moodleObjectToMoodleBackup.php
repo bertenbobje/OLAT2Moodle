@@ -1259,9 +1259,11 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 	$questionCategoryQuestion->addChild('question_hints', $qpq->getQHint());
 	$questionCategoryQuestion->addChild('tags');
 	
-	$totalScore = 0;
-	foreach ($qpq->getQPossibilities() as $qpqp) {
-		$totalScore += $qpqp->getQPScore();
+	if ($qpq->getQQuotation() == "perAnswer") {
+		$totalScore = 0;
+		foreach ($qpq->getQPossibilities() as $qpqp) {
+			$totalScore += $qpqp->getQPScore();
+		}
 	}
 	
 	$sequence = "";
@@ -1294,7 +1296,12 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$answerID++;
 		$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
 		$questionCategoryQuestionAnswer->addChild('answerformat', 1);
-		$questionCategoryQuestionAnswer->addChild('fraction', $qpqp->getQPScore() / $totalScore);
+		if ($qpq->getQQuotation() == "perAnswer") {
+			$questionCategoryQuestionAnswer->addChild('fraction', $qpqp->getQPScore() / $totalScore);
+		}
+		else {
+			$questionCategoryQuestionAnswer->addChild('fraction', 1);
+		}
 		if (!is_null($qpqp->getQPFeedback())) {
 			$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
 		}
