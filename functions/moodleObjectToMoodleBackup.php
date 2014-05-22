@@ -1665,7 +1665,6 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			}
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
 			$activityActivityChildXml->addChild('sumgrades', $sumgrades . ".00000");
-			var_dump($activity->getPassingScore());
 			if (is_null($activity->getPassingScore()) || (int) $activity->getPassingScore() == 0 || $activity->getPassingScore() == "") {
 				$activityActivityChildXml->addChild('grade', $sumgrades . ".00000");
 			}
