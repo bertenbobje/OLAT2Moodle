@@ -756,13 +756,15 @@ class QuizPossibility {
 	protected $qpID;
 	protected $qpAnswer;
 	protected $qpScore;
+	protected $qpCase;
 	protected $qpIsCorrect;
 	protected $qpFeedback;
 	
-	public function __construct($qpID, $qpAnswer, $qpScore, $qpIsCorrect, $qpFeedback) {
+	public function __construct($qpID, $qpAnswer, $qpScore, $qpCase, $qpIsCorrect, $qpFeedback) {
 		$this->qpID = $qpID;
 		$this->qpAnswer = $qpAnswer;
 		$this->qpScore = $qpScore;
+		$this->qpCase = $qpCase;
 		$this->qpIsCorrect = $qpIsCorrect;
 		$this->qpFeedback = $qpFeedback;
 	}
@@ -789,6 +791,14 @@ class QuizPossibility {
 	
 	public function getQPScore() {
 		return $this->qpScore;
+	}
+	
+	public function setQPCase($qpCase) {
+		$this->qpCase = $qpCase;
+	}
+	
+	public function getQPCase() {
+		return $this->qpCase;
 	}
 	
 	public function setQPIsCorrect($qpIsCorrect) {

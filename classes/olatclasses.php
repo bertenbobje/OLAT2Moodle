@@ -985,6 +985,8 @@ class SingleChoiceQuestion extends Item {
 						$ident,
 						ElementTypes::RADIOBUTTON,
 						(string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext'),
+						null,
+						null,
 						$is_correct
 			);
 			$this->setPossibility($possibility);
@@ -1091,6 +1093,8 @@ class MultipleChoiceQuestion extends Item {
 						$ident,
 						ElementTypes::RADIOBUTTON,
 						(string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext'),
+						null,
+						null,
 						$is_correct
 			);
 			$this->setPossibility($possibility);
@@ -1183,24 +1187,40 @@ class FillInBlanks extends Item {
 		$answers = array();
 		if ($quotation == 'allCorrect') {
 			foreach ($results as $result) {
-				foreach ($result->conditionvar->and->or as $arrayAnswer) {
-					$ident = (int) $arrayAnswer->varequal->attributes()->respident;
-					$answers[$ident] = (string) $arrayAnswer->varequal;
+				$a = array();
+				foreach ($result->conditionvar->and->or->children() as $aa) {
+					array_push($a, (string) $aa);
 				}
-				$this->setAnswer($answers);
-				$this->setScore((string) $result->setvar);
+				$ident = (int) $result->conditionvar->and->or->varequal->attributes()->respident;
+				$answers[$ident] = array (
+						'value' => $a,
+						'score' => null,
+						'ccase' => (string) $result->conditionvar->and->or->varequal->attributes()->case
+				);
+				unset($a);
 			}
+			$this->setAnswer($answers);
+			$this->setScore((string) $result->setvar);
 		}
 		elseif ($quotation == 'perAnswer') {
 			foreach ($results as $result) {
-				$answers[(string) $result->conditionvar->or->varequal['respident']] = array(
-					'value' => (string) $result->conditionvar->or->varequal,
-					'score' => (string) $result->setvar,
+				$a = array();
+				foreach ($result->conditionvar->or->children() as $aa) {
+					array_push($a, (string) $aa);
+				}
+				$ident = (int) $result->conditionvar->or->varequal->attributes()->respident;
+				$answers[$ident] = array(
+						'value' => $a,
+						'score' => (string) $result->setvar,
+						'ccase' => (string) $result->conditionvar->or->varequal->attributes()->case
 				);
+				unset($a);
 			}
 			$this->setAnswer($answers);
 		}
-
+		
+		$aa = $answers;
+		
 		$content = '';
 		foreach ($item->presentation->flow->children() as $child) {
 			// MATERIAL can have the mattext or matimage elements (text/image)
@@ -1220,21 +1240,25 @@ class FillInBlanks extends Item {
 			elseif ($child->getName() == 'response_str') { // TEXTBOX
 				$ident = (int) getDataIfExists($child, 'attributes()', 'ident');
 				$content .= ':text' . $ident . 'box:';
-				$answer = NULL;
-				if ($ident && !empty($answers[$ident])) {
-					if (is_object($answers[$ident])) {
-						$answer = $answers[$ident]->value;
-					}
-					else {
-						$answer = $answers[$ident];
-					}
+				
+				$answer = null;
+				$score = null;
+				$ccase = null;
+				if ($ident && !empty($aa[$ident])) {
+					$answer = $aa[$ident]['value'];
+					$score = $aa[$ident]['score'];
+					$ccase = $aa[$ident]['ccase'];
 				}
+				
 				$possibility = new Possibility(
 								(string) getDataIfExists($child, 'attributes()', 'ident'),
 								ElementTypes::TEXTBOX,
 								$answer,
-								NULL
+								$score,
+								$ccase,
+								null
 				);
+				unset($answers);
 				$this->setPossibility($possibility);
 			}
 		}
@@ -1399,12 +1423,16 @@ class Possibility	{
 	protected $id;
 	protected $possibility; // Type of possibility: radio, checkbox, textbox
 	protected $answer; // Content of the possibility
+	protected $score;
+	protected $ccase;
 	protected $is_correct;
 
-	public function __construct($id, $possibility, $answer, $is_correct) {
+	public function __construct($id, $possibility, $answer, $score, $ccase, $is_correct) {
 		$this->id = $id;
 		$this->possibility = $possibility;
 		$this->answer = $answer;
+		$this->score = $score;
+		$this->ccase = $ccase;
 		$this->is_correct = $is_correct;
 	}
 
@@ -1430,6 +1458,22 @@ class Possibility	{
 
 	public function setAnswer($answer) {
 		$this->answer = $answer;
+	}
+	
+	public function getScore() {
+		return $this->score;
+	}
+
+	public function setScore($score) {
+		$this->score = $score;
+	}
+	
+	public function getCase() {
+		return $this->ccase;
+	}
+
+	public function setCase($ccase) {
+		$this->ccase = $ccase;
 	}
 
 	public function getIs_correct() {

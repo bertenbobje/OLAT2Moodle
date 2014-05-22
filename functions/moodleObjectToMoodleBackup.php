@@ -207,6 +207,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					$questionCategory->addChild('parent', $activity->getActivityID());
 					$questionCategory->addChild('sortorder', 999);
 					$questionCategoryQuestions = $questionCategory->addChild('questions');
+					
 					foreach ($qp->getPageQuestions() as $qpq) {
 						switch ($qpq->getQType()) {
 							case "SCQ":
@@ -229,8 +230,35 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							case "ESSAY":
 								$type = "essay";						// ESSAY ------------------> Becomes an Essay object in Moodle
 								break;
+							case "description":
+								$type = "description";			// DESCRIPTION ------------> Becomes a Description object in Moodle
+								break;
 						}
-						if ($type == "multianswer") {
+						if ($type == "description") {
+							// Description
+							$questionCategoryQuestion = $questionCategoryQuestions->addChild('question');
+							$questionCategoryQuestion->addAttribute('id', $qpq->getQID());
+							$questionCategoryQuestion->addChild('parent', 0);
+							$questionCategoryQuestion->addChild('name', "Inleiding");
+							$questionCategoryQuestion->addChild('questiontext', $qpq->getQQuestion());
+							$questionCategoryQuestion->addChild('questiontestformat', 1);
+							$questionCategoryQuestion->addChild('generalfeedback', 1);
+							$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
+							$questionCategoryQuestion->addChild('defaultmark', "0.0000000");
+							$questionCategoryQuestion->addChild('penalty', "0.0000000");
+							$questionCategoryQuestion->addChild('qtype', "description");
+							$questionCategoryQuestion->addChild('length', 1);
+							$questionCategoryQuestion->addChild('stamp', 0);
+							$questionCategoryQuestion->addChild('version', 0);
+							$questionCategoryQuestion->addChild('hidden', 0);
+							$questionCategoryQuestion->addChild('timecreated', time());
+							$questionCategoryQuestion->addChild('timemodified', time());
+							$questionCategoryQuestion->addChild('createdby', 2);
+							$questionCategoryQuestion->addChild('modifiedby', 2);
+							$questionCategoryQuestion->addChild('question_hints');
+							$questionCategoryQuestion->addChild('tags');
+						}
+						else if ($type == "multianswer") {
 							questionBankMultiAnswer($questionCategoryQuestions, $qpq, $multiAnswerID, $shortAnswerID, $questionID, $answerID);
 						}
 						else {
@@ -280,28 +308,48 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 									}
 								}
 								foreach ($qpq->getQPossibilities() as $qpqp) {
-									$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
-									$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID());
-									$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
-									$questionCategoryQuestionAnswer->addChild('answerformat', 1);
-									if ($qpqp->getQPIsCorrect() || $type == "shortanswer") {
-										if ($type != "multichoice") {
+									if ($type == "shortanswer" && is_array($qpqp->getQPAnswer())) {
+										$i = 1;
+										foreach ($qpqp->getQPAnswer() as $qpqpa) {
+											$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
+											$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID() + $i);
+											$questionCategoryQuestionAnswer->addChild('answertext', $qpqpa);
+											$questionCategoryQuestionAnswer->addChild('answerformat', 1);
 											$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+											if (!is_null($qpqp->getQPFeedback())) {
+												$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
+											}
+											else {
+												$questionCategoryQuestionAnswer->addChild('feedback');
+											}
+											$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
+											$i++;
+										}
+									}
+									else {
+										$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
+										$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID());
+										$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
+										$questionCategoryQuestionAnswer->addChild('answerformat', 1);
+										if ($qpqp->getQPIsCorrect() || $type == "shortanswer") {
+											if ($type != "multichoice") {
+												$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+											}
+											else {
+												$questionCategoryQuestionAnswer->addChild('fraction', 1 / $amountQ);
+											}
 										}
 										else {
-											$questionCategoryQuestionAnswer->addChild('fraction', 1 / $amountQ);
+											$questionCategoryQuestionAnswer->addChild('fraction', "0.0000000");
 										}
+										if (!is_null($qpqp->getQPFeedback())) {
+											$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
+										}
+										else {
+											$questionCategoryQuestionAnswer->addChild('feedback');
+										}
+										$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
 									}
-									else {
-										$questionCategoryQuestionAnswer->addChild('fraction', "0.0000000");
-									}
-									if (!is_null($qpqp->getQPFeedback())) {
-										$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
-									}
-									else {
-										$questionCategoryQuestionAnswer->addChild('feedback');
-									}
-									$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
 								}
 							}
 							$questionCategoryQuestionType = $questionCategoryQuestionPlugin->addChild($type);
@@ -352,7 +400,12 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 									break;
 								case "shortanswer":
 									$questionCategoryQuestionType->addAttribute('id', $shortAnswerID);
-									$questionCategoryQuestionType->addChild('usecase', 0);
+									if ($qpqp->getQPCase() == "Yes") {
+										$questionCategoryQuestionType->addChild('usecase', 1);
+									}
+									else {
+										$questionCategoryQuestionType->addChild('usecase', 0);
+									}
 									$shortAnswerID++;
 									break;
 								case "essay":
@@ -1274,7 +1327,21 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionID++;
 		$questionCategoryQuestion->addChild('parent', $parentID);
 		$questionCategoryQuestion->name = $qpq->getQTitle();
-		$questionCategoryQuestion->addChild('questiontext', "{:SHORTANSWER:=" . $qpqp->getQPAnswer() . "}");
+		
+		$questionText = "{:";
+		if ($qpqp->getQPCase() == "Yes") {
+			$questionText .= "SHORTANSWER_C:";
+		}
+		else {
+			$questionText .= "SHORTANSWER:";
+		}
+		
+		foreach ($qpqp->getQPAnswer() as $qpqpa) {
+			$questionText .= "%100%" . $qpqpa . "~";
+		}
+		$questionText = substr($questionText, 0, -1) . "}";
+		
+		$questionCategoryQuestion->addChild('questiontext', $questionText);
 		$questionCategoryQuestion->addChild('questiontextformat', 1);
 		$questionCategoryQuestion->addChild('generalfeedback');
 		$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
@@ -1291,28 +1358,35 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 		$questionCategoryQuestion->addChild('modifiedby', 2);
 		$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_shortanswer_question');
 		$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
-		$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
-		$questionCategoryQuestionAnswer->addAttribute('id', $answerID);
-		$answerID++;
-		$questionCategoryQuestionAnswer->addChild('answertext', $qpqp->getQPAnswer());
-		$questionCategoryQuestionAnswer->addChild('answerformat', 1);
-		if ($qpq->getQQuotation() == "perAnswer") {
-			$questionCategoryQuestionAnswer->addChild('fraction', $qpqp->getQPScore() / $totalScore);
+		foreach ($qpqp->getQPAnswer() as $qpqpa) {
+			$questionCategoryQuestionAnswer = $questionCategoryQuestionAnswers->addChild('answer');
+			$questionCategoryQuestionAnswer->addAttribute('id', $answerID);
+			$answerID++;
+			$questionCategoryQuestionAnswer->addChild('answertext', $qpqpa);
+			$questionCategoryQuestionAnswer->addChild('answerformat', 1);
+			if ($qpq->getQQuotation() == "perAnswer") {
+				$questionCategoryQuestionAnswer->addChild('fraction', $qpqp->getQPScore() / $totalScore);
+			}
+			else {
+				$questionCategoryQuestionAnswer->addChild('fraction', 1);
+			}
+			if (!is_null($qpqp->getQPFeedback())) {
+				$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
+			}
+			else {
+				$questionCategoryQuestionAnswer->addChild('feedback');
+			}
+			$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
 		}
-		else {
-			$questionCategoryQuestionAnswer->addChild('fraction', 1);
-		}
-		if (!is_null($qpqp->getQPFeedback())) {
-			$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
-		}
-		else {
-			$questionCategoryQuestionAnswer->addChild('feedback');
-		}
-		$questionCategoryQuestionAnswer->addChild('feedbackformat', 1);
 		$questionCategoryQuestionShortAnswer = $questionCategoryQuestionPlugin->addChild("shortanswer");
 		$questionCategoryQuestionShortAnswer->addAttribute('id', $shortAnswerID);
 		$shortAnswerID++;
-		$questionCategoryQuestionShortAnswer->addChild('usecase', 0);	
+		if ($qpqp->getQPCase() == "Yes") {
+			$questionCategoryQuestionShortAnswer->addChild('usecase', 1);	
+		}
+		else {
+			$questionCategoryQuestionShortAnswer->addChild('usecase', 0);	
+		}
 		$questionCategoryQuestion->addChild('question_hints');
 		$questionCategoryQuestion->addChild('tags');
 	}
