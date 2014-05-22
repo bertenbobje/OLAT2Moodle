@@ -277,6 +277,25 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 					$qs->getAmount()
 		);
 		$pageID++;
+		if ($qs->getDescription() != "") {
+			$quizQuestion = new QuizQuestion(
+					(string) $questionID,
+					"Inleiding",
+					"description",
+					NULL,
+					0,
+					"Inleiding",
+					str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qs->getDescription()), ENT_QUOTES, "UTF-8")),
+					NULL,
+					NULL,
+					NULL,
+					NULL,
+					NULL,
+					NULL
+			);
+			$questionID++;
+			$quizPage->setPageQuestion($quizQuestion);
+		}
 		foreach ($qs->getItems() as $qsi) {
 			$qid = (string) substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1);
 			$question = ($qsi->getType() == "FIB" ? $qsi->getContent() : $qsi->getQuestion());
@@ -312,6 +331,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 					(string) $answerID,
 					"NO ANSWER",
 					null,
+					null,
 					true,
 					""
 				);
@@ -328,18 +348,19 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 						}
 					}
 					if (is_array($qsip->getAnswer())) {
-						$answer = array_values($qsip->getAnswer())[0];
-						$answerScore = array_values($qsip->getAnswer())[1];
+						$answer = array();
+						foreach ($qsip->getAnswer() as $qpqpa) {			
+							array_push($answer, str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qpqpa), ENT_QUOTES, "UTF-8")));
+						}
 					}
 					else {
-						$answer = $qsip->getAnswer();
-						$answerScore = null;
+						$answer = str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qsip->getAnswer())));
 					}
-					$answer = str_replace(' & ', ' &amp; ', $answer);
 					$quizPossibility = new QuizPossibility(
 						(string) $answerID,
-						htmlspecialchars(html_entity_decode($answer), ENT_QUOTES, "UTF-8"),
-						$answerScore,
+						$answer,
+						$qsip->getScore(),
+						$qsip->getCase(),
 						$qsip->getIs_correct(),
 						htmlspecialchars($feedback, ENT_QUOTES, "UTF-8")
 					);
