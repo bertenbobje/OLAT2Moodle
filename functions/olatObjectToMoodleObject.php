@@ -311,6 +311,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 				$quizPossibility = new QuizPossibility(
 					(string) $answerID,
 					"NO ANSWER",
+					null,
 					true,
 					""
 				);
@@ -328,14 +329,17 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 					}
 					if (is_array($qsip->getAnswer())) {
 						$answer = array_values($qsip->getAnswer())[0];
+						$answerScore = array_values($qsip->getAnswer())[1];
 					}
 					else {
 						$answer = $qsip->getAnswer();
+						$answerScore = null;
 					}
 					$answer = str_replace(' & ', ' &amp; ', $answer);
 					$quizPossibility = new QuizPossibility(
 						(string) $answerID,
 						htmlspecialchars(html_entity_decode($answer), ENT_QUOTES, "UTF-8"),
+						$answerScore,
 						$qsip->getIs_correct(),
 						htmlspecialchars($feedback, ENT_QUOTES, "UTF-8")
 					);
