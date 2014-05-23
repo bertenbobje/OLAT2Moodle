@@ -42,10 +42,6 @@
 /* Bert Truyens
 /************************************************************/
 
-ini_set('xdebug.var_display_max_depth', -1);
-ini_set('xdebug.var_display_max_children', -1);
-ini_set('xdebug.var_display_max_data', -1);
-
 require_once("classes/generalclasses.php");
 
 require_once("functions/olatBackupToOlatObject.php");
@@ -73,7 +69,6 @@ if (isset($_FILES["file"])) {
 		if ($olatObject !== null) {
 			echo "<br><p>===OLAT OBJECT===</p>";
 			echo "<p>OK - OLAT Object created</p><br>";
-			//var_dump($olatObject);
 			echo "<p>===MOODLE OBJECT===</p>";
 			// Converts the OLAT Object to a Moodle object.
 			$moodleObject = olatObjectToMoodleObject($olatObject, $error);
@@ -86,7 +81,6 @@ if (isset($_FILES["file"])) {
 
 			$moodleObject = fixHTMLReferences($moodleObject, $olatObject, $books);
 			echo "<p>OK - All HTML references fixed</p>";
-			//var_dump($moodleObject);
 
 			echo "<br><p>===MOODLE BACKUP===</p>";
 			// Uses the Moodle Object to make a Moodle backup .mbz file.
