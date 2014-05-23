@@ -295,6 +295,8 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 			);
 			$questionID++;
 			$quizPage->setPageQuestion($quizQuestion);
+			$quizPage->setRandomQuestionID((string) $questionID);
+			$quizPage->setPageDescriptionElement(true);
 		}
 		foreach ($qs->getItems() as $qsi) {
 			$qid = (string) substr($qsi->getId(), strrpos($qsi->getId(), ":") + 1);

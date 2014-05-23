@@ -241,8 +241,8 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$questionCategoryQuestion->addChild('parent', 0);
 							$questionCategoryQuestion->addChild('name', "Inleiding");
 							$questionCategoryQuestion->addChild('questiontext', $qpq->getQQuestion());
-							$questionCategoryQuestion->addChild('questiontestformat', 1);
-							$questionCategoryQuestion->addChild('generalfeedback', 1);
+							$questionCategoryQuestion->addChild('questiontextformat', 1);
+							$questionCategoryQuestion->addChild('generalfeedback');
 							$questionCategoryQuestion->addChild('generalfeedbackformat', 1);
 							$questionCategoryQuestion->addChild('defaultmark', "0.0000000");
 							$questionCategoryQuestion->addChild('penalty', "0.0000000");
@@ -1743,11 +1743,14 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 				if ($activity->getClustering() != "itemPage") {
 					$questions .= "0,";
 				}
+				if ($qp->getPageDescriptionElement()) {
+					$sumgrades--;
+				}
 			}
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
 			$activityActivityChildXml->addChild('sumgrades', $sumgrades . ".00000");
 			if (is_null($activity->getPassingScore()) || (int) $activity->getPassingScore() == 0 || $activity->getPassingScore() == "") {
-				$activityActivityChildXml->addChild('grade', $sumgrades . ".00000");
+				$activityActivityChildXml->addChild('grade', $sumgrades);
 			}
 			else {
 				$activityActivityChildXml->addChild('grade', $activity->getPassingScore());
@@ -1780,6 +1783,9 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 						$activityActivityChildXmlQII->addChild('question', $qpq->getQID());
 						if ($qpq->getQScore() == null || $qpq->getQScore() == 0) {
 							$activityActivityChildXmlQII->addChild('grade', "1.0000000");
+						}
+						else if ($qpq->getQType() == "description") {
+							$activityActivityChildXmlQII->addChild('grade', "0.0000000");
 						}
 						else {
 							$activityActivityChildXmlQII->addChild('grade', $qpq->getQScore());
