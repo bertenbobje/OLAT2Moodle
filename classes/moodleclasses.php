@@ -490,6 +490,7 @@ class QuizPage {
 	protected $pageDescription;
 	protected $pageOrdering;
 	protected $pageAmount;
+	protected $pageDescriptionElement;
 	protected $pageQuestions = array();
 	protected $randomQuestionIDs = array();
 	
@@ -499,6 +500,7 @@ class QuizPage {
 		$this->pageDescription = $pageDescription;
 		$this->pageOrdering = $pageOrdering;
 		$this->pageAmount = $pageAmount;
+		$this->pageDescriptionElement = false;
 	}
 	
 	public function setPageID($pageID) {
@@ -539,6 +541,14 @@ class QuizPage {
 	
 	public function getPageAmount() {
 		return $this->pageAmount;
+	}
+	
+	public function setPageDescriptionElement($pageDescriptionElement) {
+		$this->pageDescriptionElement = $pageDescriptionElement;
+	}
+	
+	public function getPageDescriptionElement() {
+		return $this->pageDescriptionElement;
 	}
 	
 	public function setPageQuestion($pageQuestions) {
