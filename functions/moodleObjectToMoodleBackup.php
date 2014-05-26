@@ -158,6 +158,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 	$shortAnswerID = 1;
 	$multiAnswerID = 1;
 	$essayID = 1;
+	$questionHintID = 1;
 	$allQuestions = true;
 	foreach ($moodleObject->getSection() as $section) {
 		foreach ($section->getActivity() as $activity) {
@@ -259,7 +260,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$questionCategoryQuestion->addChild('tags');
 						}
 						else if ($type == "multianswer") {
-							questionBankMultiAnswer($questionCategoryQuestions, $qpq, $multiAnswerID, $shortAnswerID, $questionID, $answerID);
+							questionBankMultiAnswer($questionCategoryQuestions, $qpq, $multiAnswerID, $shortAnswerID, $questionID, $answerID, $questionHintID);
 						}
 						else {
 							$questionCategoryQuestion = $questionCategoryQuestions->addChild('question');
@@ -410,7 +411,17 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 									$essayID++;
 									break;
 							}
-							$questionCategoryQuestion->question_hints = $qpq->getQHint();
+							$hint = $qpq->getQHint();
+							if (!empty($hint)) {
+								$questionCategoryQuestionHint = $questionCategoryQuestion->addChild('question_hints');
+								$questionCategoryQuestionHint->addAttribute('id', $questionHintID);
+								$questionHintID++;
+								$questionCategoryQuestionHint->addChild('hint', $hint);
+								$questionCategoryQuestionHint->addChild('hintformat', 1);
+								$questionCategoryQuestionHint->addChild('shownumcorrect', 0);
+								$questionCategoryQuestionHint->addChild('clearwrong', 0);
+								$questionCategoryQuestionHint->addChild('options', "$@NULL@$");
+							}
 							$questionCategoryQuestion->addChild('tags');
 						}
 					}
@@ -1266,11 +1277,12 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 // made as a new question. This function adds these questions.
 //
 // PARAMETERS
-// ->  $questions = The XML questions part of the question category
-//           $qpq = The OLAT QuizQuestion object
-// $multiAnswerID = The current multiAnswer ID
-// $shortAnswerID = The current shortAnswer ID
-function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnswerID, &$questionID, &$answerID) {
+// ->   $questions = The XML questions part of the question category
+//            $qpq = The OLAT QuizQuestion object
+//  $multiAnswerID = The current multiAnswer ID
+//  $shortAnswerID = The current shortAnswer ID
+// $questionHintID = The current question_hint ID 
+function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnswerID, &$questionID, &$answerID, &$questionHintID) {
 	$questionCategoryQuestion = $questions->addChild('question');
 	$questionCategoryQuestion->addAttribute('id', $questionID);
 	$qpq->setQID($questionID);
@@ -1299,7 +1311,20 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 	$multiAnswerID++;
 	$questionCategoryQuestionMultiAnswer->addChild('question', $questionID);
 	$questionID++;
-	$questionCategoryQuestion->addChild('question_hints', $qpq->getQHint());
+	
+	$hint = $qpq->getQHint();
+	if (!empty($hint)) {
+		$questionCategoryQuestionHints = $questionCategoryQuestion->addChild('question_hints');
+		$questionCategoryQuestionHint = $questionCategoryQuestionHints->addChild('question_hint');
+		$questionCategoryQuestionHint->addAttribute('id', $questionHintID);
+		$questionHintID++;
+		$questionCategoryQuestionHint->addChild('hint', $hint);
+		$questionCategoryQuestionHint->addChild('hintformat', 1);
+		$questionCategoryQuestionHint->addChild('shownumcorrect', 0);
+		$questionCategoryQuestionHint->addChild('clearwrong', 0);
+		$questionCategoryQuestionHint->addChild('options', "$@NULL@$");
+	}
+	
 	$questionCategoryQuestion->addChild('tags');
 	
 	if ($qpq->getQQuotation() == "perAnswer") {
