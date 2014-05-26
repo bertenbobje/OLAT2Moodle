@@ -1731,23 +1731,38 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('shuffleanswers', 1);
 			$questions = "";
 			$sumgrades = 0;
+			$checkDesc = false;
 			foreach ($activity->getQuizPages() as $qp) {
 				if ($qp->getPageOrdering() == "Random") {
 					foreach ($qp->getRandomQuestionIDs() as $qpr) {
 						$questions .= $qpr . ",";
-						if ($activity->getClustering() == "itemPage") {
-							$questions .= "0,";
+						if (!$checkDesc) {
+							if ($qp->getPageDescriptionElement()) {
+								$checkDesc = true;
+							}
 						}
-						$sumgrades += $qpq->getQScore();
+						else {
+							if ($activity->getClustering() == "itemPage") {
+								$questions .= "0,";
+							}
+							$sumgrades += 1;
+						}
 					}
 				}
 				else {
 					foreach ($qp->getPageQuestions() as $qpq) {
 						$questions .= $qpq->getQID() . ",";
-						if ($activity->getClustering() == "itemPage") {
-							$questions .= "0,";
+						if (!$checkDesc) {
+							if ($qp->getPageDescriptionElement()) {
+								$checkDesc = true;
+							}
 						}
-						$sumgrades += $qpq->getQScore();
+						else {
+							if ($activity->getClustering() == "itemPage") {
+								$questions .= "0,";
+							}
+							$sumgrades += $qpq->getQScore();
+						}
 					}
 				}
 				if ($activity->getClustering() != "itemPage") {
