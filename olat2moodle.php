@@ -28,7 +28,7 @@
 			<div class="nav">
 				<ul>
 					<li><a href="index.html">Home</a></li>
-					<li><a href="">Documentation</a></li>
+					<li><a href="http://moodle.ned.univie.ac.at/course/view.php?id=72">Documentation</a></li>
 				</ul>
 			</div>
 			
