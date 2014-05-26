@@ -1196,34 +1196,38 @@ class FillInBlanks extends Item {
 		$answers = array();
 		if ($quotation == 'allCorrect') {
 			foreach ($results as $result) {
-				$a = array();
-				foreach ($result->conditionvar->and->or->children() as $aa) {
-					array_push($a, (string) $aa);
+				foreach ($result->conditionvar->and->children() as $a) {
+					$arr = array();
+					foreach ($a->children() as $aa) {
+						array_push($arr, (string) $aa);
+						$ident = (int) $aa->attributes()->respident;
+					}
+					$answers[$ident] = array (
+							'value' => $arr,
+							'score' => null,
+							'ccase' => (string) $result->conditionvar->and->or->varequal->attributes()->case
+					);
+					unset($arr);
 				}
-				$ident = (int) $result->conditionvar->and->or->varequal->attributes()->respident;
-				$answers[$ident] = array (
-						'value' => $a,
-						'score' => null,
-						'ccase' => (string) $result->conditionvar->and->or->varequal->attributes()->case
-				);
-				unset($a);
 			}
 			$this->setAnswer($answers);
 			$this->setScore((string) $result->setvar);
 		}
 		elseif ($quotation == 'perAnswer') {
 			foreach ($results as $result) {
-				$a = array();
-				foreach ($result->conditionvar->or->children() as $aa) {
-					array_push($a, (string) $aa);
+				foreach ($result->conditionvar->children() as $a) {
+					$arr = array();
+					foreach ($a->children() as $aa) {
+						array_push($arr, (string) $aa);
+						$ident = (int) $aa->attributes()->respident;
+					}
+					$answers[$ident] = array(
+							'value' => $arr,
+							'score' => (string) $result->setvar,
+							'ccase' => (string) $result->conditionvar->or->varequal->attributes()->case
+					);
+					unset($arr);
 				}
-				$ident = (int) $result->conditionvar->or->varequal->attributes()->respident;
-				$answers[$ident] = array(
-						'value' => $a,
-						'score' => (string) $result->setvar,
-						'ccase' => (string) $result->conditionvar->or->varequal->attributes()->case
-				);
-				unset($a);
 			}
 			$this->setAnswer($answers);
 		}

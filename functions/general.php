@@ -182,7 +182,8 @@ function getQuotationType($item) {
 	if (!empty($results[0])) {
 		if (count($results[0]->conditionvar->and) > 0) {
 			$quotation = 'allCorrect';
-		} else {
+		}
+		else {
 			$quotation = 'perAnswer';
 		}
 	}
