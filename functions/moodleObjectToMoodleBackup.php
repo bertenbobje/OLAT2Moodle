@@ -289,16 +289,6 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							$questionCategoryQuestionPlugin = $questionCategoryQuestion->addChild('plugin_qtype_' . $type . '_question');
 							if ($type != "essay") {
 								$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
-								$amountCorrect = 0;
-								$amountIncorrect = 0;
-								foreach ($qpq->getQPossibilities() as $qpqp) {
-									if ($qpqp->getQPIsCorrect()) {
-										$amountCorrect++;
-									}
-									else {
-										$amountIncorrect++;
-									}
-								}
 								if ($type == "multichoice") {
 									$amountQ = 0;
 									foreach ($qpq->getQPossibilities() as $qpqp) {
@@ -315,7 +305,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 											$questionCategoryQuestionAnswer->addAttribute('id', $qpqp->getQPID() + $i);
 											$questionCategoryQuestionAnswer->addChild('answertext', $qpqpa);
 											$questionCategoryQuestionAnswer->addChild('answerformat', 1);
-											$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+											$questionCategoryQuestionAnswer->addChild('fraction', 1);
 											if (!is_null($qpqp->getQPFeedback())) {
 												$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
 											}
@@ -333,14 +323,14 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 										$questionCategoryQuestionAnswer->addChild('answerformat', 1);
 										if ($qpqp->getQPIsCorrect() || $type == "shortanswer") {
 											if ($type != "multichoice") {
-												$questionCategoryQuestionAnswer->addChild('fraction', "1.0000000");
+												$questionCategoryQuestionAnswer->addChild('fraction', 1);
 											}
 											else {
 												$questionCategoryQuestionAnswer->addChild('fraction', 1 / $amountQ);
 											}
 										}
 										else {
-											$questionCategoryQuestionAnswer->addChild('fraction', "0.0000000");
+											$questionCategoryQuestionAnswer->addChild('fraction', 0);
 										}
 										if (!is_null($qpqp->getQPFeedback())) {
 											$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
@@ -1364,12 +1354,7 @@ function questionBankMultiAnswer(&$questions, $qpq, &$multiAnswerID, &$shortAnsw
 			$answerID++;
 			$questionCategoryQuestionAnswer->addChild('answertext', $qpqpa);
 			$questionCategoryQuestionAnswer->addChild('answerformat', 1);
-			if ($qpq->getQQuotation() == "perAnswer") {
-				$questionCategoryQuestionAnswer->addChild('fraction', $qpqp->getQPScore() / $totalScore);
-			}
-			else {
-				$questionCategoryQuestionAnswer->addChild('fraction', 1);
-			}
+			$questionCategoryQuestionAnswer->addChild('fraction', 1);
 			if (!is_null($qpqp->getQPFeedback())) {
 				$questionCategoryQuestionAnswer->addChild('feedback', $qpqp->getQPFeedback());
 			}
@@ -1728,7 +1713,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 						if ($activity->getClustering() == "itemPage") {
 							$questions .= "0,";
 						}
-						$sumgrades++;
+						$sumgrades += $qpq->getQScore();
 					}
 				}
 				else {
@@ -1737,24 +1722,16 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 						if ($activity->getClustering() == "itemPage") {
 							$questions .= "0,";
 						}
-						$sumgrades++;
+						$sumgrades += $qpq->getQScore();
 					}
 				}
 				if ($activity->getClustering() != "itemPage") {
 					$questions .= "0,";
 				}
-				if ($qp->getPageDescriptionElement()) {
-					$sumgrades--;
-				}
 			}
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
-			$activityActivityChildXml->addChild('sumgrades', $sumgrades . ".00000");
-			if (is_null($activity->getPassingScore()) || (int) $activity->getPassingScore() == 0 || $activity->getPassingScore() == "") {
-				$activityActivityChildXml->addChild('grade', $sumgrades);
-			}
-			else {
-				$activityActivityChildXml->addChild('grade', $activity->getPassingScore());
-			}
+			$activityActivityChildXml->addChild('sumgrades', $sumgrades);
+			$activityActivityChildXml->addChild('grade', $sumgrades);
 			$activityActivityChildXml->addChild('timecreated', time());
 			$activityActivityChildXml->addChild('timemodified', time());
 			$activityActivityChildXml->addChild('password');
@@ -1781,11 +1758,11 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 						$activityActivityChildXmlQII->addAttribute('id', $questionInstanceID);
 						$questionInstanceID++;
 						$activityActivityChildXmlQII->addChild('question', $qpq->getQID());
-						if ($qpq->getQScore() == null || $qpq->getQScore() == 0) {
-							$activityActivityChildXmlQII->addChild('grade', "1.0000000");
+						if ($qpq->getQType() == "description") {
+							$activityActivityChildXmlQII->addChild('grade', 0);
 						}
-						else if ($qpq->getQType() == "description") {
-							$activityActivityChildXmlQII->addChild('grade', "0.0000000");
+						else if ($qpq->getQScore() == null || $qpq->getQScore() == 0) {
+							$activityActivityChildXmlQII->addChild('grade', 1);
 						}
 						else {
 							$activityActivityChildXmlQII->addChild('grade', $qpq->getQScore());
