@@ -548,6 +548,12 @@ function olatQuizParse($object, $path, $olatType) {
 				$q = $objective . "<br><br>" . $question;
 			}
 			$QObject->setQuestion($q);
+			
+			// The original total score (max points) in OLAT.
+			$oScore = (string) getDataIfExists($qtiItem, 'resprocessing', 'outcomes', 'decvar', 'attributes()', 'maxvalue');
+			$QObject->setOriginalScore($oScore);
+			
+			
 			$sectionObject->setItem($QObject);
 		}
 	}

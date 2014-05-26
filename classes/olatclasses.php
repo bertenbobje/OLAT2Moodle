@@ -774,6 +774,7 @@ class Item {
 	protected $max_attempts;
 	protected $possibilities = array();
 	protected $question;
+	protected $originalScore;
 	protected $id;
 	public $content;
 	protected $sectionid;
@@ -821,6 +822,14 @@ class Item {
 		$this->question = $question;
 	}
 
+	public function getOriginalScore() {
+		return $this->originalScore;
+	}
+
+	public function setOriginalScore($originalScore) {
+		$this->originalScore = $originalScore;
+	}
+	
 	public function setTitle($title) {
 		$this->title = $title;
 	}
