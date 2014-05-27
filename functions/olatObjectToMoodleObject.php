@@ -370,7 +370,6 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 					$quizQuestion->setQPossibility($quizPossibility);
 				}
 			}
-			$quizQuestion = quizMediaFiles($quizQuestion);
 			$quizPage->setPageQuestion($quizQuestion);
 		}
 		if ($qs->getOrdering() == "Random") {
@@ -520,35 +519,6 @@ function moodleFixHTML($html, $title, $type, &$error) {
 	$fixEnd2 = preg_replace($patternRemoveEnd , $replaceRemoveEnd, $fixEnd1);
 
 	return $fixEnd2;
-}
-
-// Media files don't show up in the question, they are just referenced to.
-// This function will check if there are media files, and adds them to the question.
-// so that they show up in Moodle.
-//
-// PARAMETERS
-// -> $quizQuestion = the QuizQuestion object
-function quizMediaFiles($quizQuestion) {
-	$qq = $quizQuestion;
-	$qqm = $qq->getQMedia();
-	if (!empty($qqm)) {
-		$dom = new DOMDocument;
-		$errorState = libxml_use_internal_errors(TRUE);
-		$dom->loadHTML('<?xml encoding="UTF-8">' . htmlspecialchars_decode($quizQuestion->getQQuestion(), ENT_QUOTES));
-		
-		$body = $dom->getElementsByTagName('body')->item(0);
-		foreach ($qq->getQMedia() as $qqm) {
-			$img = $dom->createElement('img');
-			$img->setAttribute("src", "@@PLUGINFILE@@/" . substr($qqm, 6));
-			$body->insertBefore($img, $body->firstChild);
-		}
-		
-		libxml_use_internal_errors($errorState);
-		$fixedQuestion = $dom->saveHTML();
-		libxml_clear_errors();
-		$qq->setQQuestion(htmlspecialchars($fixedQuestion, ENT_QUOTES, "UTF-8"));
-	}
-	return $qq;
 }
 
 // Checks if there are scenarios with two or more pages in a row,

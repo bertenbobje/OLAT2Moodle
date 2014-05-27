@@ -1246,13 +1246,20 @@ class FillInBlanks extends Item {
 					}
 					if ($element->getName() == 'matimage') {
 						// Save image
+						$content .= '<img src="' . $element['uri'] . '">';
 						$this->setMedia((string) $element['uri']);
 					}
 				}
 			}
 			elseif ($child->getName() == 'response_str') { // TEXTBOX
 				$ident = (int) getDataIfExists($child, 'attributes()', 'ident');
-				$content .= ':text' . $ident . 'box:';
+				$block = (string) getDataIfExists($child, 'render_fib', 'flow_label', 'attributes()', 'class');
+				if ($block == "Block") {
+					$content .= ':text' . $ident . 'box:<br>';
+				}
+				else {
+					$content .= ':text' . $ident . 'box:';
+				}
 				
 				$answer = null;
 				$score = null;
