@@ -523,6 +523,9 @@ function olatQuizParse($object, $path, $olatType) {
 					if ($o->getName() == "mattext") {
 						$objective .= (string) $o;
 					}
+					else if ($q->getName() == "matimage") {
+						$question .= '<img src="' . $q->attributes()->uri . '">';
+					}
 					else if ($o->getName() == "matbreak") {
 						$objective .= "<br>";
 					}
@@ -535,6 +538,9 @@ function olatQuizParse($object, $path, $olatType) {
 				foreach ($qContainer as $q) {
 					if ($q->getName() == "mattext") {
 						$question .= (string) $q;
+					}
+					else if ($q->getName() == "matimage") {
+						$question .= '<img src="' . $q->attributes()->uri . '">';
 					}
 					else if ($q->getName() == "matbreak") {
 						$question .= "<br>";
