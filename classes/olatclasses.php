@@ -1255,10 +1255,10 @@ class FillInBlanks extends Item {
 				$ident = (int) getDataIfExists($child, 'attributes()', 'ident');
 				$block = (string) getDataIfExists($child, 'render_fib', 'flow_label', 'attributes()', 'class');
 				if ($block == "Block") {
-					$content .= ':text' . $ident . 'box:<br>';
+					$content .= '<br>:text' . $ident . 'box:<br>';
 				}
 				else {
-					$content .= ':text' . $ident . 'box:';
+					$content .= ' :text' . $ident . 'box: ';
 				}
 				
 				$answer = null;
