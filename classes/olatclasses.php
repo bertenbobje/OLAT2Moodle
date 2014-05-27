@@ -1249,17 +1249,15 @@ class FillInBlanks extends Item {
 						$content .= '<img src="' . $element['uri'] . '">';
 						$this->setMedia((string) $element['uri']);
 					}
+					if ($element->getName() == 'matbreak') {
+						$content .= "<br>";
+					}
 				}
 			}
-			elseif ($child->getName() == 'response_str') { // TEXTBOX
+			else if ($child->getName() == 'response_str') { // TEXTBOX
 				$ident = (int) getDataIfExists($child, 'attributes()', 'ident');
 				$block = (string) getDataIfExists($child, 'render_fib', 'flow_label', 'attributes()', 'class');
-				if ($block == "Block") {
-					$content .= '<br>:text' . $ident . 'box:<br>';
-				}
-				else {
-					$content .= ' :text' . $ident . 'box: ';
-				}
+				$content .= ' :text' . $ident . 'box: ';
 				
 				$answer = null;
 				$score = null;
