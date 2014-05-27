@@ -515,8 +515,33 @@ function olatQuizParse($object, $path, $olatType) {
 					break;
 			}
 			$QObject->parseXML($qtiItem);
-			$objective = (string) getDataIfExists($qtiItem, 'objectives', 'material', 'mattext');
-			$question = (string) getDataIfExists($qtiItem, 'presentation', 'material', 'mattext');
+
+			$objective = "";
+			if ($qtiItem->objectives->material) {
+				$oContainer = $qtiItem->objectives->material->children();
+				foreach ($oContainer as $o) {
+					if ($o->getName() == "mattext") {
+						$objective .= (string) $o;
+					}
+					else if ($o->getName() == "matbreak") {
+						$objective .= "<br>";
+					}
+				}
+			}
+			
+			$question = "";
+			if ($qtiItem->presentation->material) {
+				$qContainer = $qtiItem->presentation->material->children();
+				foreach ($qContainer as $q) {
+					if ($q->getName() == "mattext") {
+						$question .= (string) $q;
+					}
+					else if ($q->getName() == "matbreak") {
+						$question .= "<br>";
+					}
+				}
+			}
+			
 			if ($questionType == 'FIB') {
 				// For FIB
 				$question = (string) getDataIfExists($qtiItem, 'presentation', 'flow', 'material', 'mattext');
