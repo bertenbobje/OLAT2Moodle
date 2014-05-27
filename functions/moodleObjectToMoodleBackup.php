@@ -1729,46 +1729,33 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('navmethod', 'free');
 			$activityActivityChildXml->addChild('shufflequestions', 0);
 			$activityActivityChildXml->addChild('shuffleanswers', 1);
+			
 			$questions = "";
 			$sumgrades = 0;
-			$checkDesc = false;
 			foreach ($activity->getQuizPages() as $qp) {
 				if ($qp->getPageOrdering() == "Random") {
 					foreach ($qp->getRandomQuestionIDs() as $qpr) {
 						$questions .= $qpr . ",";
-						if (!$checkDesc) {
-							if ($qp->getPageDescriptionElement()) {
-								$checkDesc = true;
-							}
+						if ($activity->getClustering() == "itemPage") {
+							$questions .= "0,";
 						}
-						else {
-							if ($activity->getClustering() == "itemPage") {
-								$questions .= "0,";
-							}
-							$sumgrades += 1;
-						}
+						$sumgrades += 1;
 					}
 				}
 				else {
 					foreach ($qp->getPageQuestions() as $qpq) {
 						$questions .= $qpq->getQID() . ",";
-						if (!$checkDesc) {
-							if ($qp->getPageDescriptionElement()) {
-								$checkDesc = true;
-							}
+						if ($activity->getClustering() == "itemPage") {
+							$questions .= "0,";
 						}
-						else {
-							if ($activity->getClustering() == "itemPage") {
-								$questions .= "0,";
-							}
-							$sumgrades += $qpq->getQScore();
-						}
+						$sumgrades += $qpq->getQScore();
 					}
 				}
 				if ($activity->getClustering() != "itemPage") {
 					$questions .= "0,";
 				}
 			}
+			
 			$activityActivityChildXml->addChild('questions', substr($questions, 0, -1));
 			$activityActivityChildXml->addChild('sumgrades', $sumgrades);
 			$activityActivityChildXml->addChild('grade', $sumgrades);
