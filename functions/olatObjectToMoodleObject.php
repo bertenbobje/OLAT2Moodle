@@ -437,7 +437,7 @@ function moodleFixHTML($html, $title, $type, &$error) {
 		preg_match_all($patternFIB, $fixhtmlMedia2, $matches);
 		foreach ($matches as $m) {
 			foreach ($m as $patternFIB)	{
-				$fixhtmlFIB = preg_replace("/" . $patternFIB . "/ism", " {#" . $qcounter . "} ", $fixhtmlFIB);
+				$fixhtmlFIB = preg_replace("/" . $patternFIB . "/ism", "{#" . $qcounter . "}", $fixhtmlFIB);
 				$qcounter++;
 			}
 		}
