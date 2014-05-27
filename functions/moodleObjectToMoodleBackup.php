@@ -1549,10 +1549,10 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 	$activityActivityChildXml->addAttribute('id', $activity->getActivityID());
 	$activityActivityChildXml->name = $activity->getName();
 	if ($activity->getModuleName() == "quiz" && $activity->getDescription() != "") {
-		$activityActivityChildXml->intro = $activity->getDescription();
+		$activityActivityChildXml->intro = htmlspecialchars_decode($activity->getDescription());
 	}
 	else if ($activity->getModuleName() == "assign" && $activity->getAssignmentText() != "") {
-		$activityActivityChildXml->intro = $activity->getAssignmentText();
+		$activityActivityChildXml->intro = htmlspecialchars_decode($activity->getAssignmentText());
 	}
 	else {
 		$activityActivityChildXml->intro = $activity->getName();
