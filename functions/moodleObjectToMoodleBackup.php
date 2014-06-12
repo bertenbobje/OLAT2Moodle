@@ -931,7 +931,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 				// activities/[activity]_[x]/[activity].xml
 				$activityActivityXml = new SimpleXMLElement($header . "<activity></activity>");
 				noBookAddActivity($activityActivityXml, $activity, $questionInstanceID, $feedbackID);
-				
+
 				$dom->loadXML($activityActivityXml->asXML());
 				file_put_contents($activityPath . "/" . $activity->getModuleName() . ".xml", $dom->saveXML());
 				
@@ -1731,6 +1731,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('shuffleanswers', 1);
 			
 			$questions = "";
+			setlocale(LC_NUMERIC, 'en_US'); // Cast float with point and not coma
 			$sumgrades = 0;
 			foreach ($activity->getQuizPages() as $qp) {
 				if ($qp->getPageOrdering() == "Random") {
