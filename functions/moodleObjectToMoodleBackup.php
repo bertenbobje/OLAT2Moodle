@@ -291,6 +291,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 							if ($type != "essay") {
 								$questionCategoryQuestionAnswers = $questionCategoryQuestionPlugin->addChild('answers');
 								if ($type == "multichoice") {
+									setlocale(LC_NUMERIC, 'en_US');
 									$amountQ = 0;
 									foreach ($qpq->getQPossibilities() as $qpqp) {
 										if ($qpqp->getQPIsCorrect()) {
