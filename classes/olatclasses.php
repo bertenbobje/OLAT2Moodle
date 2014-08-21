@@ -543,7 +543,11 @@ class Subject {
 	public function getSubject() {
 		return $this->subjects;
 	}
-	
+
+	public function parseXML($subject) {
+                $this->setSubjectID((string) getDataIfExists($subject, 'attributes()', 'ident'));
+                $this->setLongTitle((string) getDataIfExists($subject, 'attributes()', 'title'));
+        }
 }
 
 ///////////////////////////////////////////////////////////
