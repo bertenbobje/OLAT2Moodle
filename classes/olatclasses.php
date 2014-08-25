@@ -544,10 +544,10 @@ class Subject {
 		return $this->subjects;
 	}
 
-	public function parseXML($subject) {
+	/**public function parseXML($subject) {
                 $this->setSubjectID((string) getDataIfExists($subject, 'attributes()', 'ident'));
                 $this->setLongTitle((string) getDataIfExists($subject, 'attributes()', 'title'));
-        }
+        }**/
 }
 
 ///////////////////////////////////////////////////////////
@@ -919,6 +919,82 @@ class Item {
 		}
 	}
 	
+}
+
+class KPRIMQuestion extends Item {
+
+	protected $answer;
+	protected $score;
+	protected $randomOrder;
+
+	public function __construct($values = array()) {
+                parent::__construct($values, 'qtici_KPRIM');
+        }
+
+	public function setAnswer($answer) {
+                $this->answer = $answer;
+        }
+
+        public function getAnswer() {
+                return $this->answer;
+        }
+
+	public function setScore($score) {
+                $this->score = $score;
+        }
+
+        public function getScore() {
+                return $this->score;
+        }
+
+        public function setRandomOrder($randomOrder) {
+                if ($randomOrder == 'Yes') {
+                        $this->randomOrder = TRUE;
+                }
+                else {
+                        $this->randomOrder = FALSE;
+                }
+        }
+
+        public function getRandomOrder() {
+                return $this->randomOrder;
+        }
+
+	        /**
+         * Parser function. $item is the loaded XML object
+         */
+        public function parseXML($item) {
+                $this->setRandomOrder((string) getDataIfExists($item, 'presentation', 'response_lid', 'render_choice', 'attributes()', 'shuffle'));
+		$this->setScore((string) getDataIfExists($item, 'resprocessing', 'outcomes', 'decvar', 'attributes()', 'maxvalue'));
+                // Set Type
+                $this->setType('KPRIM');
+		// Get answers
+		foreach ($item->presentation->response_lid->render_choice->children() as $flow_label) {
+			$possibility = new Possibility(
+				(int) getDataIfExists($flow_label, 'response_label', 'attributes()', 'ident'),
+				ElementTypes::RADIOBUTTON, 
+				(string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext'),
+				null,
+				null,
+				null
+			);
+			$this->setPossibility($possibility);
+		}
+
+		$answers = array();
+		$results = $item->xpath('resprocessing/respcondition[conditionvar/and]');
+		foreach ($results as $result) {
+			foreach ($result->conditionvar->and->varequal as $arrayAnswer) {
+				$id = substr($arrayAnswer, 0, strpos($arrayAnswer, ':'));
+				$status = substr($arrayAnswer, strpos($arrayAnswer, ':') + 1);
+				$answers[$id] = $status;
+			}
+		}
+
+		$this->setAnswer($answers);
+
+                parent::parseXML($item);
+        }
 }
 
 class SingleChoiceQuestion extends Item {
