@@ -212,6 +212,7 @@ function moodleObjectToMoodleBackup($moodleObject, $olatObject, $books, $chapter
 					foreach ($qp->getPageQuestions() as $qpq) {
 						switch ($qpq->getQType()) {
 							case "SCQ":
+							case "KPRIM":
 							case "MCQ":
 								if ($qpq->getQType() == "MCQ" && $qpq->getQQuotation() == "allCorrect") {
 									$type = "multichoiceset";	// MCQ (allCorrect) -------> Becomes a Multichoiceset object in Moodle	

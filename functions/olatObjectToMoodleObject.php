@@ -306,7 +306,7 @@ function quizMigration($olatObject, &$pageID, &$questionID, &$answerID, &$error)
 						(string) $questionID,
 						str_replace(' & ', ' &amp; ', $qsi->getTitle()),
 						$qsi->getType(),
-						($qsi->getType() != "SCQ" && $qsi->getType() != "ESSAY" ? $qsi->getQuotation() : NULL),
+						($qsi->getType() != "SCQ" && $qsi->getType() != "KPRIM" && $qsi->getType() != "ESSAY" ? $qsi->getQuotation() : NULL),
 						($qsi->getType() != "ESSAY" ? $qsi->getOriginalScore() : NULL),
 						str_replace(' & ', ' &amp; ', htmlspecialchars(html_entity_decode($qsi->getDescription()), ENT_QUOTES, "UTF-8")),
 						moodleFixHTML($question, $olatObject->getLongTitle(), "quiz", $error),
