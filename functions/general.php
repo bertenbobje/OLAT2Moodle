@@ -88,16 +88,16 @@ function checkDoubleFileReference($zippedzip, &$error) {
 // -> $n = The number
 // -> $x = The nearest factor of x to round up to (in this case: 5)
 function roundUpToAny($n, $x = 5) {
-		$v = (ceil($n) % $x === 0) ? round($n) : round(($n + $x / 2) / $x) * $x;
-		if ($v < 5) {
-			return 5;
-		}
-		else if ($v > 40) {
-			return 40;
-		}
-		else {
-			return $v;
-		}
+	$v = (ceil($n) % $x === 0) ? round($n) : round(($n + $x / 2) / $x) * $x;
+	if ($v < 5) {
+		return 5;
+	}
+	else if ($v > 40) {
+		return 40;
+	}
+	else {
+		return $v;
+	}
 }
 
 // Cleans a string for any characters that could break a filename.

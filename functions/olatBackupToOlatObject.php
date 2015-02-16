@@ -514,7 +514,7 @@ function olatQuizParse($object, $path, $olatType) {
 					$QObject = new EssayQuestion;
 					break;
 				case "KPRIM":
-					$QObject = NEW KPRIMQuestion;
+					$QObject = new KPRIMQuestion;
 					break;
 			}
 			$QObject->parseXML($qtiItem);

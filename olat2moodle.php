@@ -148,7 +148,7 @@ else {
 
 ?>
 			<footer>
-				<p>Original version by Bert Truyens and Sam Wouters - Source code can be found <a href="https://bitbucket.org/truyb/olat2moodle">here</a></p>
+				<p>Original version by Bert Truyens and Sam Wouters - Source code can be found <a href="https://github.com/truyb/OLAT2Moodle">here</a></p>
 			</footer>
 		</div>
 	</body>
