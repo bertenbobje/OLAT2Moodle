@@ -1733,7 +1733,7 @@ function noBookAddActivity(&$activityActivityXml, $activity, &$questionInstanceI
 			$activityActivityChildXml->addChild('shuffleanswers', 1);
 			
 			$questions = "";
-			setlocale(LC_NUMERIC, 'en_US'); // Cast float with point and not coma
+			setlocale(LC_NUMERIC, 'en_US'); // Cast float with point and not comma
 			$sumgrades = 0;
 			foreach ($activity->getQuizPages() as $qp) {
 				if ($qp->getPageOrdering() == "Random") {

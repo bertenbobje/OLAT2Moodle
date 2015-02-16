@@ -10,7 +10,7 @@ require_once("functions/general.php");
 
 //                                             ________________
 // Course (1)                            inf. |                |
-//   1 |___> Chapter (1+)										  v                | recursion
+//   1 |___> Chapter (1+)                     v                | recursion
 //      inf.   | |_______________________> Subject (1+) _______|
 //             |1   1             inf.        | 1        1
 // Folder      |                              | 
@@ -544,10 +544,6 @@ class Subject {
 		return $this->subjects;
 	}
 
-	/**public function parseXML($subject) {
-                $this->setSubjectID((string) getDataIfExists($subject, 'attributes()', 'ident'));
-                $this->setLongTitle((string) getDataIfExists($subject, 'attributes()', 'title'));
-        }**/
 }
 
 ///////////////////////////////////////////////////////////
@@ -898,10 +894,7 @@ class Item {
 		return unserialize($this->content);
 	}
 
-	/**
-	 * Queries of this class
-	 */
-
+	// Queries of this class
 	public function parseXML($item) {
 		$this->setId((string) getDataIfExists($item, 'attributes()', 'ident'));
 		$this->setTitle((string) getDataIfExists($item, 'attributes()', 'title'));
@@ -928,55 +921,53 @@ class KPRIMQuestion extends Item {
 	protected $randomOrder;
 
 	public function __construct($values = array()) {
-                parent::__construct($values, 'qtici_KPRIM');
-        }
+		parent::__construct($values, 'qtici_KPRIM');
+	}
 
 	public function setAnswer($answer) {
-                $this->answer = $answer;
-        }
+		$this->answer = $answer;
+	}
 
-        public function getAnswer() {
-                return $this->answer;
-        }
+	public function getAnswer() {
+		return $this->answer;
+	}
 
 	public function setScore($score) {
-                $this->score = $score;
-        }
+		$this->score = $score;
+	}
 
-        public function getScore() {
-                return $this->score;
-        }
+	public function getScore() {
+		return $this->score;
+	}
 
-        public function setRandomOrder($randomOrder) {
-                if ($randomOrder == 'Yes') {
-                        $this->randomOrder = TRUE;
-                }
-                else {
-                        $this->randomOrder = FALSE;
-                }
-        }
+	public function setRandomOrder($randomOrder) {
+		if ($randomOrder == 'Yes') {
+			$this->randomOrder = TRUE;
+		}
+		else {
+			$this->randomOrder = FALSE;
+		}
+	}
 
-        public function getRandomOrder() {
-                return $this->randomOrder;
-        }
+	public function getRandomOrder() {
+		return $this->randomOrder;
+	}
 
-	        /**
-         * Parser function. $item is the loaded XML object
-         */
-        public function parseXML($item) {
-                $this->setRandomOrder((string) getDataIfExists($item, 'presentation', 'response_lid', 'render_choice', 'attributes()', 'shuffle'));
+	// Parser function. $item is the loaded XML object
+	public function parseXML($item) {
+		$this->setRandomOrder((string) getDataIfExists($item, 'presentation', 'response_lid', 'render_choice', 'attributes()', 'shuffle'));
 		$this->setScore((string) getDataIfExists($item, 'resprocessing', 'outcomes', 'decvar', 'attributes()', 'maxvalue'));
-                // Set Type
-                $this->setType('KPRIM');
+		// Set Type
+		$this->setType('KPRIM');
 		// Get answers
 		foreach ($item->presentation->response_lid->render_choice->children() as $flow_label) {
 			$possibility = new Possibility(
 				(int) getDataIfExists($flow_label, 'response_label', 'attributes()', 'ident'),
 				ElementTypes::RADIOBUTTON, 
 				(string) getDataIfExists($flow_label, 'response_label', 'material', 'mattext'),
-				null,
-				null,
-				null
+				NULL,
+				NULL,
+				NULL
 			);
 			$this->setPossibility($possibility);
 		}
@@ -992,9 +983,9 @@ class KPRIMQuestion extends Item {
 		}
 
 		$this->setAnswer($answers);
-
-                parent::parseXML($item);
-        }
+		
+		parent::parseXML($item);
+	}
 }
 
 class SingleChoiceQuestion extends Item {
@@ -1045,9 +1036,7 @@ class SingleChoiceQuestion extends Item {
 		return $this->randomOrder;
 	}
 
-	/**
-	 * Parser function. $item is the loaded XML object
-	 */
+	// Parser function. $item is the loaded XML object
 	public function parseXML($item) {
 		$this->setMax_attempts((string) getDataIfExists($item, 'attributes()', 'maxattempts'));
 		$this->setRandomOrder((string) getDataIfExists($item, 'presentation', 'response_lid', 'render_choice', 'attributes()', 'shuffle'));
@@ -1142,9 +1131,7 @@ class MultipleChoiceQuestion extends Item {
 		return $this->randomOrder;
 	}
 
-	/**
-	 * Parser function. $item is the loaded XML object
-	 */
+	// Parser function. $item is the loaded XML object
 	public function parseXML($item) {
 		$this->setRandomOrder((string) getDataIfExists($item, 'presentation', 'response_lid', 'render_choice', 'attributes()', 'shuffle'));
 		// Set Type
